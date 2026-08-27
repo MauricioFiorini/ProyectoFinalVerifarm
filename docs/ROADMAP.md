@@ -89,7 +89,7 @@ acá: cada uno marca su casilla cuando la termina en la suya.
 | Integrante | 0.01 | 0.02 | 0.03 | 0.04 | 0.05 | 0.06 |
 |---|---|---|---|---|---|---|
 | Juan Pablo | `[x]` | `[x]` | `[x]` | `[x]` | `[ ]` | `[x]` |
-| Mauricio | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[ ]` |
+| Mauricio | `[x]` | `[x]` | `[ ]` | `[x]` | `[x]` | `[ ]` |
 | Juan José | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[ ]` |
 
 **Una tarea de esta fase pasa a `[x]` en la tabla de tareas solo cuando la
