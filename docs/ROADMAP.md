@@ -80,6 +80,26 @@ Nadie escribe código hasta que las tres máquinas pasen la 0.09.
 repositorio remoto y verificar la configuración de commits son cosas que un
 asistente no puede hacer. La primera tarea de IA es la 1.01.
 
+### Verificación por integrante
+
+Las tareas 0.01 a 0.06 se hacen **en cada máquina**. La columna Estado de la
+tabla de abajo no puede expresar "hecha en una de tres", así que el detalle vive
+acá: cada uno marca su casilla cuando la termina en la suya.
+
+| Integrante | 0.01 | 0.02 | 0.03 | 0.04 | 0.05 | 0.06 |
+|---|---|---|---|---|---|---|
+| Juan Pablo | `[x]` | `[x]` | `[x]` | `[x]` | `[ ]` | `[x]` |
+| Mauricio | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[ ]` |
+| Juan José | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[ ]` |
+
+**Una tarea de esta fase pasa a `[x]` en la tabla de tareas solo cuando la
+columna está completa para los tres.** Mientras haya una casilla vacía, queda en
+`[ ]`, aunque en tu máquina esté resuelta.
+
+La 0.05 es un caso particular: crear el repositorio se hace una sola vez, pero la
+casilla de cada uno se marca cuando **esa persona** confirma que tiene acceso y
+clonó.
+
 | # | Tarea | Estado | Tamaño | Depende |
 |---|---|---|---|---|
 | 0.01 | Instalar **Node.js LTS**. Verificar con `node -v` y `npm -v`. | `[ ]` | S | — |
@@ -87,7 +107,7 @@ asistente no puede hacer. La primera tarea de IA es la 1.01.
 | 0.03 | Instalar **Docker Desktop**. Verificar con `docker run hello-world`. | `[ ]` | M | — |
 | 0.04 | Instalar **VS Code** con extensiones: ESLint, Prettier, Prisma, Tailwind CSS IntelliSense. | `[ ]` | S | — |
 | 0.05 | Crear el repositorio en GitHub, dar acceso a los tres, `main` como rama por defecto. Clonarlo en cada máquina. | `[ ]` | S | — |
-| 0.06 | Configurar Claude Code / Antigravity y **desactivar el coautor automático de IA**. Hacer un commit de prueba y verificar con `git log --format=full` que **no aparece ningún trailer de coautoría de IA**. **Se verifica por máquina y por herramienta:** cada integrante la hace en la suya, y quien use Antigravity tiene que verificarla además con el ajuste propio de esa herramienta, que es aparte de `.claude/settings.json`. Marcada como hecha para la máquina de Juan Pablo con Claude Code. Hacerlo con el repositorio vacío: corregirlo después es mucho más caro. | `[x]` | M | 0.05 |
+| 0.06 | Configurar Claude Code / Antigravity y **desactivar el coautor automático de IA**. Hacer un commit de prueba y verificar con `git log --format=full` que **no aparece ningún trailer de coautoría de IA**. **Se verifica por máquina y por herramienta:** cada integrante la hace en la suya, y quien use Antigravity tiene que verificarla además con el ajuste propio de esa herramienta, que es aparte de `.claude/settings.json`. Hacerlo con el repositorio vacío: corregirlo después es mucho más caro. | `[ ]` | M | 0.05 |
 | 0.07 | Crear `.gitignore` (Node, Next.js, `.env`, `node_modules`, `.next`). | `[x]` | S | 0.05 |
 | 0.08 | Subir la documentación al repositorio: `CLAUDE.md` en la raíz y `CONTEXTO.md`, `ROADMAP.md`, `ROADMAP_PRODUCTO.md`, `CONVENCIONES.md`, `REGLAS_IA.md`, `TRASPASO.md` y el modelo de dominio `MD_VERIFARM.drawio` dentro de `docs/`, más la carpeta vacía `docs/decisiones/`. **Ya están escritos**: solo hay que ubicarlos y commitearlos. | `[x]` | S | 0.05 |
 | 0.09 | Prueba de humo: los tres clonan, ven la documentación en su lugar y confirman que el asistente lee `CLAUDE.md` al abrir la carpeta. | `[ ]` | M | 0.01–0.08 |

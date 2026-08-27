@@ -355,6 +355,11 @@ Lista viva. Se agrega, no se borra.
   configuración local propia en ese archivo, la va a ver cambiar al hacer `pull`.
   Lo que sea preferencia personal va en la configuración de usuario, fuera del
   repositorio; en el archivo versionado va solo lo que tiene que valer para todos.
+- **Nunca correr `git clone` desde adentro del repositorio.** Genera un clon
+  anidado con su propio `.git` que `git add -A` levanta como submódulo
+  (`create mode 160000`). Si eso entra a `main`, el resto se come una referencia
+  rota al hacer `pull`. Clonar siempre desde la carpeta que contiene al
+  repositorio, no desde el repositorio.
 
 ---
 
