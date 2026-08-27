@@ -350,6 +350,11 @@ Lista viva. Se agrega, no se borra.
   reservan casi al mismo tiempo, el push del segundo se rechaza. **No se rompió
   nada:** `git pull`, resolver el conflicto de la tabla **dejando las dos filas**
   —cada uno reservó una tarea distinta— y pushear de nuevo.
+- **`.claude/settings.json` está versionado y aplica a los tres.** Contiene la
+  configuración de atribución que sostiene la regla de autoría. Si alguien tenía
+  configuración local propia en ese archivo, la va a ver cambiar al hacer `pull`.
+  Lo que sea preferencia personal va en la configuración de usuario, fuera del
+  repositorio; en el archivo versionado va solo lo que tiene que valer para todos.
 
 ---
 
