@@ -88,8 +88,8 @@ asistente no puede hacer. La primera tarea de IA es la 1.01.
 | 0.04 | Instalar **VS Code** con extensiones: ESLint, Prettier, Prisma, Tailwind CSS IntelliSense. | `[ ]` | S | — |
 | 0.05 | Crear el repositorio en GitHub, dar acceso a los tres, `main` como rama por defecto. Clonarlo en cada máquina. | `[ ]` | S | — |
 | 0.06 | Configurar Claude Code / Antigravity y **desactivar el coautor automático de IA**. Hacer un commit de prueba y verificar con `git log --format=full` que **no aparece ningún trailer de coautoría de IA**. Hacerlo con el repositorio vacío: corregirlo después es mucho más caro. | `[ ]` | M | 0.05 |
-| 0.07 | Crear `.gitignore` (Node, Next.js, `.env`, `node_modules`, `.next`). | `[ ]` | S | 0.05 |
-| 0.08 | Subir la documentación al repositorio: `CLAUDE.md` en la raíz y `CONTEXTO.md`, `ROADMAP.md`, `ROADMAP_PRODUCTO.md`, `CONVENCIONES.md`, `REGLAS_IA.md`, `TRASPASO.md` y el modelo de dominio `MD_VERIFARM.drawio` dentro de `docs/`, más la carpeta vacía `docs/decisiones/`. **Ya están escritos**: solo hay que ubicarlos y commitearlos. | `[ ]` | S | 0.05 |
+| 0.07 | Crear `.gitignore` (Node, Next.js, `.env`, `node_modules`, `.next`). | `[x]` | S | 0.05 |
+| 0.08 | Subir la documentación al repositorio: `CLAUDE.md` en la raíz y `CONTEXTO.md`, `ROADMAP.md`, `ROADMAP_PRODUCTO.md`, `CONVENCIONES.md`, `REGLAS_IA.md`, `TRASPASO.md` y el modelo de dominio `MD_VERIFARM.drawio` dentro de `docs/`, más la carpeta vacía `docs/decisiones/`. **Ya están escritos**: solo hay que ubicarlos y commitearlos. | `[x]` | S | 0.05 |
 | 0.09 | Prueba de humo: los tres clonan, ven la documentación en su lugar y confirman que el asistente lee `CLAUDE.md` al abrir la carpeta. | `[ ]` | M | 0.01–0.08 |
 
 ---
