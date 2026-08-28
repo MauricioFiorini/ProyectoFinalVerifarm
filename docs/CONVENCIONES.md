@@ -366,6 +366,12 @@ Lista viva. Se agrega, no se borra.
   (`create mode 160000`). Si eso entra a `main`, el resto se come una referencia
   rota al hacer `pull`. Clonar siempre desde la carpeta que contiene al
   repositorio, no desde el repositorio.
+- **No clonar desde VS Code con la carpeta del proyecto ya abierta.** El diálogo
+  "Clone Git Repository" pide una carpeta destino y por defecto propone la que
+  está abierta, que es el repositorio mismo: el resultado es el clon anidado de
+  la trampa anterior. **La carpeta que se elige es la que va a contener al
+  repositorio, no el repositorio.** Y una vez clonado no se vuelve a clonar: para
+  traer lo nuevo se hace `git pull`.
 - **Nunca reescribir la historia de una rama que dejó otro.** Al retomar una
   tarea en pausa se sigue sobre su misma rama, y lo nuevo de `main` se trae con
   `merge`. Nada de `rebase`, `commit --amend` ni `push --force` sobre commits
