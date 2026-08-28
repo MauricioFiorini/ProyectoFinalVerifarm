@@ -138,7 +138,7 @@ clonó.
 | 0.06 | Configurar Claude Code / Antigravity y **desactivar el coautor automático de IA**. Hacer un commit de prueba y verificar con `git log --format=full` que **no aparece ningún trailer de coautoría de IA**. **Se verifica por máquina y por herramienta:** cada integrante la hace en la suya, y quien use Antigravity tiene que verificarla además con el ajuste propio de esa herramienta, que es aparte de `.claude/settings.json`. Hacerlo con el repositorio vacío: corregirlo después es mucho más caro. | `[x]` | M | 0.05 |
 | 0.07 | Crear `.gitignore` (Node, Next.js, `.env`, `node_modules`, `.next`). | `[x]` | S | 0.05 |
 | 0.08 | Subir la documentación al repositorio: `CLAUDE.md` en la raíz y `CONTEXTO.md`, `ROADMAP.md`, `ROADMAP_PRODUCTO.md`, `CONVENCIONES.md`, `REGLAS_IA.md`, `TRASPASO.md` y el modelo de dominio `MD_VERIFARM.drawio` dentro de `docs/`, más la carpeta vacía `docs/decisiones/`. **Ya están escritos**: solo hay que ubicarlos y commitearlos. | `[x]` | S | 0.05 |
-| 0.09 | Prueba de humo: los tres clonan, ven la documentación en su lugar y confirman que el asistente lee `CLAUDE.md` al abrir la carpeta. | `[ ]` | M | 0.01–0.08 |
+| 0.09 | Prueba de humo: los tres clonan, ven la documentación en su lugar y confirman que el asistente lee `CLAUDE.md` al abrir la carpeta. | `[x]` | M | 0.01–0.08 |
 
 ### Verificación por integrante de la 0.09
 
@@ -150,7 +150,7 @@ otra prueba de humo del roadmap.
 | Integrante | 0.09 |
 |---|---|
 | Juan Pablo | `[x]` |
-| Mauricio | `[ ]` |
+| Mauricio | `[x]` |
 | Juan José | `[x]` |
 
 **La 0.09 pasa a `[x]` en la tabla de tareas solo cuando las tres filas están
