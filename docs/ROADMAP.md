@@ -161,6 +161,38 @@ rama.
 | 1.08 | `src/lib/db.ts`: cliente Prisma singleton. | `[ ]` | S | 1.07 |
 | 1.09 | Estructura de carpetas definitiva: `src/app`, `src/components`, `src/lib`, `src/services`, `src/types`. | `[ ]` | S | 1.01 |
 | 1.10 | Paleta y tipografía en `globals.css` y `tailwind.config`: colores de marca y de estado (ok / advertencia / crítico). | `[ ]` | M | 1.01 |
+| 1.11 | **Prueba de humo del entorno.** Los tres, cada uno en su máquina: clonar o hacer `git pull` de la fase 1 completa, y correr `npm install`, `docker compose up -d`, `npx prisma migrate dev` y `npm run dev`, confirmando que la aplicación levanta sin errores. Además `npm run check` tiene que pasar limpio en las tres. | `[ ]` | M | 1.10 |
+
+### Verificación por integrante de la 1.11
+
+La 1.11 se corre **en cada máquina**, igual que las tareas 0.01 a 0.06, así que
+el detalle individual vive acá: cada uno marca su casilla cuando le levanta en la
+suya. Es la excepción al "una sola persona a la vez" de esta fase: el resto de la
+1.01 a la 1.10 lo escribe una persona, pero la 1.11 la corren los tres.
+
+| Integrante | 1.11 |
+|---|---|
+| Juan Pablo | `[ ]` |
+| Mauricio | `[ ]` |
+| Juan José | `[ ]` |
+
+**La 1.11 pasa a `[x]` en la tabla de tareas solo cuando las tres filas están
+completas.** Mientras haya una casilla vacía, queda en `[ ]`, aunque en tu máquina
+levante.
+
+### Por qué la prueba de humo del entorno va acá y no antes
+
+La 0.09 verifica que los tres clonaron y tienen las herramientas instaladas, pero
+**no puede verificar lo que importa** —que el proyecto levante y se conecte a la
+base— porque en ese momento el proyecto todavía no existe. La 1.11 cubre eso, y
+va al final de la fase 1 porque es el primer punto del roadmap donde hay algo que
+levantar.
+
+Ponerla acá es lo que evita el peor escenario: **si alguien descubre en la fase 3
+que nunca le anduvo Docker, ya perdió el trabajo de dos fases** sin saber si el
+problema era el código o su máquina. Correr `npm run check` en las tres es además
+donde se ve si el tema de los finales de línea quedó bien resuelto: es el primer
+momento en que Prettier revisa archivos generados en tres máquinas distintas.
 
 ---
 
@@ -173,7 +205,7 @@ decide cuando se empieza, no antes.
 
 | # | Tarea | Estado | Tamaño | Depende |
 |---|---|---|---|---|
-| 2.01 | Enums: `TipoUsuario`, `TipoMovimiento`, `UnidadMedida` y `Severidad`. **`Severidad` es la única escala de gravedad**: vive en `Interaccion` y la observación hereda ese valor. No se crea `NivelCriticidad` — dos escalas paralelas son sobreingeniería para un prototipo. | `[ ]` | S | 1.07 |
+| 2.01 | Enums: `TipoUsuario`, `TipoMovimiento`, `UnidadMedida` y `Severidad`. **`Severidad` es la única escala de gravedad**: vive en `Interaccion` y la observación hereda ese valor. No se crea `NivelCriticidad` — dos escalas paralelas son sobreingeniería para un prototipo. | `[ ]` | S | 1.11 |
 | 2.02 | Modelo `Medicamento`. Comentar cada decisión en el propio archivo. | `[ ]` | S | 2.01 |
 | 2.03 | Modelos de stock: `Lote` y `MovimientoStock`, con relaciones y `onDelete: Cascade`. | `[ ]` | M | 2.02 |
 | 2.04 | Modelos clínicos: `Paciente`, `MedicacionVigente`, `ConsultaInteraccion`, `ObservacionInteraccion`. | `[ ]` | M | 2.02 |
