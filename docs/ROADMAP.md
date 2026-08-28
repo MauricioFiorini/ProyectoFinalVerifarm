@@ -118,7 +118,7 @@ acá: cada uno marca su casilla cuando la termina en la suya.
 |---|---|---|---|---|---|---|
 | Juan Pablo | `[x]` | `[x]` | `[x]` | `[x]` | `[x]` | `[x]` |
 | Mauricio | `[x]` | `[x]` | `[x]` | `[x]` | `[x]` | `[x]` |
-| Juan José | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[ ]` |
+| Juan José | `[x]` | `[x]` | `[ ]` | `[x]` | `[x]` | `[x]` |
 
 **Una tarea de esta fase pasa a `[x]` en la tabla de tareas solo cuando la
 columna está completa para los tres.** Mientras haya una casilla vacía, queda en
