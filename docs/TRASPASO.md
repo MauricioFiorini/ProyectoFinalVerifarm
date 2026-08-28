@@ -15,18 +15,19 @@ Ubicación en el repo: `docs/TRASPASO.md`
 **Fecha:** 2026-08-28
 **Entrega:** Juan Pablo Malizani
 **Rama:** `main`
-**Commit:** de `75cbc8c` a `a573c54`, más el que trae este traspaso
+**Commit:** de `75cbc8c` a `52588f8`, más el que trae este traspaso
 
 ### Qué se hizo
 
 Se armó el repositorio desde cero, se dejó la documentación en su lugar
-definitivo y se avanzó la fase 0 en dos de las tres máquinas. El repositorio
-vigente es `MauricioFiorini/ProyectoFinalVerifarm`; el anterior
-(`MauricioFiorini/ProyectoFinal`) quedó descartado por decisión de equipo y no se
-migró nada de ahí, ni el esquema ni el backlog ni las decisiones. Eso está
-escrito en la sección 4 de `docs/CONTEXTO.md`.
+definitivo, se avanzó la fase 0 en dos de las tres máquinas y se cerró un hueco
+del roadmap: no había ninguna tarea que verificara que el proyecto levanta en las
+tres máquinas. El repositorio vigente es `MauricioFiorini/ProyectoFinalVerifarm`;
+el anterior (`MauricioFiorini/ProyectoFinal`) quedó descartado por decisión de
+equipo y no se migró nada de ahí, ni el esquema ni el backlog ni las decisiones.
+Eso está escrito en la sección 4 de `docs/CONTEXTO.md`.
 
-Concretamente:
+**Armado del repositorio:**
 
 - `CLAUDE.md` en la raíz, y `CONTEXTO.md`, `ROADMAP.md`, `ROADMAP_PRODUCTO.md`,
   `CONVENCIONES.md`, `REGLAS_IA.md`, `TRASPASO.md` y el modelo de dominio
@@ -40,16 +41,36 @@ Concretamente:
   Windows cuando llegue la tarea 1.03.
 - `.claude/settings.json` con la configuración de atribución de commits, que
   sostiene la regla de autoría. Está versionado, así que aplica a los tres.
+
+**Documentación:**
+
 - `docs/ROADMAP.md` incorporó, además del estado: el estado `[!]` EN PAUSA, la
   tabla "En curso ahora" con columnas de estado y fecha, la sección **"Reserva de
   tareas"** y la **tabla de verificación por integrante** de la fase 0.
 - `docs/CONVENCIONES.md` y `docs/REGLAS_IA.md` incorporaron el mecanismo de
   reserva, y la sección 14 de `CONVENCIONES.md`, "Trampas conocidas", pasó de
-  cuatro a ocho entradas a lo largo de este bloque.
-- **La fase 0 de Juan Pablo y la de Mauricio quedaron completas.** Las dos filas
-  tienen las seis casillas marcadas en la tabla de verificación por integrante.
-  Mauricio marcó las suyas en tres commits propios: `5519e73`, `b653a01` y
-  `9f99e92`.
+  cuatro a ocho entradas a lo largo de este bloque. La última que se agregó es no
+  clonar desde VS Code con la carpeta del proyecto ya abierta: el diálogo propone
+  esa carpeta como destino por defecto y genera un clon anidado.
+
+**Fase 0:**
+
+- **La de Juan Pablo y la de Mauricio quedaron completas.** Las dos filas tienen
+  las seis casillas marcadas en la tabla de verificación por integrante. Mauricio
+  marcó las suyas en tres commits propios: `5519e73`, `b653a01` y `9f99e92`.
+
+**Tarea 1.11, nueva:**
+
+- Se agregó la **1.11 — Prueba de humo del entorno** al final de la fase 1, con
+  su propia tabla de verificación por integrante y una nota que explica por qué
+  está ahí. Tamaño M, depende de la 1.10.
+- **La 2.01 pasa a depender de la 1.11**, no de la 1.07. Como el resto de la fase
+  2 encadena desde la 2.01, toda la fase queda detrás de la verificación de los
+  tres entornos.
+- El párrafo del "Reparto sugerido" decía que, mientras la fase 2 está en curso,
+  las otras dos personas trabajan en su fase 0. Con la dependencia nueva eso es
+  imposible, así que ahora dice lo que sí se puede hacer en paralelo: la 3.05,
+  que solo depende de la 1.10, o la documentación de las entregas.
 
 Dos correcciones de contenido pedidas por el equipo: la tarea **2.01** deja de
 crear `NivelCriticidad` y queda `Severidad` como única escala de gravedad, que
@@ -64,16 +85,16 @@ no de criticidad.
   el ajuste propio de esa herramienta, que es aparte de `.claude/settings.json`.
 - **Las tareas por máquina solo pasan a `[x]` cuando las hicieron los tres.** La
   columna Estado no puede expresar "hecha en dos de tres", así que el detalle
-  individual vive en la tabla "Verificación por integrante" del encabezado de la
-  fase 0. Mientras haya una casilla vacía, la tarea queda en `[ ]`.
+  individual vive en una tabla de verificación por integrante. Hay dos: una en el
+  encabezado de la fase 0 y otra para la 1.11. Mientras haya una casilla vacía,
+  la tarea queda en `[ ]`.
 - **Reserva de tareas.** Se agregó un mecanismo para que dos personas no agarren
   lo mismo: se anota la tarea en "En curso ahora" y se commitea a `main` con
   `chore: tomar la tarea X.YY` **antes** de empezar a trabajar. El procedimiento
   completo está en la sección "Reserva de tareas" de `docs/ROADMAP.md`, que es el
   único lugar donde se explica.
 - **Ninguna tarea tiene dueño fijo, y una tarea en pausa la puede continuar
-  cualquiera.** Esto se decidió **después** del traspaso anterior, en el commit
-  `a573c54`. Antes, el reparto por módulo se leía como una asignación, y una
+  cualquiera.** Antes, el reparto por módulo se leía como una asignación, y una
   tarea a medio hacer quedaba trabada hasta que volviera quien la había empezado.
   Ahora el reparto es explícitamente una preferencia de continuidad, y lo único
   que reserva una tarea es la tabla "En curso ahora", mientras alguien la está
@@ -81,6 +102,21 @@ no de criticidad.
   con `merge`, y **nunca** usa `rebase`, `commit --amend` ni `push --force` sobre
   commits ajenos. El cambio tocó `CLAUDE.md`, `docs/ROADMAP.md`,
   `docs/CONVENCIONES.md` y `docs/REGLAS_IA.md`.
+- **La prueba de humo del entorno va al final de la fase 1, no antes.** La 0.09
+  verifica que los tres clonaron y tienen las herramientas instaladas, pero no
+  puede verificar que el proyecto levante y se conecte a la base, porque en ese
+  momento el proyecto todavía no existe. Poner la verificación recién acá evita
+  el peor escenario: que alguien descubra en la fase 3 que nunca le anduvo
+  Docker, con el trabajo de dos fases ya perdido y sin saber si el problema era
+  el código o su máquina.
+- **La 1.11 no corre `npx prisma migrate dev`.** Al final de la fase 1 no hay
+  nada que migrar —el esquema recién se escribe en la fase 2— así que ese comando
+  generaría una migración vacía, que después queda como ruido permanente en el
+  historial, delante de la inicial de la 2.07. La conexión se verifica con un
+  `SELECT 1;` por entrada estándar hacia `npx prisma db execute`, que prueba lo
+  mismo que importaba y no escribe nada. El porqué quedó escrito dentro de la
+  propia tarea, para que nadie lo "corrija" más adelante pensando que falta un
+  paso.
 
 Ninguna de estas es estructural en el sentido de arquitectura, así que
 `docs/decisiones/` sigue vacía.
@@ -96,15 +132,18 @@ integrante está vacía:
 
 Y, como consecuencia:
 
-- [ ] 0.09 — prueba de humo, que necesita a los tres
+- [ ] 0.09 — prueba de humo de la documentación, que necesita a los tres
 
 Las tareas 0.01 a 0.06 siguen en `[ ]` en la tabla de tareas por esa fila
 incompleta, aunque en las máquinas de Juan Pablo y de Mauricio estén resueltas.
 Las tareas 0.07 y 0.08 están completas: se resuelven una sola vez en el
 repositorio, no por máquina.
 
-No hay una sola línea de código todavía. La tabla "En curso ahora" está vacía:
-nadie tiene ninguna tarea reservada.
+**No hay una sola línea de código todavía.** No existen `package.json`,
+`docker-compose.yml` ni `prisma/schema.prisma`: el repositorio tiene solo
+documentación y configuración de git. Todo eso lo crea la fase 1.
+
+La tabla "En curso ahora" está vacía: **nadie tiene ninguna tarea reservada.**
 
 ### Cómo verificarlo
 
@@ -124,9 +163,9 @@ Juan José, en su máquina:
 5. Marcar su fila en la tabla de verificación por integrante.
 
 En las máquinas de Juan Pablo y de Mauricio los pasos 3 y 4 ya se verificaron.
-Los diez commits que tiene el repositorio hasta este traspaso tienen a una
-persona como autor y ninguno menciona a una IA. Los únicos coautores son Mauricio
-y Juan José, en el commit de la documentación.
+Los trece commits que tiene el repositorio hasta este traspaso tienen a una
+persona como autor y ninguno menciona a una IA como autor ni como coautor. Los
+únicos coautores son Mauricio y Juan José, en el commit de la documentación.
 
 ### Qué sigue
 
@@ -134,12 +173,16 @@ y Juan José, en el commit de la documentación.
 
 1. Juan José hace la 0.01 a la 0.06 en su máquina y marca su fila. Con las tres
    filas completas, esas seis tareas pasan a `[x]`.
-2. Los tres hacen la **0.09**, la prueba de humo. Necesita a los tres.
+2. Los tres hacen la **0.09**, la prueba de humo de la documentación. Necesita a
+   los tres.
 3. Recién ahí la **1.01**: crear el proyecto Next.js con TypeScript, App Router,
    Tailwind, ESLint y carpeta `src/`. Es la primera tarea de programación.
 
 La fase 1 la toma **una sola persona a la vez**, la que esté disponible; si queda
-a medio camino, la continúa otro sobre la misma rama. El resto parte de ahí.
+a medio camino, la continúa otro sobre la misma rama. La excepción es la
+**1.11**, que la corren los tres, cada uno en su máquina, y que cierra la fase.
+Hasta que las tres filas de la 1.11 no estén marcadas, no se empieza la 2.01 ni,
+por lo tanto, ninguna otra tarea de la fase 2.
 
 ### Antes de arrancar, tener en cuenta
 
@@ -158,6 +201,9 @@ a medio camino, la continúa otro sobre la misma rama. El resto parte de ahí.
   vuelve a clonar: para traer lo nuevo se hace `git pull`.
 - **Prisma queda clavado en `7.10.0`.** No instalar `prisma@latest`. La versión
   hay que verificarla contra npm cuando se llegue a la 1.06, no darla por cierta.
+- **Los comandos de la 1.11 no se probaron todavía**, porque el proyecto no
+  existe. Si `npx prisma db execute --stdin` pide el esquema explícito en la
+  versión instalada, la propia tarea dice qué agregar.
 - La lista de lo que **no** se implementa está en `docs/CONTEXTO.md`, sección 6,
   y en `docs/ROADMAP_PRODUCTO.md`.
 

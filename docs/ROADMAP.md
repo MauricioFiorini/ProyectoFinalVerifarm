@@ -332,8 +332,12 @@ Si quien figura acá no está disponible, la toma otro.
 - **Persona B:** Fase 2 (modelo de datos, en solitario), luego Fase 4 (stock y FEFO).
 - **Persona C:** Fase 5 (clínico), arrancando por 5.03.
 
-Mientras la Fase 2 está en curso, las otras dos personas trabajan en su Fase 0 o
-en la corrección de la documentación de las entregas, que es paralela a todo.
+Mientras la Fase 2 está en curso, las otras dos personas pueden tomar la **3.05**
+(componentes base), que solo depende de la 1.10 y no toca el modelo de datos, o
+trabajar en la corrección de la documentación de las entregas, que es paralela a
+todo. **La Fase 0 ya no es una opción en ese momento:** tiene que estar cerrada
+para empezar la 1.01, y la 1.11 tiene que estar verificada en las tres máquinas
+para empezar la 2.01.
 
 ## Riesgos
 
