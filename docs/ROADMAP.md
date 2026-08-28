@@ -161,7 +161,7 @@ rama.
 | 1.08 | `src/lib/db.ts`: cliente Prisma singleton. | `[ ]` | S | 1.07 |
 | 1.09 | Estructura de carpetas definitiva: `src/app`, `src/components`, `src/lib`, `src/services`, `src/types`. | `[ ]` | S | 1.01 |
 | 1.10 | Paleta y tipografía en `globals.css` y `tailwind.config`: colores de marca y de estado (ok / advertencia / crítico). | `[ ]` | M | 1.01 |
-| 1.11 | **Prueba de humo del entorno.** Los tres, cada uno en su máquina: clonar o hacer `git pull` de la fase 1 completa, y correr `npm install`, `docker compose up -d`, `npx prisma migrate dev` y `npm run dev`, confirmando que la aplicación levanta sin errores. Además `npm run check` tiene que pasar limpio en las tres. | `[ ]` | M | 1.10 |
+| 1.11 | **Prueba de humo del entorno.** Los tres, cada uno en su máquina: clonar o hacer `git pull` de la fase 1 completa, y correr `npm install`, `docker compose up -d`, la prueba de conexión a la base y `npm run dev`, confirmando que la aplicación levanta sin errores. La prueba de conexión es `echo "SELECT 1;" \| npx prisma db execute --stdin`: **lo único que verifica es que Prisma llega a PostgreSQL en Docker con la `DATABASE_URL` configurada**, y no escribe nada en la base. Si la versión instalada pide el esquema explícito, agregar `--schema prisma/schema.prisma`. **No se usa `npx prisma migrate dev` acá, a propósito:** el esquema recién se escribe en la fase 2, así que acá generaría una migración vacía que queda como ruido permanente en el historial, delante de la inicial de la 2.07. Además `npm run check` tiene que pasar limpio en las tres. | `[ ]` | M | 1.10 |
 
 ### Verificación por integrante de la 1.11
 
