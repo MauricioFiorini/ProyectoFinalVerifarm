@@ -25,11 +25,11 @@ Mauricio.
 
 - **Tareas 0.01, 0.02, 0.04, 0.05 y 0.06.** Pasaron a `[x]` en la tabla de tareas
   de `docs/ROADMAP.md`. Ya estaban marcadas para los tres en la tabla de
-  verificación por integrante, así que la regla de la fase —una tarea pasa a `[x]`
-  cuando la columna está completa para los tres— exigía marcarlas. La 0.03 ya
-  venía marcada desde el commit `e3b73d1`. Antes de esto las dos tablas de la
-  fase se contradecían: la de verificación por integrante estaba completa y la de
-  tareas mostraba cinco casillas vacías.
+  verificación por integrante de las tareas 0.01 a 0.06, así que la regla de la
+  fase —una tarea pasa a `[x]` cuando la columna está completa para los tres—
+  exigía marcarlas. La 0.03 ya venía marcada desde el commit `e3b73d1`. Antes de
+  esto esas dos tablas se contradecían: la de verificación por integrante estaba
+  completa y la de tareas mostraba cinco casillas vacías.
 - **La 0.09 tiene ahora su propia tabla de verificación por integrante**, con el
   mismo formato que la de las tareas 0.01 a 0.06 y la de la 1.11. Juan Pablo y
   Juan José tienen su casilla marcada; la de Mauricio está vacía.
@@ -100,8 +100,8 @@ Mauricio tiene pendientes:
    y `noreply@anthropic` **no devuelve nada**.
 5. El asistente lee `CLAUDE.md` solo al abrir la carpeta, sin que haya que
    pedírselo.
-6. Las tres filas de la tabla de verificación por integrante de la fase 0 están
-   completas, y la tabla "En curso ahora" está vacía.
+6. Las tres filas de la tabla de verificación por integrante de las tareas 0.01 a
+   0.06 están completas, y la tabla "En curso ahora" está vacía.
 
 **Los puntos 3, 4 y 5 son por máquina**: valen donde se corren y no se pueden dar
 por buenos desde otra. Por eso la 0.09 necesita a los tres.
@@ -161,13 +161,13 @@ fase 0:
 ### Antes de arrancar, tener en cuenta
 
 - **Las dos tablas de una tarea por máquina se actualizan juntas.** Al cerrar su
-  fase 0, Juan José marcó su fila en la tabla de verificación por integrante pero
-  dejó cinco tareas —0.01, 0.02, 0.04, 0.05 y 0.06— sin marcar en la tabla de
-  tareas. Este bloque de trabajo lo corrigió. La tabla de verificación dice quién
-  lo hizo en su máquina; la de tareas dice si la tarea está cerrada para el
-  equipo. Marcar una sin la otra deja el roadmap contradiciéndose. Ahora hay tres
-  tablas por integrante —la de 0.01 a 0.06, la de la 0.09 y la de la 1.11— y las
-  tres funcionan igual.
+  fase 0, Juan José marcó su fila en la tabla de verificación por integrante de
+  las tareas 0.01 a 0.06, pero dejó cinco de ellas —0.01, 0.02, 0.04, 0.05 y
+  0.06— sin marcar en la tabla de tareas. Este bloque de trabajo lo corrigió. La
+  tabla por integrante dice quién lo hizo en su máquina; la de tareas dice si la
+  tarea está cerrada para el equipo. Marcar una sin la otra deja el roadmap
+  contradiciéndose. Ahora hay tres tablas por integrante —la de las tareas 0.01 a
+  0.06, la de la 0.09 y la de la 1.11— y las tres funcionan igual.
 - **Una tarea que corren los tres no se marca con el reporte de dos.** Es lo que
   pasó con la 0.09 y hubo que revertirlo. Si falta una casilla, la tarea queda en
   `[ ]`, aunque en tu máquina haya pasado.
