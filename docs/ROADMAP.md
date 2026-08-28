@@ -118,7 +118,7 @@ acá: cada uno marca su casilla cuando la termina en la suya.
 |---|---|---|---|---|---|---|
 | Juan Pablo | `[x]` | `[x]` | `[x]` | `[x]` | `[x]` | `[x]` |
 | Mauricio | `[x]` | `[x]` | `[x]` | `[x]` | `[x]` | `[x]` |
-| Juan José | `[x]` | `[x]` | `[ ]` | `[x]` | `[x]` | `[x]` |
+| Juan José | `[x]` | `[x]` | `[x]` | `[x]` | `[x]` | `[x]` |
 
 **Una tarea de esta fase pasa a `[x]` en la tabla de tareas solo cuando la
 columna está completa para los tres.** Mientras haya una casilla vacía, queda en
@@ -132,7 +132,7 @@ clonó.
 |---|---|---|---|---|
 | 0.01 | Instalar **Node.js LTS**. Verificar con `node -v` y `npm -v`. | `[ ]` | S | — |
 | 0.02 | Instalar **Git** y configurar identidad local: `user.name` y `user.email` con el email de la cuenta de GitHub. | `[ ]` | S | — |
-| 0.03 | Instalar **Docker Desktop**. Verificar con `docker run hello-world`. | `[ ]` | M | — |
+| 0.03 | Instalar **Docker Desktop**. Verificar con `docker run hello-world`. | `[x]` | M | — |
 | 0.04 | Instalar **VS Code** con extensiones: ESLint, Prettier, Prisma, Tailwind CSS IntelliSense. | `[ ]` | S | — |
 | 0.05 | Crear el repositorio en GitHub, dar acceso a los tres, `main` como rama por defecto. Clonarlo en cada máquina. | `[ ]` | S | — |
 | 0.06 | Configurar Claude Code / Antigravity y **desactivar el coautor automático de IA**. Hacer un commit de prueba y verificar con `git log --format=full` que **no aparece ningún trailer de coautoría de IA**. **Se verifica por máquina y por herramienta:** cada integrante la hace en la suya, y quien use Antigravity tiene que verificarla además con el ajuste propio de esa herramienta, que es aparte de `.claude/settings.json`. Hacerlo con el repositorio vacío: corregirlo después es mucho más caro. | `[ ]` | M | 0.05 |
