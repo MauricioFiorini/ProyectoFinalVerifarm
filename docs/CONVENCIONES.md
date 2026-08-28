@@ -121,6 +121,12 @@ una migración nueva.
 paralelo generan conflictos difíciles, y más todavía cuando el código lo escribió
 una IA y es voluminoso. El reparto sugerido está en `docs/ROADMAP.md`.
 
+**El reparto no asigna dueños.** Es una preferencia de continuidad: conviene que
+quien arrancó un módulo lo siga, pero ninguna tarea es de nadie. Lo único que
+reserva una tarea es la tabla "En curso ahora" de `docs/ROADMAP.md`, y solo
+mientras alguien la está corriendo. Una tarea en pausa la puede continuar
+cualquiera.
+
 **Cambios chicos.** Si un cambio pasa las ~400 líneas, conviene partirlo: nadie
 revisa 400 líneas con atención real, y código que nadie entendió es código que no
 se puede defender en la mesa.
@@ -360,6 +366,11 @@ Lista viva. Se agrega, no se borra.
   (`create mode 160000`). Si eso entra a `main`, el resto se come una referencia
   rota al hacer `pull`. Clonar siempre desde la carpeta que contiene al
   repositorio, no desde el repositorio.
+- **Nunca reescribir la historia de una rama que dejó otro.** Al retomar una
+  tarea en pausa se sigue sobre su misma rama, y lo nuevo de `main` se trae con
+  `merge`. Nada de `rebase`, `commit --amend` ni `push --force` sobre commits
+  ajenos: quien la dejó todavía tiene esa rama en su máquina, y si le cambiás los
+  hashes su `pull` deja de andar y el trabajo aparece duplicado.
 
 ---
 

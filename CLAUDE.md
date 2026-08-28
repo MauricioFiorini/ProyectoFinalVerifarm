@@ -69,9 +69,13 @@ refiere a una tarea del roadmap.
 - **Reserva de tareas, antes que cualquier otra cosa.** Si el usuario dice que
   empieza una tarea, anotala en la tabla "En curso ahora" de `docs/ROADMAP.md`,
   marcala `[~]` y commiteá eso solo a `main`: `chore: tomar la tarea X.YY`. Si
-  dice que la deja, pasala a `[!]`, actualizá estado y fecha, y commiteá
-  `chore: pausar la tarea X.YY`. **Ese commit va primero, antes de escribir
-  código.** El procedimiento completo está en "Reserva de tareas" del roadmap.
+  dice que la deja, recordale pushear la rama aunque esté a medio camino, llená
+  "Dónde quedó" con qué está hecho y cuál es el paso siguiente, pasala a `[!]`,
+  actualizá estado y fecha, y commiteá `chore: pausar la tarea X.YY`. **Ese
+  commit va primero, antes de escribir código.** Ninguna tarea tiene dueño fijo:
+  una en pausa la puede continuar cualquiera, sobre su misma rama y sin
+  reescribirle la historia. El procedimiento completo está en "Reserva de tareas"
+  del roadmap.
 - **Trabajo por etapas.** Para cualquier tarea no trivial: mostrá el plan, esperá
   confirmación, ejecutá una etapa por turno, explicá qué hiciste, esperá el OK.
 - **La lógica de negocio va en `src/services/`**, nunca en componentes ni en route

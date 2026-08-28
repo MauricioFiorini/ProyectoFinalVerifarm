@@ -50,14 +50,21 @@ escribas una línea de código antes de eso.
   como `[~]`, y commiteá eso solo, directo a `main`, con el mensaje
   `chore: tomar la tarea X.YY`. Recordale al usuario que hay que pushearlo antes
   de empezar: una reserva sin pushear no reserva nada.
-- **Deja la tarea sin terminarla:** pasala a `[!]`, poné el estado en `en pausa`,
+- **Deja la tarea sin terminarla:** recordale que **pushee la rama aunque esté a
+  medio camino y no compile** —si el trabajo vive solo en su máquina, nadie la
+  puede continuar—; llená "Dónde quedó" en la tabla con qué está hecho y cuál es
+  el paso siguiente (si no entra en una línea, va en `docs/TRASPASO.md` y en la
+  tabla se pone `ver traspaso`); pasala a `[!]`, poné el estado en `en pausa`,
   actualizá la fecha, y commiteá con `chore: pausar la tarea X.YY`. Si además la
   suelta, vuelve a `[ ]` y sale de la tabla.
 
 El procedimiento completo está en la sección "Reserva de tareas" de
-`docs/ROADMAP.md`. Antes de tomar una tarea, verificá que no figure ya en la
-tabla como `activa` o `en pausa`: si figura, **frená y avisá**, es de otra
-persona.
+`docs/ROADMAP.md`. Antes de tomar una tarea, mirá la tabla: si figura como
+`activa`, **frená y avisá** —alguien la está corriendo ahora—. Si figura como
+`en pausa`, **se puede continuar**: ninguna tarea tiene dueño fijo. En ese caso
+se sigue sobre la misma rama que dejó la otra persona, integrando con `merge`, y
+**sin reescribirle la historia**: nada de `rebase`, `commit --amend` ni
+`push --force` sobre ella.
 
 ---
 

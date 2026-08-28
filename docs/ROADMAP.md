@@ -16,7 +16,7 @@ Ubicación en el repo: `docs/ROADMAP.md`
 |---|---|---|
 | `[ ]` | PENDIENTE | Todavía no se empezó. |
 | `[~]` | EN CURSO | Alguien la está haciendo ahora. Figura en la tabla de abajo. |
-| `[!]` | EN PAUSA | Alguien la tiene agarrada pero no está trabajando ahora. **No la agarra otro sin hablarlo.** Figura en la tabla de abajo. |
+| `[!]` | EN PAUSA | Alguien la empezó y no está trabajando ahora. **La puede continuar cualquiera**, avisando al equipo. Figura en la tabla de abajo. |
 | `[x]` | HECHA | Terminada y mergeada a `main`. |
 | `[?]` | A DECIDIR | Bloqueada: hace falta una decisión de equipo. |
 
@@ -29,19 +29,24 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 ### En curso ahora
 
-| Tarea | Integrante | Rama | Estado | Última actualización |
-|---|---|---|---|---|
-| — | — | — | — | — |
+| Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
+|---|---|---|---|---|---|
+| — | — | — | — | — | — |
 
 ### Reserva de tareas
+
+**Ninguna tarea tiene dueño fijo.** Lo único que reserva una tarea es la tabla
+"En curso ahora", y solo mientras alguien la está corriendo. Cualquiera puede
+tomar una tarea libre cuyas dependencias estén en `[x]`, y cualquiera puede
+continuar una que quedó en pausa.
 
 La tabla de arriba es el mecanismo para que dos personas no agarren lo mismo. Se
 mantiene con commits chicos, directo a `main`, separados del trabajo en sí.
 
 **Al empezar una tarea:**
 
-1. Anotarla en "En curso ahora": tarea, nombre, rama, estado `activa` y la fecha
-   de hoy.
+1. Anotarla en "En curso ahora": tarea, nombre, rama, estado `activa`, "Dónde
+   quedó" en `—` y la fecha de hoy.
 2. Marcarla como `[~]` en su fase.
 3. Commitear **eso solo**, directo a `main`: `chore: tomar la tarea X.YY`.
 4. **Pushear antes de empezar a trabajar.** Una reserva sin pushear no reserva
@@ -49,17 +54,40 @@ mantiene con commits chicos, directo a `main`, separados del trabajo en sí.
 
 **Al dejar de trabajar sin terminar:**
 
-- Pasar la tarea a `[!]`, poner el estado en `en pausa` y actualizar la fecha.
-- Commitear: `chore: pausar la tarea X.YY`.
-- Si además se suelta la tarea, vuelve a `[ ]` y se saca de la tabla.
+1. **Pushear la rama, aunque esté a medio camino y no compile.** Es lo que
+   permite que otro la continúe: trabajo que vive solo en una máquina no lo puede
+   retomar nadie.
+2. Llenar "Dónde quedó" en la tabla: qué está hecho y cuál es el paso siguiente.
+   Si no entra en una línea, se escribe en `docs/TRASPASO.md` y en la tabla se
+   pone `ver traspaso`.
+3. Pasar la tarea a `[!]`, poner el estado en `en pausa` y actualizar la fecha.
+4. Commitear: `chore: pausar la tarea X.YY`.
+5. Si además se suelta la tarea, vuelve a `[ ]` y se saca de la tabla. La rama
+   queda pusheada igual.
+
+**Al retomar una tarea que dejó otro:**
+
+1. `git pull` y `checkout` de la rama que figura en la tabla. No se abre una rama
+   nueva: se sigue sobre la misma.
+2. Anotarse como integrante en "En curso ahora", poner el estado en `activa`,
+   marcar la tarea `[~]` y actualizar la fecha. Ese commit va a `main` antes de
+   seguir, igual que cualquier reserva.
+3. Continuar sobre esa misma rama. Para traer lo nuevo de `main`, **merge**.
+4. **Nunca `rebase`, `commit --amend` ni `push --force` sobre esa rama.** Los
+   commits son de otra persona: reescribirlos le rompe el repositorio local.
 
 **Al terminar:** la tarea pasa a `[x]` y se saca de la tabla. Eso va junto con el
 resto del cierre de tarea, no en un commit aparte — ver "Definición de hecho" en
 `docs/CONVENCIONES.md`.
 
-**Antes de agarrar cualquier tarea:** `git pull` y mirar la tabla. Si la tarea
-figura como `activa` o `en pausa`, **no se agarra sin hablarlo con quien la
-tiene**. Una tarea en pausa sigue siendo de esa persona.
+**Antes de agarrar cualquier tarea:** `git pull` y mirar la tabla. Son tres
+casos:
+
+- **`activa`** — alguien la está corriendo ahora. No se toca.
+- **`en pausa`** — se puede continuar. Avisar al equipo antes de arrancar; si
+  nadie contesta en el día, se sigue igual. La tarea no es de nadie.
+- **Libre pero con dependencias sin cerrar** — no se empieza. Primero tienen que
+  estar en `[x]`.
 
 ### Decisiones abiertas
 
@@ -116,7 +144,10 @@ clonó.
 
 # FASE 1 — Esqueleto técnico
 
-Lo hace **una sola persona**; el resto parte de ahí.
+Lo hace **una sola persona a la vez, la que esté disponible**; el resto parte de
+ahí. No hace falta que sea siempre la misma: todo lo que produce esta fase son
+archivos versionados, así que quien la continúe arranca de lo que ya está en la
+rama.
 
 | # | Tarea | Estado | Tamaño | Depende |
 |---|---|---|---|---|
@@ -135,8 +166,10 @@ Lo hace **una sola persona**; el resto parte de ahí.
 
 # FASE 2 — Modelo de datos
 
-**Lo hace una sola persona**; el resto espera. Es el punto de conflicto más caro
-del proyecto.
+**Lo hace una sola persona a la vez**; el resto espera. Es el punto de conflicto
+más caro del proyecto. Acá sí conviene que sea la misma de punta a punta, porque
+las migraciones encadenan y el orden en que se generan importa. Quién la lleva se
+decide cuando se empieza, no antes.
 
 | # | Tarea | Estado | Tamaño | Depende |
 |---|---|---|---|---|
@@ -258,7 +291,12 @@ queda fuera del prototipo (el RxCUI se carga a mano).
 
 ## Reparto sugerido
 
-- **Persona A — Juan Pablo:** Fases 0 y 1, luego Fase 3 (catálogo) y Fase 6 (interfaz y cierre).
+**Es una preferencia de continuidad, no una asignación.** Que la misma persona
+siga las tareas de un módulo evita conflictos sobre los mismos archivos, pero
+**no reserva nada**: lo único que reserva una tarea es la tabla "En curso ahora".
+Si quien figura acá no está disponible, la toma otro.
+
+- **Persona A:** Fases 0 y 1, luego Fase 3 (catálogo) y Fase 6 (interfaz y cierre).
 - **Persona B:** Fase 2 (modelo de datos, en solitario), luego Fase 4 (stock y FEFO).
 - **Persona C:** Fase 5 (clínico), arrancando por 5.03.
 

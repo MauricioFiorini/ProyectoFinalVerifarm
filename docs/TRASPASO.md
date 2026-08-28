@@ -111,8 +111,8 @@ Cada uno completa su fase 0 y marca su fila en la tabla de verificación por
 integrante. Cuando las tres filas estén completas, se marcan la 0.01 a la 0.06 y
 se hace la **0.09**, la prueba de humo. Después de eso, la **1.01**: crear el
 proyecto Next.js con TypeScript, App Router, Tailwind, ESLint y carpeta `src/`.
-La fase 1 la hace **una sola persona** —Juan Pablo, como persona A— y el resto
-parte de ahí.
+La fase 1 la toma **una sola persona a la vez**, la que esté disponible; si queda
+a medio camino, la continúa otro sobre la misma rama. El resto parte de ahí.
 
 ### Antes de arrancar, tener en cuenta
 
