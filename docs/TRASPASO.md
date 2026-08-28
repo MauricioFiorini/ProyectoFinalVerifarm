@@ -15,206 +15,146 @@ Ubicación en el repo: `docs/TRASPASO.md`
 **Fecha:** 2026-08-28
 **Entrega:** Juan Pablo Malizani
 **Rama:** `main`
-**Commit:** de `75cbc8c` a `52588f8`, más el que trae este traspaso
+**Commit:** de `5e9bdfc` al que trae este traspaso
 
 ### Qué se hizo
 
-Se armó el repositorio desde cero, se dejó la documentación en su lugar
-definitivo, se avanzó la fase 0 en dos de las tres máquinas y se cerró un hueco
-del roadmap: no había ninguna tarea que verificara que el proyecto levanta en las
-tres máquinas. El repositorio vigente es `MauricioFiorini/ProyectoFinalVerifarm`;
-el anterior (`MauricioFiorini/ProyectoFinal`) quedó descartado por decisión de
-equipo y no se migró nada de ahí, ni el esquema ni el backlog ni las decisiones.
-Eso está escrito en la sección 4 de `docs/CONTEXTO.md`.
+**Se cerró la fase 0.** Las nueve tareas quedaron en `[x]` y las tres máquinas
+tienen el entorno verificado. Es lo que libera la **1.01**, la primera tarea de
+programación del proyecto: hasta ahora ninguna dependencia lo permitía.
 
-**Armado del repositorio:**
+- **Tarea 0.09, prueba de humo de la documentación.** La corrieron los tres, cada
+  uno en su máquina. El detalle de lo que se verificó está más abajo, en "Cómo
+  verificarlo".
+- **Tareas 0.01, 0.02, 0.04, 0.05 y 0.06.** Pasaron a `[x]` en la tabla de tareas
+  de `docs/ROADMAP.md`. Ya estaban marcadas para los tres en la tabla de
+  verificación por integrante, así que la regla de la fase —una tarea pasa a `[x]`
+  cuando la columna está completa para los tres— exigía marcarlas. La 0.03 ya
+  venía marcada desde el commit `e3b73d1`.
 
-- `CLAUDE.md` en la raíz, y `CONTEXTO.md`, `ROADMAP.md`, `ROADMAP_PRODUCTO.md`,
-  `CONVENCIONES.md`, `REGLAS_IA.md`, `TRASPASO.md` y el modelo de dominio
-  `MD_VERIFARM.drawio` dentro de `docs/`, más `docs/decisiones/` vacía con un
-  `.gitkeep`. Es la **tarea 0.08**, marcada como hecha.
-- `.gitignore` para Node, Next.js, `.env`, `node_modules` y `.next`. Es la
-  **tarea 0.07**, marcada como hecha.
-- `.gitattributes` pasó de `* text=auto` a `* text=auto eol=lf`, para que las
-  tres máquinas trabajen con finales de línea LF sin depender del `core.autocrlf`
-  de cada una. Sin esto, `prettier --check` en `npm run check` iba a fallar en
-  Windows cuando llegue la tarea 1.03.
-- `.claude/settings.json` con la configuración de atribución de commits, que
-  sostiene la regla de autoría. Está versionado, así que aplica a los tres.
+Antes de este commit las dos tablas de la fase 0 se contradecían: la de
+verificación por integrante estaba completa y la de tareas mostraba cinco
+casillas vacías. Quedó resuelto.
 
-**Documentación:**
-
-- `docs/ROADMAP.md` incorporó, además del estado: el estado `[!]` EN PAUSA, la
-  tabla "En curso ahora" con columnas de estado y fecha, la sección **"Reserva de
-  tareas"** y la **tabla de verificación por integrante** de la fase 0.
-- `docs/CONVENCIONES.md` y `docs/REGLAS_IA.md` incorporaron el mecanismo de
-  reserva, y la sección 14 de `CONVENCIONES.md`, "Trampas conocidas", pasó de
-  cuatro a ocho entradas a lo largo de este bloque. La última que se agregó es no
-  clonar desde VS Code con la carpeta del proyecto ya abierta: el diálogo propone
-  esa carpeta como destino por defecto y genera un clon anidado.
-
-**Fase 0:**
-
-- **La de Juan Pablo y la de Mauricio quedaron completas.** Las dos filas tienen
-  las seis casillas marcadas en la tabla de verificación por integrante. Mauricio
-  marcó las suyas en tres commits propios: `5519e73`, `b653a01` y `9f99e92`.
-
-**Tarea 1.11, nueva:**
-
-- Se agregó la **1.11 — Prueba de humo del entorno** al final de la fase 1, con
-  su propia tabla de verificación por integrante y una nota que explica por qué
-  está ahí. Tamaño M, depende de la 1.10.
-- **La 2.01 pasa a depender de la 1.11**, no de la 1.07. Como el resto de la fase
-  2 encadena desde la 2.01, toda la fase queda detrás de la verificación de los
-  tres entornos.
-- El párrafo del "Reparto sugerido" decía que, mientras la fase 2 está en curso,
-  las otras dos personas trabajan en su fase 0. Con la dependencia nueva eso es
-  imposible, así que ahora dice lo que sí se puede hacer en paralelo: la 3.05,
-  que solo depende de la 1.10, o la documentación de las entregas.
-
-Dos correcciones de contenido pedidas por el equipo: la tarea **2.01** deja de
-crear `NivelCriticidad` y queda `Severidad` como única escala de gravedad, que
-vive en `Interaccion` y la observación hereda; y la **5.18** habla de severidad,
-no de criticidad.
+No se tocó ningún otro archivo. El repositorio sigue teniendo solo documentación
+y configuración de git.
 
 ### Decisiones tomadas sobre la marcha
 
-- **La verificación de la 0.06 es por máquina y por herramienta.** Desactivar el
-  coautor automático de IA no es un ajuste único del repositorio: cada integrante
-  la verifica en su máquina, y quien use Antigravity tiene que hacerlo además con
-  el ajuste propio de esa herramienta, que es aparte de `.claude/settings.json`.
-- **Las tareas por máquina solo pasan a `[x]` cuando las hicieron los tres.** La
-  columna Estado no puede expresar "hecha en dos de tres", así que el detalle
-  individual vive en una tabla de verificación por integrante. Hay dos: una en el
-  encabezado de la fase 0 y otra para la 1.11. Mientras haya una casilla vacía,
-  la tarea queda en `[ ]`.
-- **Reserva de tareas.** Se agregó un mecanismo para que dos personas no agarren
-  lo mismo: se anota la tarea en "En curso ahora" y se commitea a `main` con
-  `chore: tomar la tarea X.YY` **antes** de empezar a trabajar. El procedimiento
-  completo está en la sección "Reserva de tareas" de `docs/ROADMAP.md`, que es el
-  único lugar donde se explica.
-- **Ninguna tarea tiene dueño fijo, y una tarea en pausa la puede continuar
-  cualquiera.** Antes, el reparto por módulo se leía como una asignación, y una
-  tarea a medio hacer quedaba trabada hasta que volviera quien la había empezado.
-  Ahora el reparto es explícitamente una preferencia de continuidad, y lo único
-  que reserva una tarea es la tabla "En curso ahora", mientras alguien la está
-  corriendo. Quien retoma sigue **sobre la misma rama**, trae lo nuevo de `main`
-  con `merge`, y **nunca** usa `rebase`, `commit --amend` ni `push --force` sobre
-  commits ajenos. El cambio tocó `CLAUDE.md`, `docs/ROADMAP.md`,
-  `docs/CONVENCIONES.md` y `docs/REGLAS_IA.md`.
-- **La prueba de humo del entorno va al final de la fase 1, no antes.** La 0.09
-  verifica que los tres clonaron y tienen las herramientas instaladas, pero no
-  puede verificar que el proyecto levante y se conecte a la base, porque en ese
-  momento el proyecto todavía no existe. Poner la verificación recién acá evita
-  el peor escenario: que alguien descubra en la fase 3 que nunca le anduvo
-  Docker, con el trabajo de dos fases ya perdido y sin saber si el problema era
-  el código o su máquina.
-- **La 1.11 no corre `npx prisma migrate dev`.** Al final de la fase 1 no hay
-  nada que migrar —el esquema recién se escribe en la fase 2— así que ese comando
-  generaría una migración vacía, que después queda como ruido permanente en el
-  historial, delante de la inicial de la 2.07. La conexión se verifica con un
-  `SELECT 1;` por entrada estándar hacia `npx prisma db execute`, que prueba lo
-  mismo que importaba y no escribe nada. El porqué quedó escrito dentro de la
-  propia tarea, para que nadie lo "corrija" más adelante pensando que falta un
-  paso.
-
-Ninguna de estas es estructural en el sentido de arquitectura, así que
-`docs/decisiones/` sigue vacía.
+Ninguna. `docs/decisiones/` sigue vacía.
 
 ### Qué quedó sin hacer
 
-**La fase 0 de Juan José, entera.** Su fila en la tabla de verificación por
-integrante está vacía:
-
-- [ ] 0.01 a 0.04 — instalaciones en su máquina
-- [ ] 0.05 — confirmar que tiene acceso al repositorio y que clonó
-- [ ] 0.06 — su commit de prueba, y el ajuste propio de Antigravity si la usa
-
-Y, como consecuencia:
-
-- [ ] 0.09 — prueba de humo de la documentación, que necesita a los tres
-
-Las tareas 0.01 a 0.06 siguen en `[ ]` en la tabla de tareas por esa fila
-incompleta, aunque en las máquinas de Juan Pablo y de Mauricio estén resueltas.
-Las tareas 0.07 y 0.08 están completas: se resuelven una sola vez en el
-repositorio, no por máquina.
+**De la fase 0, nada.** Está cerrada.
 
 **No hay una sola línea de código todavía.** No existen `package.json`,
-`docker-compose.yml` ni `prisma/schema.prisma`: el repositorio tiene solo
-documentación y configuración de git. Todo eso lo crea la fase 1.
+`docker-compose.yml` ni `prisma/schema.prisma`. Todo eso lo crea la fase 1.
+
+La decisión **D2** —si se adopta ONCHigh como fuente de interacciones— sigue
+abierta. No frena nada: la tarea 5.03, carga manual de al menos 15 pares, permite
+avanzar con todo el módulo clínico.
 
 La tabla "En curso ahora" está vacía: **nadie tiene ninguna tarea reservada.**
 
 ### Cómo verificarlo
 
-Juan José, en su máquina:
+Los tres corrieron la prueba de humo en su máquina. En la de Juan Pablo se
+verificó lo siguiente, y todo dio bien:
 
-1. Clonar el repositorio **desde la carpeta que lo va a contener**, nunca desde
-   adentro de otro repositorio ni desde VS Code con la carpeta del proyecto ya
-   abierta. Las dos trampas de clonado están en la sección 14 de
-   `docs/CONVENCIONES.md`.
-2. Verificar que la documentación esté en su lugar: `CLAUDE.md` en la raíz y los
-   seis documentos más el `.drawio` en `docs/`.
-3. Abrir la carpeta con el asistente y confirmar que **lee `CLAUDE.md` solo**,
-   sin que haya que pedírselo.
-4. Hacer un commit de prueba y correr `git log --format=full`. **No tiene que
-   aparecer ningún trailer que mencione a Claude, Antigravity, Gemini o
-   Copilot.** Ese es el control de la 0.06.
-5. Marcar su fila en la tabla de verificación por integrante.
+1. `git checkout main && git pull` trae los cambios sin conflictos, y
+   `git status` deja el árbol limpio y sincronizado con `origin/main`.
+2. La documentación está en su lugar: `CLAUDE.md` en la raíz, y `CONTEXTO.md`,
+   `ROADMAP.md`, `ROADMAP_PRODUCTO.md`, `CONVENCIONES.md`, `REGLAS_IA.md`,
+   `TRASPASO.md` y `MD_VERIFARM.drawio` dentro de `docs/`, más `docs/decisiones/`
+   con su `.gitkeep`.
+3. `git config user.name` y `git config user.email` devuelven la identidad
+   correcta, y el email coincide con el de la cuenta de GitHub.
+4. `git log --format=full` filtrado por `Co-Authored-By: Claude`, `Generated with`
+   y `noreply@anthropic` **no devuelve nada**. Se amplió el filtro a Antigravity,
+   Gemini y Copilot: los únicos aciertos son texto del cuerpo de commits de
+   documentación que describen la regla, no trailers de coautoría. Los dieciséis
+   commits del repositorio tienen a una persona como autor; el único
+   `Co-authored-by` es el de `75cbc8c`, con Mauricio y Juan José.
+5. El asistente lee `CLAUDE.md` solo al abrir la carpeta, sin que haya que
+   pedírselo.
+6. Las tres filas de la tabla de verificación por integrante de la fase 0 están
+   completas, y la tabla "En curso ahora" está vacía.
 
-En las máquinas de Juan Pablo y de Mauricio los pasos 3 y 4 ya se verificaron.
-Los trece commits que tiene el repositorio hasta este traspaso tienen a una
-persona como autor y ninguno menciona a una IA como autor ni como coautor. Los
-únicos coautores son Mauricio y Juan José, en el commit de la documentación.
+**Los puntos 3, 4 y 5 son por máquina**: valen para la máquina donde se corren y
+no se pueden dar por buenos desde otra. Cada uno los verificó en la suya.
 
 ### Qué sigue
 
-**El camino crítico es Juan José.** Nada avanza hasta que complete su fase 0.
+**La 1.01:** crear el proyecto Next.js con TypeScript, App Router, Tailwind,
+ESLint y carpeta `src/`. Es la primera tarea de programación. Se toma
+reservándola en "En curso ahora" y commiteando `chore: tomar la tarea 1.01` a
+`main` **antes** de escribir nada.
 
-1. Juan José hace la 0.01 a la 0.06 en su máquina y marca su fila. Con las tres
-   filas completas, esas seis tareas pasan a `[x]`.
-2. Los tres hacen la **0.09**, la prueba de humo de la documentación. Necesita a
-   los tres.
-3. Recién ahí la **1.01**: crear el proyecto Next.js con TypeScript, App Router,
-   Tailwind, ESLint y carpeta `src/`. Es la primera tarea de programación.
+**La toma una sola persona, y conviene que lleve la fase 1 entera de punta a
+punta, hasta la 1.11.** Las tareas de la fase encadenan casi todas entre sí y
+producen archivos de configuración que se pisan con facilidad; partirla entre
+varios cuesta más de lo que ahorra. Si igual queda a medio camino, la continúa
+otro sobre la misma rama, sin reescribirle la historia.
 
-La fase 1 la toma **una sola persona a la vez**, la que esté disponible; si queda
-a medio camino, la continúa otro sobre la misma rama. La excepción es la
-**1.11**, que la corren los tres, cada uno en su máquina, y que cierra la fase.
-Hasta que las tres filas de la 1.11 no estén marcadas, no se empieza la 2.01 ni,
-por lo tanto, ninguna otra tarea de la fase 2.
+La **1.11** es la excepción: la corren los tres, cada uno en su máquina, y cierra
+la fase. Hasta que sus tres filas no estén marcadas no se empieza la 2.01 ni, por
+lo tanto, ninguna otra tarea de la fase 2.
+
+**Mientras tanto, los otros dos no se quedan sin trabajo.** Nada de la fase 1 se
+puede paralelizar, pero sí estas dos cosas:
+
+- **El bloque DOC de `docs/ROADMAP_PRODUCTO.md`** (DOC.01 a DOC.06): corregir la
+  referencia a la Drug Interaction API discontinuada, sacar el mapeo de ANMAT,
+  corregir la validación cruzada contra prescripciones, resolver la contradicción
+  de horas, actualizar el modelo de dominio en draw.io y recalcular los puntos de
+  función. Es la corrección de las entregas de la facultad, **no depende de que
+  haya código** y el propio roadmap del producto lo marca como trabajo paralelo.
+  Ojo con una confusión fácil: la regla de "no implementar nada de
+  `ROADMAP_PRODUCTO.md`" es sobre las funcionalidades P.1 a P.10. El bloque DOC
+  no es funcionalidad, es documentación de las entregas, y sí se hace.
+- **Resolver D2**, la decisión sobre ONCHigh como fuente de interacciones. Lo que
+  hay que averiguar está descrito en P.6.01 a P.6.03 del roadmap del producto: el
+  conjunto está en el repositorio público `dbmi-pitt/public-PDDI-analysis`, trae
+  identificadores de DrugBank y no RxCUI, y no trae las descripciones de
+  severidad. Decidirlo ahora evita que la 5.02 llegue bloqueada.
 
 ### Antes de arrancar, tener en cuenta
 
+- **Las dos tablas de la fase 0 se actualizan juntas.** Al cerrar su fase 0, Juan
+  José marcó su fila en la tabla de verificación por integrante pero dejó cinco
+  tareas —0.01, 0.02, 0.04, 0.05 y 0.06— sin marcar en la tabla de tareas. Este
+  commit lo corrige. La tabla de verificación dice quién lo hizo en su máquina;
+  la de tareas dice si la tarea está cerrada para el equipo. Marcar una sin la
+  otra deja el roadmap contradiciéndose, y un roadmap que se contradice es peor
+  que no tener ninguno. Lo mismo va a aplicar a la **1.11**, que tiene su propia
+  tabla de verificación por integrante.
 - **Leer primero `CLAUDE.md`**, y después los cuatro documentos de `docs/` en el
   orden que indica: `CONTEXTO.md`, `ROADMAP.md`, `CONVENCIONES.md` y
   `REGLAS_IA.md`.
-- **Verificar que el email de git coincida con el de la cuenta de GitHub**
-  (`git config user.email`). Si no coinciden, el commit no se vincula al perfil.
-- **La reserva de tareas se commitea a `main` antes de empezar a trabajar.** Una
-  reserva sin pushear no reserva nada.
-- **No clonar desde adentro del repositorio, ni desde VS Code con la carpeta del
-  proyecto ya abierta.** Las dos formas generan un clon anidado que `git add -A`
-  levanta como submódulo y que, si entra a `main`, rompe el `pull` del resto. Ya
-  pasó dos veces y las dos se corrigieron antes de pushear; la segunda se
-  resolvió reclonando desde cero en la carpeta contenedora. Una vez clonado no se
-  vuelve a clonar: para traer lo nuevo se hace `git pull`.
+- **La reserva de tareas se commitea y se pushea a `main` antes de empezar a
+  trabajar.** Una reserva sin pushear no reserva nada.
 - **Prisma queda clavado en `7.10.0`.** No instalar `prisma@latest`. La versión
   hay que verificarla contra npm cuando se llegue a la 1.06, no darla por cierta.
 - **Los comandos de la 1.11 no se probaron todavía**, porque el proyecto no
   existe. Si `npx prisma db execute --stdin` pide el esquema explícito en la
   versión instalada, la propia tarea dice qué agregar.
-- La lista de lo que **no** se implementa está en `docs/CONTEXTO.md`, sección 6,
-  y en `docs/ROADMAP_PRODUCTO.md`.
+- **`core.autocrlf` está en `true`** en al menos una de las máquinas; es lo que
+  deja el instalador de Git for Windows. Hoy el `eol=lf` de `.gitattributes` lo
+  neutraliza y no molesta. Es el primer lugar donde mirar si en la **1.03**
+  aparecen diffs de archivos enteros sin haberlos tocado, o si `prettier --check`
+  falla por finales de línea.
+- **No clonar desde adentro del repositorio, ni desde VS Code con la carpeta del
+  proyecto ya abierta.** Las dos formas generan un clon anidado. Una vez clonado
+  no se vuelve a clonar: para traer lo nuevo se hace `git pull`.
+- La lista de lo que **no** se implementa está en `docs/CONTEXTO.md`, sección 6, y
+  en `docs/ROADMAP_PRODUCTO.md`.
 
 ### Bloqueos
 
-**La fase 0 de Juan José.** Frena la 0.09 y, detrás de ella, toda la fase 1. Es
-el único bloqueo que impide avanzar hoy.
+**Ninguno.** La fase 0 está cerrada y la 1.01 se puede tomar hoy.
 
-**D2** — sigue abierta: falta decidir si se adopta ONCHigh como fuente de
-interacciones. **No frena nada por ahora**: la tarea 5.03 (carga manual de al
-menos 15 pares) permite avanzar con todo el módulo clínico.
+**D2** sigue abierta pero no frena nada: la tarea 5.03 permite avanzar con todo
+el módulo clínico sin esperarla.
 
 ---
 
