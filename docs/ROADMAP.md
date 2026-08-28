@@ -108,7 +108,7 @@ Nadie escribe código hasta que las tres máquinas pasen la 0.09.
 repositorio remoto y verificar la configuración de commits son cosas que un
 asistente no puede hacer. La primera tarea de IA es la 1.01.
 
-### Verificación por integrante
+### Verificación por integrante de las tareas 0.01 a 0.06
 
 Las tareas 0.01 a 0.06 se hacen **en cada máquina**. La columna Estado de la
 tabla de abajo no puede expresar "hecha en una de tres", así que el detalle vive
