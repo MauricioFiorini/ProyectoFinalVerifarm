@@ -19,9 +19,20 @@ services:
       POSTGRES_PASSWORD: verifarm
       POSTGRES_DB: verifarm
     ports:
-      # host:contenedor. Si ya tenes un PostgreSQL propio en el 5432,
-      # cambia solo el numero de la izquierda y actualiza tu DATABASE_URL.
-      - "5432:5432"
+      # host:contenedor.
+      #
+      # El 5433 del lado del host no es un capricho. PostgreSQL usa el 5432 por
+      # defecto, asi que cualquier integrante que tenga PostgreSQL instalado en
+      # Windows ya lo tiene ocupado por el servicio nativo. Cuando eso pasa,
+      # Docker solo consigue enlazar el 5432 en IPv6, `localhost` resuelve
+      # primero por IPv4 y Prisma termina hablando con el PostgreSQL de la
+      # maquina en vez de con este: falla con "Authentication failed" contra
+      # una base que no es la del proyecto, y el motivo no es nada evidente.
+      #
+      # Con el 5433 la base del proyecto no choca con la de nadie. Si igual lo
+      # tenes ocupado, cambia solo el numero de la izquierda y actualiza el
+      # puerto de tu DATABASE_URL.
+      - "5433:5432"
     volumes:
       - verifarm-datos:/var/lib/postgresql/data
     healthcheck:
