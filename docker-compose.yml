@@ -1,0 +1,35 @@
+# PostgreSQL local para desarrollo.
+#
+# Se levanta con `docker compose up -d` y se apaga con `docker compose down`.
+# Los datos viven en el volumen `verifarm-datos`, asi que sobreviven a
+# `down` y a reiniciar la maquina. Para borrar la base y empezar de cero:
+# `docker compose down -v`.
+#
+# Las credenciales estan escritas aca a proposito: son de desarrollo local,
+# la base solo escucha en localhost y los datos del proyecto son sinteticos.
+# Tienen que coincidir con la DATABASE_URL de tu `.env` (ver `.env.example`).
+
+services:
+  db:
+    image: postgres:16
+    container_name: verifarm-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: verifarm
+      POSTGRES_PASSWORD: verifarm
+      POSTGRES_DB: verifarm
+    ports:
+      # host:contenedor. Si ya tenes un PostgreSQL propio en el 5432,
+      # cambia solo el numero de la izquierda y actualiza tu DATABASE_URL.
+      - "5432:5432"
+    volumes:
+      - verifarm-datos:/var/lib/postgresql/data
+    healthcheck:
+      # Permite saber si la base ya acepta conexiones, en vez de suponerlo.
+      test: ["CMD-SHELL", "pg_isready -U verifarm -d verifarm"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  verifarm-datos:
