@@ -12,177 +12,248 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 ## Traspaso vigente
 
-**Fecha:** 2026-08-28
+**Fecha:** 2026-08-29
 **Entrega:** Mauricio Mateo Fiorini
-**Rama:** `main`
-**Commit:** de `077a114` al que trae este traspaso
+**Rama:** `feat/1.01-esqueleto-tecnico` (sin mergear)
+**Commit:** de `7959cce` a `9c8d960`, más el que trae este traspaso
 
 ### Qué se hizo
 
-**La fase 0 está cerrada.** Se completó el entorno en la máquina de Mauricio, que
-era la única que faltaba, y con eso la **0.09 pasó a `[x]`**. Las nueve tareas de
-la fase están terminadas y la **1.01 queda desbloqueada**.
+**Las tareas 1.01 a 1.10 estan terminadas.** El esqueleto tecnico del proyecto
+existe: hay una aplicacion Next.js que compila, una base PostgreSQL en Docker que
+levanta y persiste, Prisma configurado y conectando, y la paleta del sistema
+definida. Falta la **1.11**, que corren los tres y cierra la fase.
 
-Lo que se resolvió en esa máquina, tarea por tarea:
+El trabajo esta en la rama `feat/1.01-esqueleto-tecnico`, **un commit por tarea**,
+para que se pueda leer contra el roadmap:
 
-- **0.01** — Node.js ya estaba: `v24.20.0` con npm `11.19.0`.
-- **0.02** — Git `2.55.0.windows.3` ya estaba. Se cambió `user.email` **solo en
-  este repositorio**, del noreply de GitHub al `mauriciofiorini911@gmail.com` que
-  figura en `docs/CONVENCIONES.md`, para que su email de autor coincida con el
-  que usan los otros dos al ponerlo como coautor. El `user.email` global de esa
-  máquina quedó con el noreply, para no afectar sus otros proyectos.
-- **0.03** — Docker Desktop `4.88.1`, con CLI `Docker 29.7.2`.
-  `docker run hello-world` terminó con código 0.
-- **0.04** — Faltaban las cuatro extensiones y se instalaron: ESLint `3.0.34`,
-  Prettier `12.4.0`, Prisma `31.11.0` y Tailwind CSS IntelliSense `0.16.0`.
-- **0.05** — Ya estaba: el clon apunta a
-  `https://github.com/MauricioFiorini/ProyectoFinalVerifarm.git` y `main` sigue a
-  `origin/main`.
-- **0.06** — `.claude/settings.json` ya venía del repositorio con
-  `includeCoAuthoredBy: false` y `attribution` en blanco. Lo que faltaba era la
-  verificación práctica: los tres commits de este bloque (`5519e73`, `b653a01` y
-  `9f99e92`) se controlaron con `git log --format=full` y no tienen ningún
-  trailer de coautoría de IA. Esa máquina usa únicamente Claude Code, así que no
-  hay ajuste de Antigravity que verificar aparte.
-- **0.09** — Prueba de humo corrida y pasada. El detalle está en "Cómo
-  verificarlo".
+| Commit | Tarea |
+|---|---|
+| `7959cce` | 1.01 — proyecto Next.js |
+| `6489c79` | 1.02 — TypeScript estricto y prohibicion de `any` |
+| `5b0e219` | 1.03 — Prettier y `npm run check` |
+| `32cf802` | 1.04 — PostgreSQL 16 en Docker |
+| `3bb5288` | 1.05 — `.env.example` |
+| `57e4168` | 1.06 — Prisma 7.10.0 |
+| `4a818f9` | 1.07 — `prisma.config.ts` |
+| `279f9d5` | 1.08 — `src/lib/db.ts` |
+| `78f8bc1` | 1.09 — estructura de carpetas |
+| `07760a3` | 1.10 — paleta y tipografia |
+| `9c8d960` | 1.04 — correccion del puerto (ver "Decisiones") |
 
-En `docs/ROADMAP.md` se marcó la casilla de Mauricio en la tabla de verificación
-por integrante de la 0.09 y, al quedar las tres filas completas, la tarea 0.09
-pasó a `[x]` en la tabla de tareas de la fase.
+Versiones que quedaron instaladas, verificadas contra npm el 29/08/2026:
+**Next 16.3.3**, **React 19.2.8**, **TypeScript 5.9.3**, **Tailwind 4.3.3**,
+**Prisma 7.10.0** (exacta, sin `^`, en `prisma` y `@prisma/client`),
+**Prettier 3.9.6**, **ESLint 9.39.5**, **PostgreSQL 16** en Docker.
+
+Detalle de lo que no se deduce del diff:
+
+- **1.02.** El scaffold ya venia con `strict: true`. Se sumaron
+  `noUncheckedIndexedAccess`, `noImplicitOverride`, `noImplicitReturns`,
+  `noFallthroughCasesInSwitch`, `noUnusedLocals` y `noUnusedParameters`, y
+  `allowJs` paso a `false`. En `eslint.config.mjs` se puso
+  `@typescript-eslint/no-explicit-any` en `error` y `no-unused-vars` tambien en
+  `error`, con el prefijo `_` permitido para lo que hay que declarar y no se usa.
+- **1.03.** `npm run check` es `tsc --noEmit && eslint && prettier --check .`. Se
+  agrego ademas `npm run format`, que corre `prettier --write .`, porque
+  `docs/CONVENCIONES.md` seccion 9 pide formatear antes de commitear.
+- **1.07.** `prisma.config.ts` usa `defineConfig` y el helper `env` de
+  `prisma/config`, e importa `dotenv/config`. La firma se leyo de los tipos del
+  paquete instalado (`node_modules/@prisma/config/dist/index.d.ts`), no de
+  documentacion de internet, porque casi toda la que circula describe Prisma 6.
+- **1.08.** `src/lib/db.ts` exporta `db`, no `prisma`, para que coincida con el
+  nombre del archivo. Guarda la instancia en `globalThis` fuera de produccion,
+  que es lo que evita que cada recarga de Next abra un pool nuevo.
+- **1.09.** Se crearon `src/components`, `src/services` y `src/types` con un
+  `.gitkeep` cada una, porque git no versiona carpetas vacias. `src/app` y
+  `src/lib` ya tenian contenido.
 
 ### Decisiones tomadas sobre la marcha
 
-- **El `user.email` se cambió local al repositorio, no global.** La sección 1 de
-  `docs/CONVENCIONES.md` dice "configuración local, una sola vez por máquina", lo
-  que admite las dos lecturas. Se eligió la local para no tocar la identidad de
-  git de los otros proyectos de esa máquina. Consecuencia: si esa persona clona
-  el repositorio en otra carpeta, tiene que volver a correr
-  `git config user.email`.
-- **La 0.03 no se marcó cuando Docker quedó instalado, sino cuando el motor
-  levantó.** Entre una cosa y la otra hubo dos verificaciones fallidas: el
-  instalador había terminado y la máquina se había reiniciado, pero Docker
-  Desktop nunca se había abierto, así que no existía la distro WSL del motor y
-  `docker run hello-world` fallaba al conectarse al named pipe
-  `dockerDesktopLinuxEngine`. La tarea dice "verificar con
-  `docker run hello-world`", y eso es lo que se esperó.
-- **Las casillas se marcaron en tres commits separados**, a medida que cada
-  verificación pasaba, en vez de uno solo al final. Es lo que permitió dejar la
-  0.03 sin marcar mientras el motor no arrancaba, sin frenar el resto.
+**1. Se creo `prisma/schema.prisma` con generador y fuente de datos, sin
+modelos.** La tarea 1.07 pide validar con `npx prisma validate`, y ese comando
+necesita que el archivo exista. Tiene once lineas utiles: `generator client` y
+`datasource db` con `provider = "postgresql"`, **ningun modelo**. Los modelos son
+la fase 2 y los escribe una sola persona. Ojo con una diferencia de Prisma 7:
+**la URL de conexion no va en `schema.prisma`**, va en `prisma.config.ts`.
 
-Ninguna es una decisión de arquitectura, así que `docs/decisiones/` sigue vacía.
+**2. El puerto del host de PostgreSQL es el 5433, no el 5432.** Esto se descubrio
+fallando. Con el 5432, `prisma db execute` respondia
+`Authentication failed against database server`. El motivo: la maquina tenia un
+**PostgreSQL 18 nativo corriendo como servicio de Windows**, ocupando
+`0.0.0.0:5432`. Docker solo consiguio enlazar el 5432 en IPv6, `localhost`
+resuelve primero por IPv4, y Prisma terminaba autenticando contra el PostgreSQL
+de la maquina en vez de contra el del proyecto. El sintoma no apunta a la causa
+en ningun momento. Con `5433:5432` el problema desaparece y no le pisa el puerto
+a nadie. Esta explicado en el propio `docker-compose.yml` y en `.env.example`.
+
+**3. Tailwind 4 no usa `tailwind.config`.** La tarea 1.10 estaba redactada para
+Tailwind 3. `create-next-app` instala Tailwind 4, donde la configuracion es
+CSS-first: los tokens se declaran con `@theme` dentro de `globals.css` y no se
+genera ningun archivo de config. Se hizo de la forma que corresponde a la version
+instalada y **se corrigio el texto de la tarea 1.10 en `docs/ROADMAP.md`** para
+que diga lo que realmente se hizo.
+
+**4. Los colores salen de muestrear los mockups, no de elegirlos a ojo.** Los
+PNG de `concpeto/` se decodificaron leyendo los pixeles, tomando la moda de una
+region para evitar el antialiasing. De ahi salen `#006194` (azul de marca),
+`#f7f9fb` (fondo), `#e1e5e9` (borde de tarjeta), `#191c1e` (texto) y los fondos
+de estado. Los pocos valores que el muestreo no pudo resolver —texto chico sobre
+fondo de color— estan marcados como "derivado" en `src/app/globals.css`. Dato
+util: **los mockups estan hechos con la paleta por defecto de Tailwind**,
+`#fef2f2`, `#f0fdf4` y `#fffbeb` son exactamente `red-50`, `green-50` y
+`amber-50`.
+
+**5. Los mockups son referencia visual, no especificacion funcional.** Se acordo
+explicitamente. Las pantallas que muestran incluyen varias cosas que estan fuera
+del alcance del prototipo por decision escrita: campo **DNI del paciente** (que
+contradice el invariante de que el paciente no tiene datos filiatorios),
+**dosis y frecuencia**, **analisis generado por IA (RAG)**, **vademecum ANMAT**,
+**analisis predictivo**, **auditoria y RBAC**, **diagnostico** y **multiples
+depositos**. De los mockups se tomaron colores y tipografia. Nada mas.
+
+**6. Toda la fase va en una sola rama.** `docs/CONVENCIONES.md` seccion 2 pide una
+rama por tarea, pero las diez tareas encadenan y tocan los mismos archivos de
+configuracion; diez ramas y diez merges no aportaban nada. Se mantiene un commit
+por tarea, que es lo que permite reconstruir el trabajo.
+
+**7. Del scaffold de Next no se copiaron dos archivos.** El `README.md` de
+`create-next-app` no se trajo porque el README del proyecto lo escribe la tarea
+6.07 y un README de boilerplate mientras tanto confunde mas de lo que ayuda. El
+`.gitignore` tampoco: el del repositorio (tarea 0.07) es mas completo que el de
+Next y ya cubre `.next/`, `out/`, `next-env.d.ts`, los `.env*` y los
+`.tsbuildinfo`. Tampoco se genero `AGENTS.md`, que `create-next-app` incluye por
+defecto: el proyecto ya tiene `CLAUDE.md` en la raiz.
+
+**8. Se saco el modo oscuro que traia el scaffold.** La paleta esta calibrada
+sobre fondo claro y los mockups son claros; un modo oscuro a medias se ve roto.
+Si el equipo lo quiere, es una decision de diseño aparte.
+
+**9. Prettier no formatea los `.md`.** `.prettierignore` excluye `*.md` y el
+`.drawio`. La documentacion esta redactada y cortada a mano a 80 columnas;
+Prettier reflowaria las tablas y los parrafos y generaria diffs enormes en
+archivos que escribio el equipo. El formateo automatico es para codigo.
+
+Ademas se corrigieron dos defectos que venian del propio scaffold, dentro de la
+1.10: el `body` forzaba `font-family: Arial`, que anulaba la tipografia que carga
+`next/font`, y `layout.tsx` declaraba `lang="en"` con el titulo
+`"Create Next App"`. Ahora es `lang="es"` y el titulo es `Verifarm`.
+
+Ninguna de estas decisiones cambia la arquitectura acordada, asi que
+`docs/decisiones/` sigue vacia. La numero 2, la del puerto, es la que mas caro
+sale volver a descubrir.
 
 ### Qué quedó sin hacer
 
-**Nada de la fase 0.** Las tareas 0.01 a 0.09 están en `[x]` y las dos tablas de
-verificación por integrante de la fase —la de las tareas 0.01 a 0.06 y la de la
-0.09— están completas para los tres.
+**La 1.11**, la prueba de humo del entorno, que corren los tres, cada uno en su
+maquina. Su tabla de verificacion por integrante sigue con las tres filas vacias.
 
-La tabla de verificación por integrante de la **1.11** sigue con las tres filas
-vacías, como corresponde: esa tarea cierra la fase 1 y todavía no empezó.
+**La rama no esta mergeada a `main`.** Segun `docs/CONVENCIONES.md` seccion 2,
+antes del merge otra persona le tiene que pasar el ojo al diff.
+
+`src/app/page.tsx` sigue siendo la pagina por defecto de `create-next-app`, con
+los logos de Next y Vercel. Es a proposito: la pantalla de inicio es la tarea
+**6.03** y el layout con la barra lateral es la **6.01**.
 
 ### Cómo verificarlo
 
-La prueba de humo de la 0.09 en la máquina de Mauricio dio esto:
+En cualquier maquina, sobre la rama `feat/1.01-esqueleto-tecnico`:
 
-1. **Documentación en su lugar** — `CLAUDE.md` en la raíz; `CONTEXTO.md`,
-   `ROADMAP.md`, `ROADMAP_PRODUCTO.md`, `CONVENCIONES.md`, `REGLAS_IA.md`,
-   `TRASPASO.md` y `MD_VERIFARM.drawio` en `docs/`; y `docs/decisiones/` con su
-   `.gitkeep`.
-2. **El asistente lee `CLAUDE.md` solo** — lo cargó al abrir la carpeta, sin que
-   se lo pidieran.
-3. **Sin clon anidado** — cero gitlinks en el índice: buscar entradas de modo
-   `160000` en la salida de `git ls-files -s` no devuelve ninguna.
-4. **Historial sin IA** — `git log --format=full` sobre el historial completo no
-   arroja ningún `Co-Authored-By` de Claude, Antigravity, Gemini ni Copilot, ni
-   ninguna frase del tipo "Generated with".
-5. **Árbol limpio y sincronizado** — `git status -sb` devuelve
-   `## main...origin/main`, sin cambios pendientes ni commits sin pushear.
-6. **Docker** — `docker run hello-world` imprime `Hello from Docker!` y sale con
-   código 0.
+```
+git checkout feat/1.01-esqueleto-tecnico
+npm install
+cp .env.example .env      # y descomentar la DATABASE_URL de ejemplo
+docker compose up -d
+npm run check
+npm run dev
+```
 
-Para repetirlo en cualquier máquina alcanza con esos seis puntos.
+Lo que se verifico en la maquina de Mauricio, y su resultado:
+
+1. **`npm run check` pasa con codigo 0.** Corre `tsc --noEmit`, `eslint` y
+   `prettier --check .`.
+2. **`npm run build` compila** y prerrenderiza `/` y `/_not-found`.
+3. **La prohibicion de `any` funciona de verdad.** Se escribio un archivo con
+   `function prueba(x: any)`, ESLint lo rechazo con
+   `Unexpected any. Specify a different type` **como error**, y el archivo se
+   borro.
+4. **`npx prisma validate`** responde `The schema at prisma\schema.prisma is
+   valid` y confirma `Loaded Prisma config from prisma.config.ts`.
+5. **PostgreSQL levanta y queda `healthy`**, con el healthcheck de `pg_isready`
+   del propio `docker-compose.yml`.
+6. **Prisma llega a la base:** `echo "SELECT 1;" | npx prisma db execute --stdin`
+   responde `Script executed successfully`. Este es el mismo comando que pide la
+   1.11.
+7. **El volumen persiste de verdad.** Se creo una tabla con un dato, se corrio
+   `docker compose down` —que elimina el contenedor y la red—, se volvio a
+   levantar, y el dato seguia ahi. Despues se borro la tabla: la base quedo con
+   cero tablas en el esquema `public`.
+8. **La paleta genera utilidades reales.** Como Tailwind 4 descarta los tokens
+   que nadie usa, se escribio una pagina de prueba con `bg-marca-600`,
+   `text-critico-texto`, `bg-advertencia-fondo` y `bg-ok-fondo`, se compilo, y se
+   confirmo que el CSS de salida contiene los hex muestreados. Despues se
+   restauro la pagina original.
 
 ### Qué sigue
 
-**La 1.01:** crear el proyecto Next.js con TypeScript, App Router, Tailwind,
-ESLint y carpeta `src/`. Es la primera tarea de programación del proyecto y ya no
-tiene nada que la bloquee.
+**La 1.11**, la prueba de humo del entorno, y **antes el merge de la rama**.
 
-Se toma reservándola en la tabla "En curso ahora" de `docs/ROADMAP.md` y
-commiteando `chore: tomar la tarea 1.01` directo a `main`, **pusheado antes** de
-escribir una línea.
+El orden es: alguien revisa el diff de `feat/1.01-esqueleto-tecnico`, se mergea a
+`main`, y recien ahi los tres corren la 1.11 sobre `main`, cada uno en su
+maquina, marcando su fila en la tabla de verificacion por integrante de la 1.11.
 
-**La toma una sola persona, y conviene que lleve la fase 1 de punta a punta hasta
-la 1.10.** Las tareas de la fase encadenan casi todas entre sí y producen
-archivos de configuración que se pisan con facilidad. Si queda a medio camino, la
-continúa otro sobre la misma rama, sin reescribirle la historia. La **1.11** es
-la excepción: la corren los tres, cada uno en su máquina, y recién con sus tres
-filas marcadas se puede empezar la 2.01.
+Con las tres filas marcadas, la 1.11 pasa a `[x]`, la fase 1 cierra y se puede
+empezar la **2.01**, los enums del modelo de datos. La fase 2 **la hace una sola
+persona**: es el punto de conflicto mas caro del proyecto, porque dos migraciones
+en paralelo dejan la base de cada uno distinta.
 
-**Los otros dos, mientras tanto:** el bloque DOC de `docs/ROADMAP_PRODUCTO.md`
-(DOC.01 a DOC.06), que es corrección de las entregas de la facultad y no depende
-de que haya código, y **resolver D2**, la decisión sobre ONCHigh como fuente de
-interacciones. Ojo con la confusión fácil: la regla de "no implementar nada de
-`ROADMAP_PRODUCTO.md`" es sobre las funcionalidades P.1 a P.10; el bloque DOC no
-es funcionalidad y sí se hace.
+Mientras tanto siguen disponibles, y no dependen de nada de esto: el bloque DOC
+de `docs/ROADMAP_PRODUCTO.md` (DOC.01 a DOC.06), que es correccion de las
+entregas de la facultad, y **resolver D2**.
 
 ### Antes de arrancar, tener en cuenta
 
-- **Docker Desktop se instaló por usuario, sin permisos de administrador**, en
-  `AppData\Local\Programs\DockerDesktop` en vez de `C:\Program Files`.
-  Consecuencia concreta: el servicio privilegiado `com.docker.service` **no quedó
-  registrado** en esa máquina. Con el backend WSL2 funciona igual —la 0.03
-  pasó—, pero es el primer lugar donde mirar si en la **1.04** el
-  `docker compose up -d` de PostgreSQL se comporta distinto ahí que en las otras
-  dos máquinas.
-- **Docker Desktop tiene que estar abierto y con el motor andando** antes de
-  cualquier comando de docker. No alcanza con que esté instalado, ni con
-  reiniciar la máquina: si nunca se abrió la aplicación, el motor no existe.
-- **Después de instalar Docker hay que reabrir las terminales.** El instalador
-  agrega su `bin` al PATH de usuario, pero las terminales ya abiertas siguen con
-  el PATH viejo y `docker` figura como comando inexistente.
-- **`core.autocrlf` está en `true`** en la máquina de Mauricio; es lo que deja el
-  instalador de Git for Windows. Hoy el `eol=lf` de `.gitattributes` lo
-  neutraliza: los diffs de este bloque salieron de una línea, sin archivos
-  enteros marcados como modificados. Es el primer lugar donde mirar si en la
-  **1.03** `prettier --check` falla por finales de línea.
-- **El email de autor de Mauricio en este repositorio es
-  `mauriciofiorini911@gmail.com`**, distinto del global de su máquina. Los tres
-  commits de este bloque se pushearon sin problemas, así que la protección de
-  GitHub que rechaza los push que exponen el email privado no está activa en esa
-  cuenta.
-- **Leer primero `CLAUDE.md`**, y después los cuatro documentos de `docs/` en el
-  orden que indica: `CONTEXTO.md`, `ROADMAP.md`, `CONVENCIONES.md` y
-  `REGLAS_IA.md`.
-- **La reserva de tareas se commitea y se pushea a `main` antes de empezar a
-  trabajar.** Una reserva sin pushear no reserva nada.
-- **Prisma queda clavado en `7.10.0`.** No instalar `prisma@latest`. La versión
-  hay que verificarla contra npm cuando se llegue a la 1.06, no darla por cierta.
-- **Los comandos de la 1.11 no se probaron todavía**, porque el proyecto no
-  existe. Si `npx prisma db execute --stdin` pide el esquema explícito en la
-  versión instalada, la propia tarea dice qué agregar.
-- **Las dos tablas de una tarea por máquina se actualizan juntas.** La tabla por
-  integrante dice quién lo hizo en su máquina; la de tareas dice si la tarea está
-  cerrada para el equipo. Marcar una sin la otra deja el roadmap
-  contradiciéndose. Hay tres tablas por integrante —la de las tareas 0.01 a 0.06,
-  la de la 0.09 y la de la 1.11— y las tres funcionan igual.
-- **Una tarea que corren los tres no se marca con el reporte de dos.** Ya pasó
-  con la 0.09 y hubo que revertirlo.
-- **No clonar desde adentro del repositorio, ni desde VS Code con la carpeta del
-  proyecto ya abierta.** Las dos formas generan un clon anidado. Una vez clonado
-  no se vuelve a clonar: para traer lo nuevo se hace `git pull`.
-- La lista de lo que **no** se implementa está en `docs/CONTEXTO.md`, sección 6, y
-  en `docs/ROADMAP_PRODUCTO.md`.
+- **El puerto de PostgreSQL es el 5433, no el 5432.** Si copiaste una
+  `DATABASE_URL` vieja con 5432, no va a conectar. El porque esta en
+  `docker-compose.yml`.
+- **`.env` no esta en el repositorio y hace falta.** Sin el, `prisma.config.ts`
+  aborta con `PrismaConfigEnvError: Cannot resolve environment variable:
+  DATABASE_URL`. Se resuelve copiando `.env.example` a `.env` y poniendo la URL
+  de ejemplo que ese mismo archivo trae comentada.
+- **Docker Desktop tiene que estar abierto.** No arranca solo al iniciar sesion
+  en Windows. Si no lo esta, cualquier comando de docker falla con
+  `failed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine`.
+- **`npm install` puede avisar que hay scripts de instalacion sin aprobar**
+  (`prisma`, `@prisma/engines`, `unrs-resolver`). Con esta version de npm es solo
+  un aviso y Prisma funciono igual. Si algun dia `prisma generate` falla sin
+  motivo aparente, ese es el primer lugar donde mirar.
+- **`prisma generate` sugiere actualizar a `@latest`. No hacerlo.** Hoy `latest`
+  es `8.0.0-rc.12`, un release candidate. Prisma queda clavado en `7.10.0`.
+- **ESLint 9.39.5 avisa que la version 9 ya no tiene soporte.** Es la que declara
+  `eslint-config-next@16.3.3`; subir a la 10 por cuenta propia puede romper la
+  configuracion. Se dejo la que instala el scaffold.
+- **En Tailwind 4 la paleta se toca en `src/app/globals.css`, no en un
+  `tailwind.config`**, que no existe. Los tokens estan en el bloque `@theme` y de
+  cada uno salen las utilidades: `--color-critico-fondo` genera
+  `bg-critico-fondo`, `text-critico-fondo` y `border-critico-fondo`.
+- **Tailwind 4 descarta los tokens que nadie usa.** Si buscas un color en el CSS
+  compilado y no aparece, no esta roto: es que todavia ninguna clase lo usa.
+- **La logica de negocio va en `src/services/`**, nunca en componentes ni en
+  route handlers, y son Route Handlers, no Server Actions.
+- **Preguntar antes de tocar `prisma/schema.prisma`.** Ahora existe, y a partir de
+  la fase 2 cada cambio genera migraciones.
+- La lista de lo que **no** se implementa esta en `docs/CONTEXTO.md` seccion 6 y
+  en `docs/ROADMAP_PRODUCTO.md`. Los mockups de `concpeto/` muestran varias de
+  esas cosas: son referencia visual, no una especificacion.
 
 ### Bloqueos
 
-**Ninguno para la 1.01.** El bloqueo anterior —la 0.09 en la máquina de
-Mauricio— quedó resuelto en este bloque de trabajo.
+**Ninguno.** La 1.11 no esta bloqueada: solo necesita que la rama se revise y se
+mergee, y que los tres la corran.
 
-**D2** sigue abierta pero no frena nada: la tarea 5.03, carga manual de al menos
-15 pares de psicofármacos en el seed, permite avanzar con todo el módulo clínico
-sin esperarla.
+**D2** sigue abierta y sigue sin frenar nada: la tarea 5.03, carga manual de al
+menos 15 pares de psicofarmacos en el seed, permite avanzar con todo el modulo
+clinico sin esperarla.
 
 ---
 
