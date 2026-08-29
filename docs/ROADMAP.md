@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| 1.03 | Mauricio | `feat/1.01-esqueleto-tecnico` | activa | 1.01 y 1.02 hechas | 2026-08-29 |
+| 1.04 | Mauricio | `feat/1.01-esqueleto-tecnico` | activa | 1.01 a 1.03 hechas | 2026-08-29 |
 
 ### Reserva de tareas
 
@@ -170,7 +170,7 @@ rama.
 |---|---|---|---|---|
 | 1.01 | `npx create-next-app` con TypeScript, App Router, Tailwind, ESLint, carpeta `src/`. | `[x]` | S | 0.09 |
 | 1.02 | TypeScript estricto en `tsconfig.json` y regla de ESLint que prohíbe `any`. | `[x]` | S | 1.01 |
-| 1.03 | Prettier y script `npm run check` (`tsc --noEmit` + eslint + prettier). | `[ ]` | S | 1.02 |
+| 1.03 | Prettier y script `npm run check` (`tsc --noEmit` + eslint + prettier). | `[x]` | S | 1.02 |
 | 1.04 | `docker-compose.yml` con PostgreSQL 16 y volumen persistente. Verificar que levanta. | `[ ]` | M | 1.01 |
 | 1.05 | `.env.example` con `DATABASE_URL` vacía y su explicación. | `[ ]` | S | 1.04 |
 | 1.06 | Instalar **Prisma 7.10.0 exacto** (`prisma` y `@prisma/client`). **No usar `latest`.** | `[ ]` | S | 1.04 |
