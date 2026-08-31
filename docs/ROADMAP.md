@@ -233,7 +233,7 @@ suya. Es la excepción al "una sola persona a la vez" de esta fase: el resto de 
 
 | Integrante | 1.11 |
 |---|---|
-| Juan Pablo | `[ ]` |
+| Juan Pablo | `[x]` |
 | Mauricio | `[ ]` |
 | Juan José | `[ ]` |
 
