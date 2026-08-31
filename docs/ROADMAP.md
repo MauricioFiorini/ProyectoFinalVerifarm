@@ -191,31 +191,33 @@ prueba tendría que estar verificando.
 
 ### Pasos previos de la 1.11, en un clon limpio
 
-Tres pasos que no están en ningún comando y que hacen falta la primera vez, en
-una máquina donde el proyecto nunca corrió. **Ninguno de los tres errores que
-aparecen si faltan apunta a su causa real**, así que conviene hacerlos antes de
-empezar a diagnosticar.
+En una máquina donde el proyecto nunca corrió, antes de la prueba de humo:
 
-1. **Correr `npx prisma generate` a mano después de `npm install`.** npm 11
-   bloquea por defecto los scripts de instalación de las dependencias, así que el
-   `postinstall` de Prisma —el que genera el cliente— no corre. El síntoma es un
-   error de TypeScript que no menciona a npm ni a Prisma:
-   `Module '"@prisma/client"' has no exported member 'PrismaClient'`. Es
-   esperable: `@prisma/client` es una sola línea que reexporta
-   `.prisma/client/default`, un archivo que escribe `prisma generate`.
-2. **Crear el `.env`**: `cp .env.example .env` y completar `DATABASE_URL` con la
-   URL de ejemplo que ese mismo archivo trae comentada. Sin `.env`,
-   `prisma.config.ts` aborta con `PrismaConfigEnvError: Cannot resolve
-   environment variable: DATABASE_URL`.
-3. **El puerto es el 5433, no el 5432.** Si copiaste una `DATABASE_URL` vieja con
-   5432 y tenés PostgreSQL instalado en Windows, no falla por puerto ocupado:
-   conecta contra el PostgreSQL de tu máquina y responde
-   `Authentication failed against database server`. El porqué está en
-   `docker-compose.yml`.
+```bash
+cp .env.example .env    # y completar DATABASE_URL (viene vacia y comentada)
+npm install
+npm run setup           # verifica el .env y genera el cliente Prisma
+```
+
+**El `.env` hay que crearlo y completarlo a mano.** El script no lo genera a
+propósito: `.env.example` trae `DATABASE_URL` vacía y la URL buena comentada,
+así que un `cp` sin editar dejaría un archivo roto, y configurar la conexión es
+algo que cada uno tiene que entender una vez. Lo que sí hace el script es
+verificar que la variable tenga valor y cortar con un mensaje que dice qué
+hacer.
+
+**El puerto es el 5433, no el 5432.** Si tenés PostgreSQL instalado en Windows y
+usás el 5432, no falla por puerto ocupado: conecta contra el PostgreSQL de tu
+máquina y responde `Authentication failed against database server`. El script
+avisa si la URL apunta a otro puerto.
+
+Sin estos pasos la 1.11 falla, y **ninguno de los errores apunta a su causa
+real**: están listados uno por uno, con su síntoma, en la sección 14 de
+`docs/CONVENCIONES.md`.
 
 Además, **Prisma 7 exige Node 20.19+, 22.12+ o 24.0+**. Con una versión anterior
-`npm install` corta en el `preinstall` de Prisma, y ese error sí dice exactamente
-qué pasa.
+`npm install` corta en el `preinstall` de Prisma, y ese error sí dice
+exactamente qué pasa.
 
 ### Verificación por integrante de la 1.11
 
