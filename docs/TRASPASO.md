@@ -14,134 +14,140 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-08-31
 **Entrega:** Juan Pablo Malizani
-**Rama:** `feat/1.12-script-de-setup`
-**Commit:** `335526f`, más el que trae este traspaso
+**Rama:** `docs/1.13-npm-ci`
+**Commit:** de `e50e061` a `03aafb8`, más el que trae este traspaso
 
 ### Qué se hizo
 
-**La tarea 1.12: `npm run setup`**, el comando que deja el entorno listo después
-de `npm install`. El código está en `scripts/setup.mjs` y hace cuatro cosas, en
-este orden:
+**La tarea 1.13: el comando de instalación pasa de `npm install` a `npm ci`.**
+Y, sin estar previsto, la reparación del `package-lock.json`, que estaba roto.
 
-1. Verifica que exista `.env`.
-2. Verifica que `DATABASE_URL` **tenga valor**. No alcanza con que el archivo
-   exista: `.env.example` trae la clave vacía y la URL que sirve está comentada,
-   así que un `cp` sin editar deja el archivo creado y la variable sin valor.
-3. Avisa —sin cortar— si la URL apunta a un puerto que no es el 5433.
-4. Recién entonces corre `prisma generate`.
+**Por qué.** El commit `35559a5` movió 184 líneas del lock sin que su autor lo
+pidiera ni lo notara: el mensaje decía `docs:` y el lock viajó de polizón. No
+fue un error suyo. Corrió `npm install`, que era el comando documentado, y
+`npm install` tiene permiso para reescribir el lock cuando una dependencia
+transitiva con rango flotante tiene una versión nueva publicada. `npm ci`
+instala exactamente lo que dice el lock y no lo reescribe nunca.
 
-Si algo de los dos primeros pasos falla, corta con un mensaje que dice qué hacer
-y sale con código 1, en vez de dejar salir el `PrismaConfigEnvError`. Los
-mensajes se arman según el caso: al que ya copió el `.env` no se le repite que
-lo copie.
+**El hallazgo que cambió la tarea.** Comparando los dos locks entrada por
+entrada, el cambio parecía cosmético: 563 entradas antes, 563 después, ninguna
+dependencia real distinta. Pero al correr `npm ci` de verdad, el lock nuevo no
+se puede instalar:
 
-**Por qué existe.** En un clon limpio hacen falta pasos que no hace ningún
-comando y cuyos errores no apuntan a su causa. El peor: npm 11 bloquea por
-defecto los scripts de instalación de las dependencias, así que el `postinstall`
-de Prisma no corre, el cliente no se genera, y el síntoma aparece mucho después
-como un error de TypeScript que no nombra ni a npm ni a Prisma.
+```
+npm error code EUSAGE
+npm error Missing: @emnapi/runtime@1.11.3 from lock file
+npm error Missing: @emnapi/core@1.11.3 from lock file
+```
 
-**Lo que el script no hace, a propósito:** no crea el `.env` —un `cp` sin editar
-generaría un archivo roto, y configurar la conexión es algo que cada uno tiene
-que entender una vez— y no levanta Docker. Termina imprimiendo cuál es el paso
-siguiente.
+El lock anterior a `35559a5` sí instala. O sea que ese commit dejó el lock
+internamente inconsistente, y **el problema sobrevivió escondido durante un día
+por el mismo comportamiento que esta tarea elimina**: `npm install` reconcilia
+en silencio, así que a los tres les seguía instalando bien.
 
-Antes de la 1.12 se probó la salida obvia, un `postinstall` en `package.json`, y
-se descartó porque hace fallar el `npm install` entero cuando todavía no existe
-el `.env`. Está escrito en
-`docs/decisiones/0001-generacion-del-cliente-prisma.md`, que es la primera
-entrada de esa carpeta.
+La parte reutilizable: comparar dos locks dice si describen los mismos
+paquetes, no si alguno es instalable. Lo único que responde eso es `npm ci`.
 
-La documentación quedó en cuatro lugares: `docs/CONVENCIONES.md` secciones 8
-(estructura de carpetas), 11 (comandos) y 12 (checklist de antes de empezar), y
-los "Pasos previos de la 1.11" de este roadmap. La trampa de la sección 14 ahora
-apunta al comando nuevo.
+**Los tres pedazos de la tarea:**
+
+| Commit | Qué trae |
+|---|---|
+| `e50e061` | La decisión `0002`, con el hallazgo y la corrección del argumento inicial |
+| `cf4af81` | `npm install` a `npm ci` en diez lugares de `CONVENCIONES.md` y `ROADMAP.md` |
+| `03aafb8` | El lock reparado con un `npm install` deliberado, más la fila 1.13 del roadmap |
+
+`scripts/setup.mjs` **no se tocó**. La 1.13 no cambia el script de la 1.12, solo
+el comando que va antes.
+
+**Aparte de la 1.13, y ya en `main`:** el commit `374fc1c` sacó de `CLAUDE.md`
+el bloque `<!-- BEGIN:nextjs-agent-rules -->` que `next dev` había inyectado
+solo, y lo mudó a un `AGENTS.md` nuevo. `CLAUDE.md` volvió a ser exactamente lo
+que el equipo escribió, byte por byte.
 
 ### Decisiones tomadas sobre la marcha
 
-**1. La tarea es la 1.12 pero va antes que la 1.11.** La alternativa era
-renumerar la prueba de humo, y se descartó: "1.11" ya está en el historial de
-git, en las convenciones y en su propia tabla de verificación por integrante.
-Romper esas referencias por prolijidad visual no vale la pena. El orden real lo
-manda la columna "Depende": la 1.11 depende de la 1.12. Hay una nota bajo la
-tabla de la fase 1 explicándolo, para que nadie lo lea como un error de
-numeración y lo "arregle".
+**1. La tarea dejó de ser solo documentación.** Estaba planteada como un cambio
+de comando y nada más. Al verificar `npm ci` apareció el lock roto, y sin
+repararlo el comando nuevo directamente no arranca. La fila del roadmap decía
+"es solo documentación" y se corrigió.
 
-**2. El script es `.mjs` y no `.ts`.** Corre con `node` directo, sin pasar por
-el compilador, y tiene que andar igual en PowerShell y en Git Bash. Importa
-`process` explícitamente desde `node:process` y no usa `console`, así que no
-depende de variables globales: por eso **no hizo falta tocar
-`eslint.config.mjs`**. ESLint lo revisa como a cualquier otro archivo, lo cual
-se verificó metiéndole un error a propósito y confirmando que lo detecta.
+**2. El lock se reparó regenerándolo, no revirtiéndolo.** Las dos opciones
+funcionaban: la versión anterior a `35559a5` pasa `npm ci`. Se eligió regenerar
+con un `npm install` deliberado —el primer uso del rol nuevo que la decisión
+0002 le asigna— porque revertir deja un lock que igual habría que regenerar al
+primer cambio de dependencias de la fase 2. Agregó las dos entradas que
+faltaban y nada más: de 563 a 565 entradas, ninguna versión movida.
 
-**3. El puerto es un aviso y no un error.** Si alguien cambió el puerto en
-`docker-compose.yml` porque tenía el 5433 ocupado, el script no lo tiene que
-frenar.
+**3. Se corrigió un argumento de la propia decisión 0002 antes de pushearla.**
+La primera versión decía que revertir el archivo "no habría servido de nada".
+Con el hallazgo, eso es incompleto: revertir sí habría devuelto un lock
+instalable. Hacen falta las dos cosas, reparar el archivo y cambiar el comando.
+Se reescribió el commit, que todavía no estaba pusheado; **las decisiones ya
+publicadas no se editan**, se reemplazan por una nueva.
+
+**4. Las tres filas de la 1.11 vuelven a `[ ]`.** Mauricio y Juan José habían
+marcado las suyas el 2026-08-31, contra un `main` sin la 1.12 y sin la 1.13. No
+es trabajo tirado —confirma que el entorno les levanta— pero como verificación
+de la 1.11 no vale: probaron un procedimiento que ya cambió dos veces.
 
 ### Qué quedó sin hacer
 
-**Nada de la 1.12.** La tarea está completa.
+**Nada de la 1.13.** La tarea está completa y verificada.
 
-De la fase 1 sigue pendiente solo la **1.11**, la prueba de humo del entorno,
-que corren los tres. Su tabla de verificación por integrante tiene dos filas
-marcadas, Mauricio y Juan José, pero **las dos se marcaron contra un `main` que
-todavía no tenía la 1.12**: lo que verificaron es el procedimiento viejo, no el
-que deja esta rama. Está explicado en "Qué sigue".
+De la fase 1 sigue pendiente solo la **1.11**, la prueba de humo, ahora con las
+tres filas en `[ ]`.
+
+**Las tres vulnerabilidades `high` de `npm audit` se dejaron como están, a
+propósito.** Son `deepmerge-ts <8.0.0`, que entra por `@prisma/config` y por
+`prisma`. El `npm audit fix --force` que sugiere npm instala `prisma@6.12.0`:
+un downgrade que rompe, y que contradice el "Prisma queda clavado en 7.10.0" de
+`docs/CONVENCIONES.md`. Es una dependencia de desarrollo, la CLI de Prisma, y
+no llega al código que corre. Queda anotado para que nadie lo "arregle" sin
+leer esto.
 
 ### Cómo verificarlo
 
-En una máquina donde el proyecto nunca corrió, sobre esta rama:
+Sobre esta rama, en una máquina donde el proyecto nunca corrió:
 
 ```
 cp .env.example .env      # y completar DATABASE_URL (puerto 5433)
-npm install
+npm ci
 npm run setup
 docker compose up -d
 npm run check
 npm run dev
 ```
 
-Verificado con **Node 24.20.0 y npm 11.19.0**, instalando desde cero. Los cinco
-casos del script, corridos uno por uno:
+Verificado con **Node 24.20.0 y npm 11.19.0**, corriendo los comandos de
+verdad y no con `--dry-run`:
 
-| Caso | Resultado |
+| Qué se probó | Resultado |
 |---|---|
-| Sin `.env` | Corta, código 1, dice qué hacer |
-| `cp .env.example .env` sin editar | Corta, código 1 |
-| Puerto 5432 en la URL | Avisa, sigue y genera |
-| `.env` completo | Genera, código 0 |
-| Correrlo dos veces seguidas | Idéntico, sin ensuciar nada |
+| `npm ci` con el lock de `main` | Falla, `EUSAGE`, dos entradas faltantes |
+| `npm ci` con el lock anterior a `35559a5` | `added 482 packages` |
+| `npm ci` con el lock reparado | `added 482 packages`, 1m38s |
+| `npm ci` dos veces seguidas | Idéntico |
+| Si `npm ci` reescribe el lock | No: mismo md5 antes y después |
+| `npm run setup` después del `npm ci` | Regenera el cliente Prisma, código 0 |
+| `npm run check` | Código 0 |
 
-La idempotencia se comprobó comparando el checksum de todo
-`node_modules/.prisma/client` entre las dos corridas y el `git status` antes y
-después: no escribe nada fuera de la salida de Prisma, que se sobrescribe sola.
+**Confirmado que `npm ci` borra `node_modules` entero y se lleva el cliente
+Prisma generado.** Por eso `npm run setup` va siempre después, y por eso está
+documentado en la sección 11 de `docs/CONVENCIONES.md`.
 
-**`npm run check` pasa con código 0**, incluido el archivo nuevo.
+Los dos locks viejos se probaron en directorios limpios aparte, para no tocar
+el entorno de trabajo.
 
 ### Qué sigue
 
 **La 1.11**, la prueba de humo del entorno, una vez que esta rama esté mergeada.
+Ahora sí: con la 1.12 y la 1.13 adentro, el procedimiento de arranque está
+cerrado y no va a volver a cambiar.
+
 La corren **los tres**, cada uno en su máquina, sobre `main`, marcando su fila
 en la tabla de verificación por integrante. Es la excepción al "una sola persona
-a la vez" de la fase 1. Antes de correrla hay que hacer los "Pasos previos de la
-1.11" que están en el roadmap: sin esos tres pasos falla, y ninguno de los
-errores apunta a su causa.
-
-**Las filas de Mauricio y de Juan José hay que volver a correrlas.** Se marcaron
-el 2026-08-31, cuando `main` todavía no tenía `scripts/setup.mjs`, así que lo
-que se probó fue el procedimiento a mano y no `npm run setup`. La prueba de humo
-verifica el procedimiento de arranque, y ese procedimiento lo fija la 1.12:
-corrida antes, cada uno prueba algo distinto del que va a quedar documentado,
-que es justo lo que la prueba tendría que verificar.
-
-**Y el procedimiento va a cambiar una segunda vez, así que conviene esperar.**
-El comando de instalación pasa de `npm install` a `npm ci`: `npm install` tiene
-permiso para reescribir `package-lock.json` cuando una dependencia transitiva
-con rango flotante tiene una versión nueva publicada, y eso ya pasó una vez, en
-el commit `35559a5`. `npm ci` instala exactamente lo que dice el lock y no lo
-reescribe nunca. Es una tarea aparte, la **1.13**, todavía sin crear al momento
-de escribir esto. Si la 1.11 se rehace antes de que exista, hay que rehacerla
-otra vez después.
+a la vez" de la fase 1. Antes de correrla, hacer los "Pasos previos de la 1.11"
+del roadmap.
 
 Con las tres filas marcadas, la 1.11 pasa a `[x]`, la fase 1 cierra y se puede
 empezar la **2.01**, los enums del modelo de datos. La fase 2 **la hace una sola
@@ -156,51 +162,55 @@ que viven fuera.
 
 ### Antes de arrancar, tener en cuenta
 
-- **El procedimiento en un clon limpio cambió.** Ahora es: `cp .env.example
-  .env`, completar `DATABASE_URL`, `npm install` y `npm run setup`. Ya no hay que
-  acordarse de `npx prisma generate`: lo corre el script, después de verificar el
-  entorno.
-- **Verificá tu versión de Node antes de todo lo demás.** Prisma 7 pide **20.19+,
-  22.12+ o 24.0+**. Con una anterior, `npm install` corta en el `preinstall` de
-  Prisma; ese error sí dice exactamente qué pasa, pero se evita mirando `node -v`
-  primero. Si usás `fnm` o `nvm`, revisá cuál es tu versión **por defecto**, no
-  solo la de la terminal que tenés abierta.
-- **Los avisos de `npm warn install-scripts` durante `npm install` son
-  esperables y no hay que tocarlos.** npm 11 bloquea por defecto los scripts de
-  instalación de las dependencias y lista `prisma`, `@prisma/engines` y
-  `unrs-resolver`. **No hace falta aprobarlos** con `npm install-scripts
-  approve`: de eso se encarga `npm run setup`, y aprobarlos es una configuración
-  de cada máquina que haría que los tres corran cosas distintas.
+- **El comando de instalación es `npm ci`, no `npm install`.** `npm install`
+  queda solo para agregar o cambiar una dependencia a propósito, que es cuando
+  el lock tiene que cambiar. El porqué está en la decisión 0002.
+- **Después de cada `npm ci` hay que correr `npm run setup`.** `npm ci` borra
+  `node_modules` entero y se lleva el cliente Prisma generado. No es opcional.
 - **`npm run setup` también hace falta cada vez que cambie
-  `prisma/schema.prisma`**, no solo en un clon nuevo: es lo que regenera el
-  cliente. A partir de la fase 2 va a pasar seguido.
-- **El puerto de PostgreSQL es el 5433, no el 5432.** El script avisa si tu URL
-  apunta a otro. El porqué está en `docker-compose.yml`.
+  `prisma/schema.prisma`.** A partir de la fase 2 va a pasar seguido.
+- **Si `package-lock.json` aparece modificado sin que lo hayas tocado**, fue un
+  `npm install`. Se descarta con `git checkout -- package-lock.json` y se vuelve
+  a correr `npm ci`. Está en las trampas de la sección 14.
+- **Verificá tu versión de Node antes de todo lo demás.** Prisma 7 pide **20.19+,
+  22.12+ o 24.0+**. Con una anterior la instalación corta en el `preinstall` de
+  Prisma; ese error sí dice qué pasa, pero se evita mirando `node -v` primero.
+  Si usás `fnm` o `nvm`, revisá cuál es tu versión **por defecto**.
+- **Los avisos de `npm warn install-scripts` son esperables y no hay que
+  tocarlos.** npm 11 bloquea por defecto los scripts de instalación de las
+  dependencias y lista `prisma`, `@prisma/engines` y `unrs-resolver`. **No hace
+  falta aprobarlos**: de eso se encarga `npm run setup`, y aprobarlos es una
+  configuración de cada máquina que haría que los tres corran cosas distintas.
+- **`npm audit` reporta tres vulnerabilidades `high`. No correr
+  `npm audit fix --force`:** hace downgrade de Prisma a la 6.12.0. Ver "Qué
+  quedó sin hacer".
+- **El puerto de PostgreSQL es el 5433, no el 5432.** `npm run setup` avisa si
+  tu URL apunta a otro. El porqué está en `docker-compose.yml`.
 - **Docker Desktop tiene que estar abierto.** No arranca solo al iniciar sesión
-  en Windows. Si no lo está, cualquier comando de docker falla con
-  `failed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine`.
+  en Windows.
 - **`prisma generate` sugiere actualizar a `@latest`. No hacerlo.** Hoy `latest`
   es `8.0.0-rc.12`, un release candidate. Prisma queda clavado en `7.10.0`.
 - **ESLint 9.39.5 avisa que la versión 9 ya no tiene soporte.** Es la que declara
   `eslint-config-next@16.3.3`; subir a la 10 por cuenta propia puede romper la
   configuración.
-- **En Tailwind 4 la paleta se toca en `src/app/globals.css`, no en un
-  `tailwind.config`**, que no existe. Los tokens están en el bloque `@theme` y de
-  cada uno salen las utilidades. Tailwind descarta los tokens que nadie usa, y
-  una clase que apunta a un token borrado no da error: simplemente no genera
-  nada.
+- **El bloque `nextjs-agent-rules` ahora vive en `AGENTS.md`, no en
+  `CLAUDE.md`.** Lo regenera `next dev` solo. No editarlo a mano y no moverlo de
+  archivo: si `CLAUDE.md` vuelve a tener el bloque, `next dev` vuelve a escribir
+  ahí.
+- **En Tailwind 4 la paleta se toca en `src/app/globals.css`**, en el bloque
+  `@theme`. No existe `tailwind.config`.
 - **La lógica de negocio va en `src/services/`**, nunca en componentes ni en
   route handlers, y son Route Handlers, no Server Actions.
 - **Preguntar antes de tocar `prisma/schema.prisma`.** A partir de la fase 2 cada
   cambio genera migraciones.
 - La lista de lo que **no** se implementa está en `docs/CONTEXTO.md` sección 6 y
-  en `docs/ROADMAP_PRODUCTO.md`. Los mockups de `concpeto/` muestran varias de
-  esas cosas: son referencia visual, no una especificación.
+  en `docs/ROADMAP_PRODUCTO.md`. Los mockups de `concpeto/` son referencia
+  visual, no una especificación.
 
 ### Bloqueos
 
-**Ninguno.** La 1.11 no está bloqueada: solo hace falta mergear esta rama y que
-los tres la corran.
+**Ninguno.** La 1.11 ya no está bloqueada: con la 1.12 y la 1.13 mergeadas, el
+procedimiento de arranque está cerrado y los tres pueden correrla.
 
 **D2** sigue abierta y sigue sin frenar nada: la tarea 5.03, carga manual de al
 menos 15 pares de psicofármacos en el seed, permite avanzar con todo el módulo
