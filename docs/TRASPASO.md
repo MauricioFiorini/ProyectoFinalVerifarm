@@ -130,9 +130,25 @@ Sobre Node: en una máquina con 20.13.1 esta secuencia **no se puede correr**.
 
 ### Qué sigue
 
-**La 1.11**, la prueba de humo del entorno. La corren **los tres**, cada uno en
-su máquina, sobre `main`, marcando su fila en la tabla de verificación por
-integrante. Es la excepción al "una sola persona a la vez" de la fase 1.
+**La 1.12**, el script `npm run setup`, y **recién después la 1.11**. El número
+mayor va primero a propósito: la 1.11 depende de la 1.12, y la columna "Depende"
+del roadmap es la que manda el orden, no el número. La prueba de humo se corre
+cuando el script existe; si se corriera antes, cada uno probaría a mano un
+procedimiento distinto del que va a quedar documentado, que es justo lo que la
+prueba tendría que verificar.
+
+La 1.12 nace de la decisión **0001**
+(`docs/decisiones/0001-generacion-del-cliente-prisma.md`): la generación del
+cliente Prisma no va en un `postinstall`, porque se probó y rompe el
+`npm install` entero en un clon limpio, antes de que exista el `.env`. Queda en
+un script explícito que verifica el entorno y recién entonces corre
+`prisma generate`.
+
+**Después, la 1.11:** la prueba de humo del entorno. La corren **los tres**, cada
+uno en su máquina, sobre `main`, marcando su fila en la tabla de verificación por
+integrante. Es la excepción al "una sola persona a la vez" de la fase 1. Antes de
+correrla hay que hacer los "Pasos previos de la 1.11" que están en el roadmap:
+sin esos tres pasos falla, y ninguno de los errores apunta a su causa.
 
 Con las tres filas marcadas, la 1.11 pasa a `[x]`, la fase 1 cierra y se puede
 empezar la **2.01**, los enums del modelo de datos. La fase 2 **la hace una sola
@@ -141,7 +157,10 @@ migraciones en paralelo dejan la base de cada uno distinta.
 
 Mientras tanto siguen disponibles, y no dependen de nada de esto: el bloque DOC
 de `docs/ROADMAP_PRODUCTO.md` (DOC.01 a DOC.06), que es corrección de las
-entregas de la facultad, y **resolver D2**.
+entregas de la facultad, y **resolver D2**. De ese bloque, la **DOC.05** es la
+única cuyo archivo está en este repositorio: actualiza
+`docs/MD_VERIFARM.drawio`. Las otras cinco tocan las entregas de la facultad,
+que viven fuera.
 
 ### Antes de arrancar, tener en cuenta
 
