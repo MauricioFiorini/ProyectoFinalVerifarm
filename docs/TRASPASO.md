@@ -127,13 +127,21 @@ a la vez" de la fase 1. Antes de correrla hay que hacer los "Pasos previos de la
 1.11" que están en el roadmap: sin esos tres pasos falla, y ninguno de los
 errores apunta a su causa.
 
-**Las filas de Mauricio y de Juan José hay que volver a marcarlas después del
-merge.** Se marcaron el 2026-08-31, cuando `main` todavía no tenía
-`scripts/setup.mjs`, así que lo que se probó fue el procedimiento a mano y no
-`npm run setup`. La prueba de humo verifica el procedimiento de arranque, y ese
-procedimiento lo fija la 1.12: corrida antes, cada uno prueba algo distinto del
-que va a quedar documentado, que es justo lo que la prueba tendría que
-verificar.
+**Las filas de Mauricio y de Juan José hay que volver a correrlas.** Se marcaron
+el 2026-08-31, cuando `main` todavía no tenía `scripts/setup.mjs`, así que lo
+que se probó fue el procedimiento a mano y no `npm run setup`. La prueba de humo
+verifica el procedimiento de arranque, y ese procedimiento lo fija la 1.12:
+corrida antes, cada uno prueba algo distinto del que va a quedar documentado,
+que es justo lo que la prueba tendría que verificar.
+
+**Y el procedimiento va a cambiar una segunda vez, así que conviene esperar.**
+El comando de instalación pasa de `npm install` a `npm ci`: `npm install` tiene
+permiso para reescribir `package-lock.json` cuando una dependencia transitiva
+con rango flotante tiene una versión nueva publicada, y eso ya pasó una vez, en
+el commit `35559a5`. `npm ci` instala exactamente lo que dice el lock y no lo
+reescribe nunca. Es una tarea aparte, la **1.13**, todavía sin crear al momento
+de escribir esto. Si la 1.11 se rehace antes de que exista, hay que rehacerla
+otra vez después.
 
 Con las tres filas marcadas, la 1.11 pasa a `[x]`, la fase 1 cierra y se puede
 empezar la **2.01**, los enums del modelo de datos. La fase 2 **la hace una sola
