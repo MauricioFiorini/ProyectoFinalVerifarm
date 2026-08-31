@@ -301,6 +301,16 @@ npx prisma migrate dev           # aplica migraciones nuevas
 npm run dev                      # verificar que levanta sin errores
 ```
 
+**En una máquina donde el proyecto nunca corrió, antes de todo eso hacen falta
+tres pasos más.** No los hace ningún comando, y los errores que aparecen si
+faltan no apuntan a su causa: ver las tres primeras trampas de la sección 14.
+
+```bash
+cp .env.example .env       # y completar DATABASE_URL (puerto 5433, no 5432)
+npm install
+npx prisma generate        # npm 11 no corre el postinstall de Prisma
+```
+
 Después, **con `main` ya actualizado y antes de crear la rama**:
 
 1. Leer la tabla **"En curso ahora"** de `docs/ROADMAP.md`. Si la tarea figura
@@ -342,6 +352,25 @@ Una tarea está completa cuando:
 
 Lista viva. Se agrega, no se borra.
 
+- **`Module '"@prisma/client"' has no exported member 'PrismaClient'`.** No falta
+  una dependencia ni está mal el import: **falta correr `npx prisma generate`**.
+  npm 11 bloquea por defecto los scripts de instalación de las dependencias, así
+  que el `postinstall` de Prisma —el que genera el cliente— no corre solo. El
+  error aparece en `tsc` y no menciona ni a npm ni a Prisma, que es lo que lo
+  hace caro de diagnosticar. `@prisma/client` es una sola línea que reexporta
+  `.prisma/client/default`, y ese archivo lo escribe `prisma generate`.
+- **`PrismaConfigEnvError: Cannot resolve environment variable: DATABASE_URL`.**
+  Falta el `.env`, que no está en el repositorio y hace falta:
+  `cp .env.example .env` y completar la variable con la URL de ejemplo que ese
+  mismo archivo trae comentada.
+- **`Authentication failed against database server` con una `DATABASE_URL`
+  aparentemente correcta.** El puerto del host es el **5433**, no el 5432. Si
+  tenés PostgreSQL instalado en Windows, con 5432 no falla por puerto ocupado:
+  conecta contra el PostgreSQL de tu máquina en vez del contenedor. El porqué
+  está comentado en `docker-compose.yml`.
+- **Prisma 7 exige Node 20.19+, 22.12+ o 24.0+.** Con una versión anterior
+  `npm install` corta en el `preinstall` de Prisma. Este error sí dice
+  exactamente qué pasa; se arregla actualizando Node.
 - Si `prisma migrate dev` pide resetear la base, es porque alguien editó una
   migración ya mergeada. **Avisar antes de resetear.**
 - Si `npm install` trae Prisma 8, revisar que la versión esté fijada sin `^`.

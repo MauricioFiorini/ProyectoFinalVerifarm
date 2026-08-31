@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| Corrección de la fase 1 (1.02, 1.07, 1.10) | Juan Pablo | `fix/1.02-check-en-clon-limpio` | activa | — | 2026-08-31 |
+| — | — | — | — | — | — |
 
 ### Reserva de tareas
 
@@ -178,7 +178,35 @@ rama.
 | 1.08 | `src/lib/db.ts`: cliente Prisma singleton. | `[x]` | S | 1.07 |
 | 1.09 | Estructura de carpetas definitiva: `src/app`, `src/components`, `src/lib`, `src/services`, `src/types`. | `[x]` | S | 1.01 |
 | 1.10 | Paleta y tipografía en `globals.css`, declaradas con `@theme` (Tailwind 4 ya no usa `tailwind.config`): colores de marca y de estado (ok / advertencia / crítico). | `[x]` | M | 1.01 |
-| 1.11 | **Prueba de humo del entorno.** Los tres, cada uno en su máquina: clonar o hacer `git pull` de la fase 1 completa, y correr `npm install`, `docker compose up -d`, la prueba de conexión a la base y `npm run dev`, confirmando que la aplicación levanta sin errores. La prueba de conexión es `echo "SELECT 1;" \| npx prisma db execute --stdin`: **lo único que verifica es que Prisma llega a PostgreSQL en Docker con la `DATABASE_URL` configurada**, y no escribe nada en la base. Si la versión instalada pide el esquema explícito, agregar `--schema prisma/schema.prisma`. **No se usa `npx prisma migrate dev` acá, a propósito:** el esquema recién se escribe en la fase 2, así que acá generaría una migración vacía que queda como ruido permanente en el historial, delante de la inicial de la 2.07. Además `npm run check` tiene que pasar limpio en las tres. | `[ ]` | M | 1.10 |
+| 1.11 | **Prueba de humo del entorno.** Los tres, cada uno en su máquina: clonar o hacer `git pull` de la fase 1 completa, y correr `npm install`, `docker compose up -d`, la prueba de conexión a la base y `npm run dev`, confirmando que la aplicación levanta sin errores. La prueba de conexión es `echo "SELECT 1;" \| npx prisma db execute --stdin`: **lo único que verifica es que Prisma llega a PostgreSQL en Docker con la `DATABASE_URL` configurada**, y no escribe nada en la base. Si la versión instalada pide el esquema explícito, agregar `--schema prisma/schema.prisma`. **No se usa `npx prisma migrate dev` acá, a propósito:** el esquema recién se escribe en la fase 2, así que acá generaría una migración vacía que queda como ruido permanente en el historial, delante de la inicial de la 2.07. Además `npm run check` tiene que pasar limpio en las tres. **Antes de correrla, hacer los "Pasos previos de la 1.11" de acá abajo: sin esos tres pasos falla, y ninguno de los errores apunta a su causa.** | `[ ]` | M | 1.10 |
+
+### Pasos previos de la 1.11, en un clon limpio
+
+Tres pasos que no están en ningún comando y que hacen falta la primera vez, en
+una máquina donde el proyecto nunca corrió. **Ninguno de los tres errores que
+aparecen si faltan apunta a su causa real**, así que conviene hacerlos antes de
+empezar a diagnosticar.
+
+1. **Correr `npx prisma generate` a mano después de `npm install`.** npm 11
+   bloquea por defecto los scripts de instalación de las dependencias, así que el
+   `postinstall` de Prisma —el que genera el cliente— no corre. El síntoma es un
+   error de TypeScript que no menciona a npm ni a Prisma:
+   `Module '"@prisma/client"' has no exported member 'PrismaClient'`. Es
+   esperable: `@prisma/client` es una sola línea que reexporta
+   `.prisma/client/default`, un archivo que escribe `prisma generate`.
+2. **Crear el `.env`**: `cp .env.example .env` y completar `DATABASE_URL` con la
+   URL de ejemplo que ese mismo archivo trae comentada. Sin `.env`,
+   `prisma.config.ts` aborta con `PrismaConfigEnvError: Cannot resolve
+   environment variable: DATABASE_URL`.
+3. **El puerto es el 5433, no el 5432.** Si copiaste una `DATABASE_URL` vieja con
+   5432 y tenés PostgreSQL instalado en Windows, no falla por puerto ocupado:
+   conecta contra el PostgreSQL de tu máquina y responde
+   `Authentication failed against database server`. El porqué está en
+   `docker-compose.yml`.
+
+Además, **Prisma 7 exige Node 20.19+, 22.12+ o 24.0+**. Con una versión anterior
+`npm install` corta en el `preinstall` de Prisma, y ese error sí dice exactamente
+qué pasa.
 
 ### Verificación por integrante de la 1.11
 
