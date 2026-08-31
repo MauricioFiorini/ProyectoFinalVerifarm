@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| — | — | — | — | — | — |
+| Corrección de la fase 1 (1.02, 1.07, 1.10) | Juan Pablo | `fix/1.02-check-en-clon-limpio` | activa | — | 2026-08-31 |
 
 ### Reserva de tareas
 
