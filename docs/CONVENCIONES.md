@@ -218,6 +218,8 @@ verifarm/
       redaccion/           composición del texto de la observación
     services/              lógica de negocio, sin conocimiento de HTTP
     types/
+  scripts/
+    setup.mjs              verifica el entorno y genera el cliente Prisma
   docker-compose.yml       PostgreSQL local
   .env.example             variables sin valores reales
 ```
@@ -266,6 +268,7 @@ avisa al equipo.
 docker compose up -d       # levanta PostgreSQL
 npm run dev                # servidor de desarrollo
 npm run check              # tsc --noEmit + eslint + prettier --check
+npm run setup              # verifica el .env y genera el cliente Prisma
 npx prisma migrate dev     # aplica migraciones
 npx prisma db seed         # carga datos de prueba
 npx prisma studio          # inspeccionar y corregir datos a mano
@@ -308,8 +311,12 @@ faltan no apuntan a su causa: ver las tres primeras trampas de la sección 14.
 ```bash
 cp .env.example .env       # y completar DATABASE_URL (puerto 5433, no 5432)
 npm install
-npx prisma generate        # npm 11 no corre el postinstall de Prisma
+npm run setup              # verifica el .env y genera el cliente Prisma
 ```
+
+`npm run setup` se puede correr las veces que haga falta. **Y hace falta cada vez
+que cambia `prisma/schema.prisma`**, no solo en un clon nuevo: es lo que vuelve a
+generar el cliente.
 
 Después, **con `main` ya actualizado y antes de crear la rama**:
 
@@ -353,7 +360,8 @@ Una tarea está completa cuando:
 Lista viva. Se agrega, no se borra.
 
 - **`Module '"@prisma/client"' has no exported member 'PrismaClient'`.** No falta
-  una dependencia ni está mal el import: **falta correr `npx prisma generate`**.
+  una dependencia ni está mal el import: **falta generar el cliente**, con
+  `npm run setup` o con `npx prisma generate` suelto.
   npm 11 bloquea por defecto los scripts de instalación de las dependencias, así
   que el `postinstall` de Prisma —el que genera el cliente— no corre solo. El
   error aparece en `tsc` y no menciona ni a npm ni a Prisma, que es lo que lo

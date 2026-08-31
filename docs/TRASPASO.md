@@ -13,149 +13,131 @@ Ubicación en el repo: `docs/TRASPASO.md`
 ## Traspaso vigente
 
 **Fecha:** 2026-08-31
-**Entrega:** Juan Pablo Malizani (las tres correcciones), sobre la fase 1 de
-Mauricio Mateo Fiorini
-**Rama:** `fix/1.02-check-en-clon-limpio`, ya mergeada a `main` (PR #2)
-**Commit:** de `e49231a` a `c3b1770`, más el que trae este traspaso
+**Entrega:** Juan Pablo Malizani
+**Rama:** `feat/1.12-script-de-setup`
+**Commit:** `335526f`, más el que trae este traspaso
 
 ### Qué se hizo
 
-**La fase 1 está terminada de la 1.01 a la 1.10, y las tres correcciones que le
-faltaban ya están en `main`.** Quedan pendientes dos tareas de la fase: la
-**1.12**, el script `npm run setup`, y después la **1.11**, la prueba de humo del
-entorno, que corren los tres. En ese orden: la 1.11 depende de la 1.12.
+**La tarea 1.12: `npm run setup`**, el comando que deja el entorno listo después
+de `npm install`. El código está en `scripts/setup.mjs` y hace cuatro cosas, en
+este orden:
 
-Lo que existe hoy en `main`: una aplicación Next.js 16.3.3 con TypeScript
-estricto y App Router, PostgreSQL 16 en Docker con volumen persistente, Prisma
-7.10.0 configurado y conectando, la estructura de carpetas de `src/` y la paleta
-del sistema declarada con `@theme`. El detalle de cómo se construyó cada pieza
-está en el traspaso anterior, en el historial (`git show 780e64f`), y en los
-comentarios de los propios archivos de configuración.
+1. Verifica que exista `.env`.
+2. Verifica que `DATABASE_URL` **tenga valor**. No alcanza con que el archivo
+   exista: `.env.example` trae la clave vacía y la URL que sirve está comentada,
+   así que un `cp` sin editar deja el archivo creado y la variable sin valor.
+3. Avisa —sin cortar— si la URL apunta a un puerto que no es el 5433.
+4. Recién entonces corre `prisma generate`.
 
-Las tres correcciones, un commit cada una:
+Si algo de los dos primeros pasos falla, corta con un mensaje que dice qué hacer
+y sale con código 1, en vez de dejar salir el `PrismaConfigEnvError`. Los
+mensajes se arman según el caso: al que ya copió el `.env` no se le repite que
+lo copie.
 
-| Commit | Qué corrige |
-|---|---|
-| `e49231a` | 1.02 — `npm run check` fallaba en un clon limpio |
-| `1b95fb8` | 1.07 — `dotenv` no estaba declarado |
-| `c3b1770` | 1.10 — clases huérfanas en la página de inicio |
+**Por qué existe.** En un clon limpio hacen falta pasos que no hace ningún
+comando y cuyos errores no apuntan a su causa. El peor: npm 11 bloquea por
+defecto los scripts de instalación de las dependencias, así que el `postinstall`
+de Prisma no corre, el cliente no se genera, y el síntoma aparece mucho después
+como un error de TypeScript que no nombra ni a npm ni a Prisma.
 
-**`e49231a` es la importante.** `src/app/layout.tsx` tipaba sus props con
-`LayoutProps<"/">`, un helper global que Next genera en `.next/types` recién al
-correr `dev` o `build`. En un clon limpio ese tipo no existe y `npm run check`
-cortaba con `Cannot find name 'LayoutProps'` antes de llegar a ESLint o a
-Prettier. Ahora las props se tipan a mano con `{ children: ReactNode }`.
+**Lo que el script no hace, a propósito:** no crea el `.env` —un `cp` sin editar
+generaría un archivo roto, y configurar la conexión es algo que cada uno tiene
+que entender una vez— y no levanta Docker. Termina imprimiendo cuál es el paso
+siguiente.
 
-**`1b95fb8`.** `prisma.config.ts` importa `dotenv/config`, pero `dotenv` no
-figuraba en `package.json`: llegaba como dependencia transitiva de `c12` y
-funcionaba solo por el hoisting de npm. Quedó declarado en `devDependencies`,
-porque el único que lo usa es la CLI de Prisma.
+Antes de la 1.12 se probó la salida obvia, un `postinstall` en `package.json`, y
+se descartó porque hace fallar el `npm install` entero cuando todavía no existe
+el `.env`. Está escrito en
+`docs/decisiones/0001-generacion-del-cliente-prisma.md`, que es la primera
+entrada de esa carpeta.
 
-**`c3b1770`.** Al reescribir `globals.css` en la 1.10 desaparecieron los tokens
-`--color-background` y `--color-foreground` del scaffold, pero
-`src/app/page.tsx` seguía usando `bg-foreground` y `text-background`: Tailwind
-ya no generaba esas utilidades y el botón primario quedaba sin fondo. Ahora usa
-la paleta del proyecto. Se sacaron además las doce clases `dark:` que quedaban,
-que contradecían la decisión de no tener modo oscuro.
+La documentación quedó en cuatro lugares: `docs/CONVENCIONES.md` secciones 8
+(estructura de carpetas), 11 (comandos) y 12 (checklist de antes de empezar), y
+los "Pasos previos de la 1.11" de este roadmap. La trampa de la sección 14 ahora
+apunta al comando nuevo.
 
 ### Decisiones tomadas sobre la marcha
 
-**1. El arreglo del layout es tipar a mano, no agregar un build previo al
-check.** La otra salida era hacer que `npm run check` corriera `next build` (o
-`next typegen`) antes de `tsc`. Se descartó: un comando de validación que
-depende de artefactos generados vuelve a fallar en cualquier máquina limpia, que
-es exactamente el problema que se estaba arreglando. El costo es perder el
-tipado automático de los params de ruta que da `LayoutProps`; en un layout raíz
-que solo recibe `children` no se pierde nada.
+**1. La tarea es la 1.12 pero va antes que la 1.11.** La alternativa era
+renumerar la prueba de humo, y se descartó: "1.11" ya está en el historial de
+git, en las convenciones y en su propia tabla de verificación por integrante.
+Romper esas referencias por prolijidad visual no vale la pena. El orden real lo
+manda la columna "Depende": la 1.11 depende de la 1.12. Hay una nota bajo la
+tabla de la fase 1 explicándolo, para que nadie lo lea como un error de
+numeración y lo "arregle".
 
-**2. `dotenv` va en `devDependencies`, no en `dependencies`.** Solo lo usa
-`prisma.config.ts`, que lo lee la CLI de Prisma en desarrollo. La aplicación en
-ejecución no lo importa.
+**2. El script es `.mjs` y no `.ts`.** Corre con `node` directo, sin pasar por
+el compilador, y tiene que andar igual en PowerShell y en Git Bash. Importa
+`process` explícitamente desde `node:process` y no usa `console`, así que no
+depende de variables globales: por eso **no hizo falta tocar
+`eslint.config.mjs`**. ESLint lo revisa como a cualquier otro archivo, lo cual
+se verificó metiéndole un error a propósito y confirmando que lo detecta.
 
-**3. La línea de `dotenv` en `package-lock.json` se agregó a mano.** Correr `npm
-install` con npm 10.5.2 reescribía 116 líneas del lock borrando metadatos `libc`
-que había escrito una versión más nueva de npm. Se editó solo la línea que hacía
-falta y se verificó que `npm ci` acepta el lock sin quejarse de
-desincronización. Si a alguien le aparece un diff enorme del lock sin haber
-tocado dependencias, es esto: revisar la versión de npm antes de commitear.
-
-**4. No se agregó `engines` a `package.json`.** Se evaluó y se dejó afuera de la
-corrección a propósito. Por sí solo no impide nada —npm trata `engines` como
-advertencia salvo que se sume `engine-strict=true` en un `.npmrc`, y el
-`preinstall` de Prisma ya falla más fuerte y más claro—, y fijar el piso de Node
-es una decisión de los tres que además toca el texto de la 0.01, que hoy dice
-solo "Node.js LTS". Queda para resolver junto con la 1.11.
+**3. El puerto es un aviso y no un error.** Si alguien cambió el puerto en
+`docker-compose.yml` porque tenía el 5433 ocupado, el script no lo tiene que
+frenar.
 
 ### Qué quedó sin hacer
 
-**La 1.12**, el script `npm run setup`, que nace de la decisión 0001. Y detrás de
-ella la **1.11**, la prueba de humo del entorno, cuya tabla de verificación por
-integrante sigue con las tres filas vacías.
+**Nada de la 1.12.** La tarea está completa.
 
-**El piso de versión de Node no está escrito en ningún lado.** Prisma 7 exige
-20.19+, 22.12+ o 24.0+, y con menos que eso `npm install` ni siquiera termina.
-Ver la decisión 4.
-
-`src/app/page.tsx` sigue siendo la página por defecto de `create-next-app`, con
-los logos de Next y Vercel. Es a propósito: la pantalla de inicio es la tarea
-**6.03** y el layout con la barra lateral es la **6.01**. La corrección solo la
-dejó sin nada roto a la vista, porque los tres la van a ver al levantar la
-aplicación en la 1.11.
+De la fase 1 sigue pendiente solo la **1.11**, la prueba de humo del entorno,
+que corren los tres. Su tabla de verificación por integrante tiene dos filas
+marcadas, Mauricio y Juan José, pero **las dos se marcaron contra un `main` que
+todavía no tenía la 1.12**: lo que verificaron es el procedimiento viejo, no el
+que deja esta rama. Está explicado en "Qué sigue".
 
 ### Cómo verificarlo
 
-En una máquina donde el proyecto nunca corrió, sobre `main`:
+En una máquina donde el proyecto nunca corrió, sobre esta rama:
 
 ```
-git checkout main && git pull
 cp .env.example .env      # y completar DATABASE_URL (puerto 5433)
 npm install
-npx prisma generate       # npm 11 no corre el postinstall de Prisma
+npm run setup
 docker compose up -d
-npm run check             # tiene que pasar SIN haber levantado dev antes
+npm run check
 npm run dev
 ```
 
-**Verificado por Juan Pablo el 31/08/2026 con instalación desde cero en Node
-24.20.0: `npm run check` pasa limpio sin haber levantado `dev` antes**, que es
-justamente lo que fallaba y lo que motivó la corrección.
+Verificado con **Node 24.20.0 y npm 11.19.0**, instalando desde cero. Los cinco
+casos del script, corridos uno por uno:
 
-Los tres pasos previos —el `.env`, el puerto 5433 y el `prisma generate` a mano—
-se descubrieron en esa verificación y **ninguno de los errores que producen
-apunta a su causa real**. Están escritos en la sección 14 de
-`docs/CONVENCIONES.md` y en los "Pasos previos de la 1.11" del roadmap. Es lo
-primero que hay que mirar si algo no arranca.
+| Caso | Resultado |
+|---|---|
+| Sin `.env` | Corta, código 1, dice qué hacer |
+| `cp .env.example .env` sin editar | Corta, código 1 |
+| Puerto 5432 en la URL | Avisa, sigue y genera |
+| `.env` completo | Genera, código 0 |
+| Correrlo dos veces seguidas | Idéntico, sin ensuciar nada |
 
-Sobre Node: en una máquina con 20.13.1 esta secuencia **no se puede correr**.
-`npm install` corta en el `preinstall` de Prisma con
-`Prisma only supports Node.js versions 20.19+, 22.12+, 24.0+`.
+La idempotencia se comprobó comparando el checksum de todo
+`node_modules/.prisma/client` entre las dos corridas y el `git status` antes y
+después: no escribe nada fuera de la salida de Prisma, que se sobrescribe sola.
+
+**`npm run check` pasa con código 0**, incluido el archivo nuevo.
 
 ### Qué sigue
 
-**La 1.12**, el script `npm run setup`, y **recién después la 1.11**. El número
-mayor va primero a propósito: la 1.11 depende de la 1.12, y la columna "Depende"
-del roadmap es la que manda el orden, no el número. La prueba de humo se corre
-cuando el script existe; si se corriera antes, cada uno probaría a mano un
-procedimiento distinto del que va a quedar documentado, que es justo lo que la
-prueba tendría que verificar.
+**La 1.11**, la prueba de humo del entorno, una vez que esta rama esté mergeada.
+La corren **los tres**, cada uno en su máquina, sobre `main`, marcando su fila
+en la tabla de verificación por integrante. Es la excepción al "una sola persona
+a la vez" de la fase 1. Antes de correrla hay que hacer los "Pasos previos de la
+1.11" que están en el roadmap: sin esos tres pasos falla, y ninguno de los
+errores apunta a su causa.
 
-La 1.12 nace de la decisión **0001**
-(`docs/decisiones/0001-generacion-del-cliente-prisma.md`): la generación del
-cliente Prisma no va en un `postinstall`, porque se probó y rompe el
-`npm install` entero en un clon limpio, antes de que exista el `.env`. Queda en
-un script explícito que verifica el entorno y recién entonces corre
-`prisma generate`.
-
-**Después, la 1.11:** la prueba de humo del entorno. La corren **los tres**, cada
-uno en su máquina, sobre `main`, marcando su fila en la tabla de verificación por
-integrante. Es la excepción al "una sola persona a la vez" de la fase 1. Antes de
-correrla hay que hacer los "Pasos previos de la 1.11" que están en el roadmap:
-sin esos tres pasos falla, y ninguno de los errores apunta a su causa.
+**Las filas de Mauricio y de Juan José hay que volver a marcarlas después del
+merge.** Se marcaron el 2026-08-31, cuando `main` todavía no tenía
+`scripts/setup.mjs`, así que lo que se probó fue el procedimiento a mano y no
+`npm run setup`. La prueba de humo verifica el procedimiento de arranque, y ese
+procedimiento lo fija la 1.12: corrida antes, cada uno prueba algo distinto del
+que va a quedar documentado, que es justo lo que la prueba tendría que
+verificar.
 
 Con las tres filas marcadas, la 1.11 pasa a `[x]`, la fase 1 cierra y se puede
 empezar la **2.01**, los enums del modelo de datos. La fase 2 **la hace una sola
-persona**: es el punto de conflicto más caro del proyecto, porque dos
-migraciones en paralelo dejan la base de cada uno distinta.
+persona**: dos migraciones en paralelo dejan la base de cada uno distinta.
 
 Mientras tanto siguen disponibles, y no dependen de nada de esto: el bloque DOC
 de `docs/ROADMAP_PRODUCTO.md` (DOC.01 a DOC.06), que es corrección de las
@@ -166,13 +148,26 @@ que viven fuera.
 
 ### Antes de arrancar, tener en cuenta
 
-- **Los tres pasos del clon limpio.** Están arriba, en "Cómo verificarlo", y
-  desarrollados en la sección 14 de `docs/CONVENCIONES.md`: crear el `.env`,
-  usar el puerto **5433** y correr **`npx prisma generate`** a mano después de
-  `npm install`, porque npm 11 no corre el `postinstall` de Prisma. El error de
-  este último es `Module '"@prisma/client"' has no exported member
-  'PrismaClient'`, que no menciona ni a npm ni a Prisma.
-- **Node 20.19+, 22.12+ o 24.0+.** Con menos, `npm install` no termina.
+- **El procedimiento en un clon limpio cambió.** Ahora es: `cp .env.example
+  .env`, completar `DATABASE_URL`, `npm install` y `npm run setup`. Ya no hay que
+  acordarse de `npx prisma generate`: lo corre el script, después de verificar el
+  entorno.
+- **Verificá tu versión de Node antes de todo lo demás.** Prisma 7 pide **20.19+,
+  22.12+ o 24.0+**. Con una anterior, `npm install` corta en el `preinstall` de
+  Prisma; ese error sí dice exactamente qué pasa, pero se evita mirando `node -v`
+  primero. Si usás `fnm` o `nvm`, revisá cuál es tu versión **por defecto**, no
+  solo la de la terminal que tenés abierta.
+- **Los avisos de `npm warn install-scripts` durante `npm install` son
+  esperables y no hay que tocarlos.** npm 11 bloquea por defecto los scripts de
+  instalación de las dependencias y lista `prisma`, `@prisma/engines` y
+  `unrs-resolver`. **No hace falta aprobarlos** con `npm install-scripts
+  approve`: de eso se encarga `npm run setup`, y aprobarlos es una configuración
+  de cada máquina que haría que los tres corran cosas distintas.
+- **`npm run setup` también hace falta cada vez que cambie
+  `prisma/schema.prisma`**, no solo en un clon nuevo: es lo que regenera el
+  cliente. A partir de la fase 2 va a pasar seguido.
+- **El puerto de PostgreSQL es el 5433, no el 5432.** El script avisa si tu URL
+  apunta a otro. El porqué está en `docker-compose.yml`.
 - **Docker Desktop tiene que estar abierto.** No arranca solo al iniciar sesión
   en Windows. Si no lo está, cualquier comando de docker falla con
   `failed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine`.
@@ -180,29 +175,24 @@ que viven fuera.
   es `8.0.0-rc.12`, un release candidate. Prisma queda clavado en `7.10.0`.
 - **ESLint 9.39.5 avisa que la versión 9 ya no tiene soporte.** Es la que declara
   `eslint-config-next@16.3.3`; subir a la 10 por cuenta propia puede romper la
-  configuración. Se dejó la que instala el scaffold.
+  configuración.
 - **En Tailwind 4 la paleta se toca en `src/app/globals.css`, no en un
   `tailwind.config`**, que no existe. Los tokens están en el bloque `@theme` y de
-  cada uno salen las utilidades: `--color-critico-fondo` genera
-  `bg-critico-fondo`, `text-critico-fondo` y `border-critico-fondo`.
-- **Tailwind 4 descarta los tokens que nadie usa.** Si buscás un color en el CSS
-  compilado y no aparece, no está roto: es que todavía ninguna clase lo usa. Al
-  revés también pasa, y es lo que corrigió `c3b1770`: una clase que apunta a un
-  token borrado no da error, simplemente no genera nada.
+  cada uno salen las utilidades. Tailwind descarta los tokens que nadie usa, y
+  una clase que apunta a un token borrado no da error: simplemente no genera
+  nada.
 - **La lógica de negocio va en `src/services/`**, nunca en componentes ni en
   route handlers, y son Route Handlers, no Server Actions.
-- **Preguntar antes de tocar `prisma/schema.prisma`.** Ahora existe, y a partir
-  de la fase 2 cada cambio genera migraciones.
+- **Preguntar antes de tocar `prisma/schema.prisma`.** A partir de la fase 2 cada
+  cambio genera migraciones.
 - La lista de lo que **no** se implementa está en `docs/CONTEXTO.md` sección 6 y
   en `docs/ROADMAP_PRODUCTO.md`. Los mockups de `concpeto/` muestran varias de
   esas cosas: son referencia visual, no una especificación.
 
 ### Bloqueos
 
-**La 1.11 está bloqueada por la 1.12**, que todavía no está hecha. No es un
-bloqueo entre personas sino de orden: la prueba de humo verifica el
-procedimiento de arranque, y ese procedimiento lo fija el script de la 1.12. Sin
-el script, cada uno probaría algo distinto.
+**Ninguno.** La 1.11 no está bloqueada: solo hace falta mergear esta rama y que
+los tres la corran.
 
 **D2** sigue abierta y sigue sin frenar nada: la tarea 5.03, carga manual de al
 menos 15 pares de psicofármacos en el seed, permite avanzar con todo el módulo
