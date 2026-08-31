@@ -83,8 +83,10 @@ frenar.
 **Nada de la 1.12.** La tarea está completa.
 
 De la fase 1 sigue pendiente solo la **1.11**, la prueba de humo del entorno,
-que corren los tres. Su tabla de verificación por integrante sigue con las tres
-filas vacías.
+que corren los tres. Su tabla de verificación por integrante tiene dos filas
+marcadas, Mauricio y Juan José, pero **las dos se marcaron contra un `main` que
+todavía no tenía la 1.12**: lo que verificaron es el procedimiento viejo, no el
+que deja esta rama. Está explicado en "Qué sigue".
 
 ### Cómo verificarlo
 
@@ -121,7 +123,17 @@ después: no escribe nada fuera de la salida de Prisma, que se sobrescribe sola.
 **La 1.11**, la prueba de humo del entorno, una vez que esta rama esté mergeada.
 La corren **los tres**, cada uno en su máquina, sobre `main`, marcando su fila
 en la tabla de verificación por integrante. Es la excepción al "una sola persona
-a la vez" de la fase 1.
+a la vez" de la fase 1. Antes de correrla hay que hacer los "Pasos previos de la
+1.11" que están en el roadmap: sin esos tres pasos falla, y ninguno de los
+errores apunta a su causa.
+
+**Las filas de Mauricio y de Juan José hay que volver a marcarlas después del
+merge.** Se marcaron el 2026-08-31, cuando `main` todavía no tenía
+`scripts/setup.mjs`, así que lo que se probó fue el procedimiento a mano y no
+`npm run setup`. La prueba de humo verifica el procedimiento de arranque, y ese
+procedimiento lo fija la 1.12: corrida antes, cada uno prueba algo distinto del
+que va a quedar documentado, que es justo lo que la prueba tendría que
+verificar.
 
 Con las tres filas marcadas, la 1.11 pasa a `[x]`, la fase 1 cierra y se puede
 empezar la **2.01**, los enums del modelo de datos. La fase 2 **la hace una sola
@@ -129,7 +141,10 @@ persona**: dos migraciones en paralelo dejan la base de cada uno distinta.
 
 Mientras tanto siguen disponibles, y no dependen de nada de esto: el bloque DOC
 de `docs/ROADMAP_PRODUCTO.md` (DOC.01 a DOC.06), que es corrección de las
-entregas de la facultad, y **resolver D2**.
+entregas de la facultad, y **resolver D2**. De ese bloque, la **DOC.05** es la
+única cuyo archivo está en este repositorio: actualiza
+`docs/MD_VERIFARM.drawio`. Las otras cinco tocan las entregas de la facultad,
+que viven fuera.
 
 ### Antes de arrancar, tener en cuenta
 

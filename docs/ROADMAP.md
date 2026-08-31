@@ -229,8 +229,8 @@ suya. Es la excepción al "una sola persona a la vez" de esta fase: el resto de 
 | Integrante | 1.11 |
 |---|---|
 | Juan Pablo | `[ ]` |
-| Mauricio | `[ ]` |
-| Juan José | `[ ]` |
+| Mauricio | `[x]` |
+| Juan José | `[x]` |
 
 **La 1.11 pasa a `[x]` en la tabla de tareas solo cuando las tres filas están
 completas.** Mientras haya una casilla vacía, queda en `[ ]`, aunque en tu máquina
