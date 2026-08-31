@@ -234,7 +234,7 @@ suya. Es la excepción al "una sola persona a la vez" de esta fase: el resto de 
 | Integrante | 1.11 |
 |---|---|
 | Juan Pablo | `[x]` |
-| Mauricio | `[ ]` |
+| Mauricio | `[x]` |
 | Juan José | `[ ]` |
 
 **Las tres filas se vaciaron el 2026-08-31, después de cerrar la 1.13.**
