@@ -1,0 +1,18 @@
+// Modelo de datos de Verifarm.
+//
+// Por ahora solo estan el generador y la fuente de datos: los modelos son
+// trabajo de la FASE 2 del roadmap (tareas 2.01 a 2.06) y los escribe una
+// sola persona por vez, porque dos migraciones en paralelo rompen la base
+// de todo el equipo.
+//
+// Ojo con una diferencia de Prisma 7 respecto de la 6: la URL de conexion
+// NO va aca. Vive en `prisma.config.ts`, que la lee de la variable de
+// entorno DATABASE_URL.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}

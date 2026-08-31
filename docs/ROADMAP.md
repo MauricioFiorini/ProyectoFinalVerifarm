@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| 1.01 | Mauricio | `feat/1.01-esqueleto-tecnico` | activa | — | 2026-08-29 |
+| — | — | — | — | — | — |
 
 ### Reserva de tareas
 
@@ -168,16 +168,16 @@ rama.
 
 | # | Tarea | Estado | Tamaño | Depende |
 |---|---|---|---|---|
-| 1.01 | `npx create-next-app` con TypeScript, App Router, Tailwind, ESLint, carpeta `src/`. | `[~]` | S | 0.09 |
-| 1.02 | TypeScript estricto en `tsconfig.json` y regla de ESLint que prohíbe `any`. | `[ ]` | S | 1.01 |
-| 1.03 | Prettier y script `npm run check` (`tsc --noEmit` + eslint + prettier). | `[ ]` | S | 1.02 |
-| 1.04 | `docker-compose.yml` con PostgreSQL 16 y volumen persistente. Verificar que levanta. | `[ ]` | M | 1.01 |
-| 1.05 | `.env.example` con `DATABASE_URL` vacía y su explicación. | `[ ]` | S | 1.04 |
-| 1.06 | Instalar **Prisma 7.10.0 exacto** (`prisma` y `@prisma/client`). **No usar `latest`.** | `[ ]` | S | 1.04 |
-| 1.07 | `prisma.config.ts` con la URL de conexión y `dotenv/config`. Validar con `npx prisma validate`. | `[ ]` | M | 1.06 |
-| 1.08 | `src/lib/db.ts`: cliente Prisma singleton. | `[ ]` | S | 1.07 |
-| 1.09 | Estructura de carpetas definitiva: `src/app`, `src/components`, `src/lib`, `src/services`, `src/types`. | `[ ]` | S | 1.01 |
-| 1.10 | Paleta y tipografía en `globals.css` y `tailwind.config`: colores de marca y de estado (ok / advertencia / crítico). | `[ ]` | M | 1.01 |
+| 1.01 | `npx create-next-app` con TypeScript, App Router, Tailwind, ESLint, carpeta `src/`. | `[x]` | S | 0.09 |
+| 1.02 | TypeScript estricto en `tsconfig.json` y regla de ESLint que prohíbe `any`. | `[x]` | S | 1.01 |
+| 1.03 | Prettier y script `npm run check` (`tsc --noEmit` + eslint + prettier). | `[x]` | S | 1.02 |
+| 1.04 | `docker-compose.yml` con PostgreSQL 16 y volumen persistente. Verificar que levanta. | `[x]` | M | 1.01 |
+| 1.05 | `.env.example` con `DATABASE_URL` vacía y su explicación. | `[x]` | S | 1.04 |
+| 1.06 | Instalar **Prisma 7.10.0 exacto** (`prisma` y `@prisma/client`). **No usar `latest`.** | `[x]` | S | 1.04 |
+| 1.07 | `prisma.config.ts` con la URL de conexión y `dotenv/config`. Validar con `npx prisma validate`. | `[x]` | M | 1.06 |
+| 1.08 | `src/lib/db.ts`: cliente Prisma singleton. | `[x]` | S | 1.07 |
+| 1.09 | Estructura de carpetas definitiva: `src/app`, `src/components`, `src/lib`, `src/services`, `src/types`. | `[x]` | S | 1.01 |
+| 1.10 | Paleta y tipografía en `globals.css`, declaradas con `@theme` (Tailwind 4 ya no usa `tailwind.config`): colores de marca y de estado (ok / advertencia / crítico). | `[x]` | M | 1.01 |
 | 1.11 | **Prueba de humo del entorno.** Los tres, cada uno en su máquina: clonar o hacer `git pull` de la fase 1 completa, y correr `npm install`, `docker compose up -d`, la prueba de conexión a la base y `npm run dev`, confirmando que la aplicación levanta sin errores. La prueba de conexión es `echo "SELECT 1;" \| npx prisma db execute --stdin`: **lo único que verifica es que Prisma llega a PostgreSQL en Docker con la `DATABASE_URL` configurada**, y no escribe nada en la base. Si la versión instalada pide el esquema explícito, agregar `--schema prisma/schema.prisma`. **No se usa `npx prisma migrate dev` acá, a propósito:** el esquema recién se escribe en la fase 2, así que acá generaría una migración vacía que queda como ruido permanente en el historial, delante de la inicial de la 2.07. Además `npm run check` tiene que pasar limpio en las tres. | `[ ]` | M | 1.10 |
 
 ### Verificación por integrante de la 1.11

@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Paleta y tipografia de Verifarm.
+
+   De donde salen los colores: estan muestreados de los mockups de `concpeto/`
+   leyendo los pixeles del PNG, no elegidos a ojo. Los que dicen "derivado" son
+   los que el muestreo no pudo resolver —texto chico sobre fondo de color, donde
+   el antialiasing mezcla tinta y fondo— y se completaron manteniendo la familia
+   y el contraste de los que si se pudieron medir.
+
+   Los mockups son referencia VISUAL. Varias de las pantallas que muestran estan
+   fuera del alcance del prototipo (ver docs/CONTEXTO.md, seccion 6). De ahi se
+   toman colores y tipografia, no funcionalidades.
+
+   Tailwind 4 no usa `tailwind.config`: los tokens se declaran aca, con @theme,
+   y de cada uno salen las utilidades. `--color-critico-fondo` genera
+   `bg-critico-fondo`, `text-critico-fondo` y `border-critico-fondo`.
+   --------------------------------------------------------------------------- */
+
+@theme {
+  /* --- Marca -------------------------------------------------------------
+     El 600 es el azul de los botones primarios del mockup y el 500 el de la
+     paginacion activa; los dos estan muestreados. El resto de la escala se
+     derivo de esos dos para tener claros y oscuros coherentes. */
+  --color-marca-50: #eef7fc;
+  --color-marca-100: #d3e9f6;
+  --color-marca-200: #a9d4ed;
+  --color-marca-300: #7fc0e4;
+  --color-marca-400: #3f9ed0;
+  --color-marca-500: #007bb9;
+  --color-marca-600: #006194;
+  --color-marca-700: #004d76;
+  --color-marca-800: #003a59;
+  --color-marca-900: #002f48;
+
+  /* --- Superficies y texto (muestreados, salvo donde se aclara) ---------- */
+  --color-fondo: #f7f9fb;
+  --color-superficie: #ffffff;
+  --color-superficie-tenue: #f2f4f6;
+  --color-borde: #e1e5e9;
+  --color-texto: #191c1e;
+  --color-texto-tenue: #5b6670; /* derivado */
+  --color-texto-sutil: #74797d;
+
+  /* --- Colores de estado -------------------------------------------------
+     Los tres estados que pide la tarea 1.10. En el modulo de stock son
+     "normal / lote por vencer / bajo minimo" y en el clinico son los niveles
+     de severidad de una interaccion. Cada uno trae fondo, borde y texto para
+     que un chip o una alerta se armen sin inventar valores intermedios. */
+
+  /* OK: vigente, dentro del minimo, sin hallazgos. */
+  --color-ok-fondo: #f0fdf4;
+  --color-ok-borde: #b8e6c8; /* derivado */
+  --color-ok-texto: #006e00;
+
+  /* Advertencia: vence pronto, cerca del minimo, severidad intermedia. */
+  --color-advertencia-fondo: #fffbeb;
+  --color-advertencia-borde: #f3dfa8; /* derivado */
+  --color-advertencia-texto: #8a5a00; /* derivado */
+
+  /* Critico: vencido, bajo minimo, interaccion grave. */
+  --color-critico-fondo: #fef2f2;
+  --color-critico-suave: #ffdad6;
+  --color-critico-borde: #f5b7b1; /* derivado */
+  --color-critico-texto: #ba0000;
+
+  /* Informativo: paneles de contexto. No es un estado de alarma. */
+  --color-info-fondo: #f0f9ff;
+  --color-info-borde: #bae0f5; /* derivado */
+  --color-info-texto: #006194;
+}
+
+/* Las tipografias las carga `next/font` en src/app/layout.tsx y expone su
+   nombre en una variable CSS. `@theme inline` es lo que permite referenciar
+   esa variable: sin `inline`, Tailwind congelaria el valor literal. */
+@theme inline {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+    font-family: var(--font-sans);
+  }
+
+  /* Numeros de la misma familia con el mismo ancho. Importa en las tablas de
+     stock y de lotes: sin esto, las cantidades y las fechas no alinean por
+     columna y la tabla se lee peor. */
+  table {
+    font-variant-numeric: tabular-nums;
+  }
+}

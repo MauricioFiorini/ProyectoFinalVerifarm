@@ -1,0 +1,15 @@
+# Generados o de terceros
+node_modules
+.next
+out
+build
+coverage
+package-lock.json
+
+# El modelo de dominio lo edita draw.io, no una persona.
+docs/MD_VERIFARM.drawio
+
+# La documentacion esta redactada y cortada a mano a 80 columnas.
+# Prettier reflowaria las tablas y los parrafos, generando diffs enormes
+# en archivos que escribio el equipo. El formateo automatico es para codigo.
+*.md
