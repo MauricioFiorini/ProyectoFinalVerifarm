@@ -178,9 +178,9 @@ rama.
 | 1.08 | `src/lib/db.ts`: cliente Prisma singleton. | `[x]` | S | 1.07 |
 | 1.09 | Estructura de carpetas definitiva: `src/app`, `src/components`, `src/lib`, `src/services`, `src/types`. | `[x]` | S | 1.01 |
 | 1.10 | Paleta y tipografía en `globals.css`, declaradas con `@theme` (Tailwind 4 ya no usa `tailwind.config`): colores de marca y de estado (ok / advertencia / crítico). | `[x]` | M | 1.01 |
-| 1.12 | **Script `npm run setup`** (`scripts/setup.mjs`), que deja el entorno listo despues de `npm install`: verifica que exista `.env` y que `DATABASE_URL` **tenga valor** —no alcanza con que el archivo exista, porque `.env.example` la trae vacia y la URL que sirve esta comentada—, avisa si el puerto no es el 5433, y recien entonces corre `prisma generate`. **No crea el `.env` ni levanta Docker**: imprime cual es el paso siguiente. Tiene que poder correrse dos veces sin romperse ni ensuciar nada. Reemplaza al `postinstall`, que se probo y se descarto: ver `docs/decisiones/0001-generacion-del-cliente-prisma.md`. | `[x]` | M | 1.10 |
+| 1.12 | **Script `npm run setup`** (`scripts/setup.mjs`), que deja el entorno listo despues de `npm ci`: verifica que exista `.env` y que `DATABASE_URL` **tenga valor** —no alcanza con que el archivo exista, porque `.env.example` la trae vacia y la URL que sirve esta comentada—, avisa si el puerto no es el 5433, y recien entonces corre `prisma generate`. **No crea el `.env` ni levanta Docker**: imprime cual es el paso siguiente. Tiene que poder correrse dos veces sin romperse ni ensuciar nada. Reemplaza al `postinstall`, que se probo y se descarto: ver `docs/decisiones/0001-generacion-del-cliente-prisma.md`. | `[x]` | M | 1.10 |
 | 1.13 | **El arranque usa `npm ci`, no `npm install`.** `npm install` resuelve los rangos de `package.json` y **reescribe `package-lock.json`** cuando una dependencia transitiva con rango flotante tiene una versión nueva publicada; ya pasó una vez, en el commit `35559a5`. `npm ci` instala exactamente lo que dice el lock, no lo reescribe nunca, y **falla** si el lock y `package.json` se desincronizan en vez de reconciliarlos en silencio. `npm install` queda reservado para agregar o cambiar una dependencia **a propósito**, que es cuando el lock tiene que cambiar. **Es solo documentación: `scripts/setup.mjs` no se toca.** Ver `docs/decisiones/0002-el-lock-manda-y-el-comando-es-npm-ci.md`. | `[~]` | S | 1.12 |
-| 1.11 | **Prueba de humo del entorno.** Los tres, cada uno en su máquina: clonar o hacer `git pull` de la fase 1 completa, y correr `npm install`, `docker compose up -d`, la prueba de conexión a la base y `npm run dev`, confirmando que la aplicación levanta sin errores. La prueba de conexión es `echo "SELECT 1;" \| npx prisma db execute --stdin`: **lo único que verifica es que Prisma llega a PostgreSQL en Docker con la `DATABASE_URL` configurada**, y no escribe nada en la base. Si la versión instalada pide el esquema explícito, agregar `--schema prisma/schema.prisma`. **No se usa `npx prisma migrate dev` acá, a propósito:** el esquema recién se escribe en la fase 2, así que acá generaría una migración vacía que queda como ruido permanente en el historial, delante de la inicial de la 2.07. Además `npm run check` tiene que pasar limpio en las tres. **Antes de correrla, hacer los "Pasos previos de la 1.11" de acá abajo: sin esos tres pasos falla, y ninguno de los errores apunta a su causa.** | `[ ]` | M | 1.10, 1.12, 1.13 |
+| 1.11 | **Prueba de humo del entorno.** Los tres, cada uno en su máquina: clonar o hacer `git pull` de la fase 1 completa, y correr `npm ci`, `npm run setup`, `docker compose up -d`, la prueba de conexión a la base y `npm run dev`, confirmando que la aplicación levanta sin errores. La prueba de conexión es `echo "SELECT 1;" \| npx prisma db execute --stdin`: **lo único que verifica es que Prisma llega a PostgreSQL en Docker con la `DATABASE_URL` configurada**, y no escribe nada en la base. Si la versión instalada pide el esquema explícito, agregar `--schema prisma/schema.prisma`. **No se usa `npx prisma migrate dev` acá, a propósito:** el esquema recién se escribe en la fase 2, así que acá generaría una migración vacía que queda como ruido permanente en el historial, delante de la inicial de la 2.07. Además `npm run check` tiene que pasar limpio en las tres. **Antes de correrla, hacer los "Pasos previos de la 1.11" de acá abajo: sin esos tres pasos falla, y ninguno de los errores apunta a su causa.** | `[ ]` | M | 1.10, 1.12, 1.13 |
 
 **La 1.12 y la 1.13 van antes que la 1.11 a propósito, aunque los números sean
 mayores.** Los identificadores no se reciclan ni se renumeran: la 1.11 ya está
@@ -200,7 +200,7 @@ En una máquina donde el proyecto nunca corrió, antes de la prueba de humo:
 
 ```bash
 cp .env.example .env    # y completar DATABASE_URL (viene vacia y comentada)
-npm install
+npm ci
 npm run setup           # verifica el .env y genera el cliente Prisma
 ```
 
@@ -221,7 +221,7 @@ real**: están listados uno por uno, con su síntoma, en la sección 14 de
 `docs/CONVENCIONES.md`.
 
 Además, **Prisma 7 exige Node 20.19+, 22.12+ o 24.0+**. Con una versión anterior
-`npm install` corta en el `preinstall` de Prisma, y ese error sí dice
+la instalación corta en el `preinstall` de Prisma, y ese error sí dice
 exactamente qué pasa.
 
 ### Verificación por integrante de la 1.11

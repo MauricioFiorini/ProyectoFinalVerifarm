@@ -265,6 +265,7 @@ avisa al equipo.
 ## 11. Comandos
 
 ```bash
+npm ci                     # instala lo que dice el lock, sin reescribirlo
 docker compose up -d       # levanta PostgreSQL
 npm run dev                # servidor de desarrollo
 npm run check              # tsc --noEmit + eslint + prettier --check
@@ -273,6 +274,17 @@ npx prisma migrate dev     # aplica migraciones
 npx prisma db seed         # carga datos de prueba
 npx prisma studio          # inspeccionar y corregir datos a mano
 ```
+
+**El comando de instalación es `npm ci`, no `npm install`.** `npm ci` instala
+exactamente lo que dice `package-lock.json` y no lo reescribe nunca.
+`npm install` resuelve los rangos de `package.json` y **sí** reescribe el lock
+cuando encuentra una versión más nueva, aunque nadie se lo haya pedido. Queda
+para agregar o cambiar una dependencia a propósito, que es cuando el lock tiene
+que cambiar. El porqué está en
+`docs/decisiones/0002-el-lock-manda-y-el-comando-es-npm-ci.md`.
+
+**`npm ci` borra `node_modules` entero**, y con él el cliente Prisma generado,
+así que después de cada `npm ci` hay que correr `npm run setup`.
 
 ### Prisma queda clavado en 7.10.0
 
@@ -298,7 +310,8 @@ Primero, dejar el entorno al día:
 
 ```bash
 git checkout main && git pull    # imprescindible: la reserva de tareas vive en main
-npm install                      # por si cambiaron dependencias
+npm ci                           # si cambio el lock; borra node_modules y lo rehace
+npm run setup                    # npm ci se lleva el cliente Prisma: regenerarlo
 docker compose up -d
 npx prisma migrate dev           # aplica migraciones nuevas
 npm run dev                      # verificar que levanta sin errores
@@ -310,7 +323,7 @@ faltan no apuntan a su causa: ver las tres primeras trampas de la sección 14.
 
 ```bash
 cp .env.example .env       # y completar DATABASE_URL (puerto 5433, no 5432)
-npm install
+npm ci
 npm run setup              # verifica el .env y genera el cliente Prisma
 ```
 
@@ -377,11 +390,20 @@ Lista viva. Se agrega, no se borra.
   conecta contra el PostgreSQL de tu máquina en vez del contenedor. El porqué
   está comentado en `docker-compose.yml`.
 - **Prisma 7 exige Node 20.19+, 22.12+ o 24.0+.** Con una versión anterior
-  `npm install` corta en el `preinstall` de Prisma. Este error sí dice
+  la instalación corta en el `preinstall` de Prisma, con `npm ci` igual que con
+  `npm install`. Este error sí dice
   exactamente qué pasa; se arregla actualizando Node.
 - Si `prisma migrate dev` pide resetear la base, es porque alguien editó una
   migración ya mergeada. **Avisar antes de resetear.**
-- Si `npm install` trae Prisma 8, revisar que la versión esté fijada sin `^`.
+- Si aparece Prisma 8, es que alguien corrió `npm install` en vez de `npm ci`:
+  revisar que la versión esté fijada sin `^`. Con `npm ci` no puede pasar,
+  porque instala la versión que dice el lock.
+- **`package-lock.json` figura como modificado sin que nadie lo haya tocado.**
+  Es `npm install`: reescribe el lock cuando una dependencia transitiva con
+  rango flotante tiene una versión nueva publicada. Por eso el comando de
+  arranque es `npm ci`. Si el cambio ya está en el árbol de trabajo y no se
+  quería, se descarta con `git checkout -- package-lock.json` y se vuelve a
+  correr `npm ci`. Ver la decisión 0002.
 - **El repositorio fuerza finales de línea LF** por `.gitattributes`
   (`* text=auto eol=lf`). Si aparecen diffs donde el archivo entero figura como
   modificado sin haberlo tocado, son finales de línea: revisar
