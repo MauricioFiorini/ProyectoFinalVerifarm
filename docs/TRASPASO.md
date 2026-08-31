@@ -21,8 +21,9 @@ Mauricio Mateo Fiorini
 ### Qué se hizo
 
 **La fase 1 está terminada de la 1.01 a la 1.10, y las tres correcciones que le
-faltaban ya están en `main`.** Lo único pendiente de la fase es la **1.11**, la
-prueba de humo del entorno, que corren los tres.
+faltaban ya están en `main`.** Quedan pendientes dos tareas de la fase: la
+**1.12**, el script `npm run setup`, y después la **1.11**, la prueba de humo del
+entorno, que corren los tres. En ese orden: la 1.11 depende de la 1.12.
 
 Lo que existe hoy en `main`: una aplicación Next.js 16.3.3 con TypeScript
 estricto y App Router, PostgreSQL 16 en Docker con volumen persistente, Prisma
@@ -87,7 +88,8 @@ solo "Node.js LTS". Queda para resolver junto con la 1.11.
 
 ### Qué quedó sin hacer
 
-**La 1.11**, la prueba de humo del entorno. Su tabla de verificación por
+**La 1.12**, el script `npm run setup`, que nace de la decisión 0001. Y detrás de
+ella la **1.11**, la prueba de humo del entorno, cuya tabla de verificación por
 integrante sigue con las tres filas vacías.
 
 **El piso de versión de Node no está escrito en ningún lado.** Prisma 7 exige
@@ -197,7 +199,10 @@ que viven fuera.
 
 ### Bloqueos
 
-**Ninguno.** La 1.11 no está bloqueada: solo hace falta que los tres la corran.
+**La 1.11 está bloqueada por la 1.12**, que todavía no está hecha. No es un
+bloqueo entre personas sino de orden: la prueba de humo verifica el
+procedimiento de arranque, y ese procedimiento lo fija el script de la 1.12. Sin
+el script, cada uno probaría algo distinto.
 
 **D2** sigue abierta y sigue sin frenar nada: la tarea 5.03, carga manual de al
 menos 15 pares de psicofármacos en el seed, permite avanzar con todo el módulo
