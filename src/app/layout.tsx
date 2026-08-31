@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -18,7 +19,13 @@ export const metadata: Metadata = {
     "Gestion farmaceutica: trazabilidad de stock por lote y deteccion de interacciones medicamentosas.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+// Las props se tipan a mano y no con `LayoutProps<"/">`, el helper global de
+// Next. Ese tipo lo genera Next dentro de `.next/types` al correr `dev` o
+// `build`, asi que en un clon limpio —sin `.next`— no existe y `npm run check`
+// falla con "Cannot find name 'LayoutProps'". Un comando de validacion no puede
+// depender de artefactos generados: tiene que pasar en una maquina recien
+// clonada, antes de haber levantado nada.
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="es"
