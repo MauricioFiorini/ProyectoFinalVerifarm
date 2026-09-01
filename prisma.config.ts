@@ -17,5 +17,5 @@ export default defineConfig({
   },
   migrations: {
     seed: "npx tsx prisma/seed.ts",
-  }
+  },
 });
