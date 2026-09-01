@@ -283,7 +283,35 @@ decide cuando se empieza, no antes.
 | 2.06 | Modelos transversales: `Usuario` y `RegistroAuditoria`. **`RegistroAuditoria` se crea pero no se usa en el prototipo** — está en el modelo de dominio y sacarla contradiría la documentación. | `[x]` | S | 2.01 |
 | 2.07 | Primera migración: `npx prisma migrate dev --name inicial`. Verificar con Prisma Studio. | `[x]` | M | 2.02–2.06 |
 | 2.08 | `seed.ts` mínimo: 3 usuarios y 10 medicamentos. Suficiente para desarrollar. | `[x]` | M | 2.07 |
-| 2.09 | Verificar que los tres aplican la migración en su base local sin errores. | `[x]` | M | 2.07 |
+| 2.09 | Verificar que los tres aplican la migración en su base local sin errores. | `[ ]` | M | 2.07 |
+
+### Verificación por integrante de la 2.09
+
+La 2.09 se corre **en cada máquina**, igual que la 0.09 y la 1.11, así que el
+detalle individual vive acá: cada uno marca su casilla cuando aplica la migración
+en su base local sin errores. La tarea lo dice explícitamente —"que **los tres**
+aplican la migración"— y la columna Estado no puede expresar "hecha en una de
+tres".
+
+| Integrante | 2.09 |
+|---|---|
+| Juan Pablo | `[x]` |
+| Mauricio | `[ ]` |
+| Juan José | `[ ]` |
+
+**La 2.09 pasa a `[x]` en la tabla de tareas solo cuando las tres filas están
+completas.** Mientras haya una casilla vacía, queda en `[ ]`, aunque en tu máquina
+la migración aplique.
+
+**Volvió a `[ ]` el 2026-09-01.** La había cerrado una persona con un commit de
+una línea, sin que las otras dos aplicaran nada: como verificación de la 2.09 eso
+no vale, es el mismo caso que ya corrigieron la 0.09 y la 1.11. Queda pendiente
+que Mauricio y Juan José corran la migración; conviene que lo hagan en la misma
+pasada que el `npm ci` con el lock reparado que pide el traspaso.
+
+**La 3.01 quedó `[x]` dependiendo de una tarea abierta.** Es una consecuencia
+conocida de reabrir esta: el código de la 3.01 ya está escrito y no se toca. Lo
+que falta es la verificación en las otras dos máquinas, no la 3.01.
 
 ---
 

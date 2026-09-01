@@ -155,15 +155,17 @@ tarea, resolviendo los conflictos a mano.
 
 **De la 1.14 y la 1.15, nada.** Las dos tareas están completas y verificadas.
 
-**Del ordenamiento que salió de la revisión, dos cosas:**
+**Del ordenamiento que salió de la revisión, una sola cosa, y no la puede hacer
+quien escribe esto:**
 
-1. **Tabla de verificación por integrante en la 2.09, y volverla a `[ ]`.** La
-   tarea dice "verificar que **los tres** aplican la migración" y la cerró una
-   persona con un commit de una línea. Es el mismo tratamiento que ya tienen la
-   0.09 y la 1.11. **Va directo a `main`**, es corrección de documentación.
-2. **Mauricio y Juan José tienen que correr `npm ci` con el lock reparado.**
-   Ahora que la 1.14 está mergeada es lo inmediato: hasta que lo hagan, lo único
-   verificado es que el lock anda en una máquina.
+1. **Mauricio y Juan José tienen que correr `npm ci` con el lock reparado y
+   aplicar la migración en su base local.** Son las dos verificaciones que faltan
+   y conviene hacerlas en la misma pasada. Hasta entonces, lo único verificado es
+   que el lock y la migración andan en una máquina.
+
+La tabla de verificación de la 2.09 **ya está hecha**: se agregó directo a `main`
+el 2026-09-01, la tarea volvió a `[ ]` y la fila de Juan Pablo quedó marcada. Las
+otras dos casillas son el punto 1.
 
 **Y los cinco temas de reunión**, que lleva Juan Pablo. Están en "Bloqueos".
 
@@ -213,9 +215,8 @@ internet.
 
 ### Qué sigue
 
-**Primero, las dos cosas de "Qué quedó sin hacer"**: la tabla de la 2.09 directo
-a `main`, y el `npm ci` de Mauricio y Juan José con el lock ya reparado en
-`main`.
+**Primero, lo de "Qué quedó sin hacer"**: el `npm ci` y la migración de Mauricio
+y Juan José. Con eso la 2.09 vuelve a `[x]` y el ordenamiento queda cerrado.
 
 **Después, la fase 3.** La próxima tarea libre es la **3.02**, validación con
 Zod, que depende de la 3.01 ya cerrada — pero **necesita antes la decisión sobre
