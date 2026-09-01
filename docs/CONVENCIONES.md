@@ -484,6 +484,23 @@ Lista viva. Se agrega, no se borra.
   `merge`. Nada de `rebase`, `commit --amend` ni `push --force` sobre commits
   ajenos: quien la dejó todavía tiene esa rama en su máquina, y si le cambiás los
   hashes su `pull` deja de andar y el trabajo aparece duplicado.
+- **Copilot puede intervenir solo en un PR y resolver los conflictos por su
+  cuenta.** No hace falta pedírselo ni aceptar nada: los commits de merge que
+  deja llevan `copilot-swe-agent[bot]` como autor, y si ese PR se mergea, esos
+  commits entran a `main` y **violan la regla de autoría de la sección 1**, que
+  es innegociable. Pasó el 2026-09-01 al mergear la 1.14. **Antes de mergear
+  cualquier PR, revisar la autoría de todo commit de merge hecho desde la web:**
+
+  ```bash
+  git fetch origin
+  git log origin/main..origin/<rama> --format='%h %an <%ae>'
+  ```
+
+  Si aparece un bot, el arreglo no es editar el commit: es **descartar la rama**,
+  abrir una nueva desde el último commit propio y resolver el merge a mano en
+  local. Reescribir esos commits con `rebase` o `amend` cambia los hashes de la
+  rama de otro, que es la trampa de arriba. La rama descartada se borra del
+  remoto para que nadie la vuelva a mergear.
 
 ---
 
