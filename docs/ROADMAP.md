@@ -91,12 +91,30 @@ casos:
 
 ### Decisiones abiertas
 
+**Siete decisiones de equipo, pendientes de reunión.** Las lleva Juan Pablo.
+**Están todas en esta tabla**: lo que no figura acá, nadie lo cuenta como tema de
+reunión. **Antes de tomar una tarea, mirá si alguna la bloquea.**
+
 | # | Decisión | Bloquea |
 |---|---|---|
-| D2 | ¿Se adopta ONCHigh como fuente de interacciones? Está disponible en un repositorio público, pero sin RxCUI ni severidad: requiere mapeo y redacción propia. | 5.02 |
+| D2 | ¿Se adopta **ONCHigh** como fuente de interacciones? Está disponible en un repositorio público, pero sin RxCUI ni severidad: requiere mapeo y redacción propia. | 5.02 |
+| D3 | **`rxcui` obligatorio u opcional.** Hoy el esquema lo pide obligatorio y el roadmap lo quiere opcional: la 3.07 dice "RxCUI opcional cargado a mano". Uno de los dos tiene que ceder. | 3.02 y 3.07 |
+| D4 | **¿La dosis va dentro del nombre?** Si `Medicamento.nombre` es "Paracetamol" o "Paracetamol 500mg". Es aparte de D3 aunque estén emparentadas: define qué significa que dos medicamentos tengan el mismo nombre, y con eso la validación de nombre único que la 3.01 **ya implementó**. | 3.02 y 3.07, y revisa la 3.01 |
+| D5 | **Modelo de `Lote`:** faltan `fechaIngreso` y `cantidadIngresada`, que el modelo de dominio sí tiene. Tocarlo es una migración, así que se decide antes de empezar la fase 4. | 4.01 |
+| D6 | **Los diez RxCUI del seed** mezclan códigos de ingrediente con códigos de producto, y hay que verificarlos contra RxNav antes de construir nada encima. | 5.02 y 5.03 |
+| D7 | **Usuario de los movimientos:** `MovimientoStock.usuarioId` es obligatorio y no hay autenticación en el alcance del prototipo. | 4.02 |
+| D8 | **Ramas y revisión:** se sostiene la regla de "código va en rama y otro le pasa el ojo" o se cambia el documento. No bloquea ninguna tarea, pero se repite. | nada |
 
-Mientras D2 siga abierta, la tarea 5.03 (carga manual de pares) permite avanzar
-con todo el módulo clínico.
+**Las más urgentes son D3 y D4**, porque traban la 3.02, que es la próxima
+tarea libre de la fase 3.
+
+**D2 no frena el trabajo de hoy** y por eso va última en prioridad: la 5.03
+—carga manual de pares— permite avanzar con todo el módulo clínico sin esperarla.
+Es tema de reunión igual.
+
+**Las tareas que no dependen de ninguna de las siete se pueden tomar sin
+esperar la reunión.** La 3.05, los cuatro componentes base de
+`src/components/ui/`, es el caso más claro.
 
 ---
 
