@@ -14,8 +14,9 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-01
 **Entrega:** Juan Pablo Malizani
-**Ramas:** `docs/1.15-driver-adapter-y-comentario-de-db` (ya en `main`) y
-`fix/1.14-v2`, que es la que trae este traspaso
+**Ramas:** `docs/1.15-driver-adapter-y-comentario-de-db` y `fix/1.14-v2`. Las
+dos se mergearon a `main` el 2026-09-01 y se borraron: quedan nombradas como
+referencia del historial, no son ramas vivas
 **Commit:** las reservas `9c498ec` y `5c1f224` en `main`, más los tres commits de
 la 1.14 y los dos de la 1.15
 

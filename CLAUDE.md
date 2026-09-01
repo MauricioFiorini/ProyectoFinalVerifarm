@@ -10,8 +10,17 @@ datos reales de pacientes.
 **Stack:** Next.js (App Router) · TypeScript estricto · PostgreSQL en Docker ·
 Prisma 7.10.0 · Tailwind. Sin bibliotecas de componentes.
 
-**Estado:** en construcción del prototipo. La primera tarea de programación es la
-**1.01** del roadmap. Este archivo lo leen tanto Claude Code como Antigravity.
+**Estado:** en construcción del prototipo. **El estado vigente no vive acá:
+está en `docs/ROADMAP.md` y `docs/TRASPASO.md`**, y es lo que hay que leer antes
+de tomar nada. El roadmap dice qué está hecho, qué se puede tomar y qué está
+bloqueado por una decisión de equipo; el traspaso, cómo quedó el último trabajo y
+qué falta. Este archivo no se actualiza tarea por tarea, así que cualquier cosa
+concreta que diga puede estar vieja.
+
+Al **2026-09-01**: fase 3 empezada, seis tareas en `[?]` esperando decisiones de
+reunión y la 2.09 reabierta a la espera de dos verificaciones.
+
+Este archivo lo leen tanto Claude Code como Antigravity.
 
 ---
 
