@@ -67,6 +67,51 @@ model Medicamento {
   /// Borrarlo romperia el historial inmutable de movimientos y prescripciones clinicas.
   activo Boolean @default(true)
 
+  /// Un medicamento tiene multiples lotes asociados a lo largo del tiempo
+  lotes Lote[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Lote {
+  /// UUID para ocultar volumen de lotes cargados
+  id String @id @default(uuid())
+
+  medicamentoId String
+  /// onCascade: si se elimina un medicamento (fisicamente, aunque no se deba), se eliminan sus lotes
+  medicamento   Medicamento @relation(fields: [medicamentoId], references: [id], onDelete: Cascade)
+
+  /// Identificador alfanumerico del fabricante
+  numeroLote String
+
+  /// Requisito clave para FEFO (First Expired, First Out)
+  fechaVencimiento DateTime
+
+  movimientos MovimientoStock[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// No pueden existir dos lotes con el mismo numero para un mismo medicamento
+  @@unique([medicamentoId, numeroLote])
+}
+
+model MovimientoStock {
+  id String @id @default(uuid())
+
+  loteId String
+  /// onCascade: si se elimina un lote, se eliminan sus movimientos
+  lote   Lote   @relation(fields: [loteId], references: [id], onDelete: Cascade)
+
+  /// Enum: INGRESO o EGRESO
+  tipo TipoMovimiento
+
+  /// Cantidad absoluta del movimiento.
+  /// NOTA DE DISEÑO: No hay campo de saldo o cantidad restante en Lote.
+  /// Por reglas de dominio, el saldo se calcula al vuelo restando egresos de ingresos.
+  cantidad Int
+
+  /// El historial de movimientos es inmutable
+  createdAt DateTime @default(now())
 }
