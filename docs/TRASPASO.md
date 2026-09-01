@@ -14,20 +14,17 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-01
 **Entrega:** Juan José
-**Rama:** `feat/2.06-transversales`
+**Rama:** `feat/2.07-migracion`
 
 ### Qué se hizo
 
-**La tarea 2.06: Modelos transversales (`Usuario` y `RegistroAuditoria`).**
-Se agregaron al archivo `prisma/schema.prisma` los dos últimos modelos de la base de datos. Se establecieron también las relaciones correspondientes hacia los modelos que requerían trazabilidad.
+**La tarea 2.07: Primera migración de base de datos.**
+Se ejecutó satisfactoriamente la primera migración oficial del proyecto a partir del esquema validado, utilizando el comando `npx prisma migrate dev --name inicial`.
 
 **Detalles de la implementación:**
-- **`Usuario`**:
-  - Cuenta con los datos básicos (`email`, `nombre`, `tipo` del enum `TipoUsuario`) y un flag `activo` para *soft delete*.
-  - Se vinculó `usuarioId` al modelo `MovimientoStock`, que había quedado pendiente de la tarea 2.03.
-  - Se vinculó de forma opcional (`usuarioId?`) al modelo `ConsultaInteraccion`, para registrar quién hizo la consulta si corresponde.
-- **`RegistroAuditoria`**:
-  - Se creó para satisfacer el diagrama de dominio y mantener consistencia con la documentación, aunque según las reglas no lo usaremos activamente durante este prototipo.
-  - Tiene una estructura genérica para abarcar eventos del sistema: `accion`, `entidad`, `entidadId` y `detalles` (que puede guardar JSON stringificado). Se vincula al `Usuario` mediante `onDelete: SetNull` para preservar la bitácora aún si se forzara el borrado del usuario.
+- La migración fue generada bajo la carpeta `prisma/migrations` y sincronizada correctamente con la base de datos PostgreSQL de desarrollo (que corre en el puerto `5433` a través de Docker).
+- Las tablas para todas las entidades diseñadas en las tareas 2.02 a 2.06 ya se encuentran operativas en la base.
+- Se marcó la tarea como finalizada `[x]` en el `ROADMAP.md`.
 
-Con esta tarea, finaliza la escritura del esquema de Prisma para la Fase 2. La tarea fue marcada con `[x]` en el `ROADMAP.md` y eliminada de la tabla "En curso ahora".
+**Siguientes pasos recomendados (Verificación local):**
+Queda en manos del equipo o del revisor actual ejecutar `npx prisma studio` en su máquina local para verificar visualmente desde el navegador que todas las tablas y relaciones (incluyendo cascadas y unics) se hayan creado según lo esperado.
