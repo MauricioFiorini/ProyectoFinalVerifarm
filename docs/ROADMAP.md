@@ -323,7 +323,7 @@ tres".
 | Integrante | 2.09 |
 |---|---|
 | Juan Pablo | `[x]` |
-| Mauricio | `[ ]` |
+| Mauricio | `[x]` |
 | Juan José | `[ ]` |
 
 **La 2.09 pasa a `[x]` en la tabla de tareas solo cuando las tres filas están
