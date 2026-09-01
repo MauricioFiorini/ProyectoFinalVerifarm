@@ -59,6 +59,7 @@ Si venís a retomar el trabajo de otra persona, leé antes que nada
 | Ruta | Qué contiene |
 |---|---|
 | `docs/CONTEXTO.md` | Qué es el proyecto y por qué es así. |
+| `docs/ARQUITECTURA.md` | **Cómo funciona por dentro.** Las tres capas, quién le habla a quién, qué hace cada tecnología y por qué. |
 | `docs/ROADMAP.md` | **Alcance vigente.** Qué falta, qué está hecho, quién está en cada cosa. |
 | `docs/ROADMAP_PRODUCTO.md` | Lo que quedó fuera del prototipo. **No se implementa.** |
 | `docs/TRASPASO.md` | Cómo quedó la última tarea y por dónde seguir. |

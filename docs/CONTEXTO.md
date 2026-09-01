@@ -152,6 +152,7 @@ después del prototipo.
 |---|---|
 | `CLAUDE.md` (raíz) | Puntero de arranque para el asistente de IA. |
 | `docs/CONTEXTO.md` | Este archivo. Por qué el proyecto es como es. |
+| `docs/ARQUITECTURA.md` | Cómo está construido por dentro: capas, flujo de una petición, el stack y su porqué. |
 | `docs/ROADMAP.md` | **Alcance vigente.** Qué falta, qué está hecho, quién está en cada cosa. |
 | `docs/ROADMAP_PRODUCTO.md` | Lo que quedó fuera del prototipo. **No se implementa.** |
 | `docs/TRASPASO.md` | Cómo quedó la última tarea y por dónde seguir. Lo primero que lee quien retoma. |
