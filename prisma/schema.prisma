@@ -70,6 +70,11 @@ model Medicamento {
   /// Un medicamento tiene multiples lotes asociados a lo largo del tiempo
   lotes Lote[]
 
+  /// Relaciones con el modulo clinico
+  medicacionVigente MedicacionVigente[]
+  observacionesMed1 ObservacionInteraccion[] @relation("ObservacionMed1")
+  observacionesMed2 ObservacionInteraccion[] @relation("ObservacionMed2")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -113,5 +118,70 @@ model MovimientoStock {
   cantidad Int
 
   /// El historial de movimientos es inmutable
+  createdAt DateTime @default(now())
+}
+
+model Paciente {
+  id String @id @default(uuid())
+
+  /// Solo un seudonimo, NUNCA datos reales (DNI, nombre, fecha de nacimiento).
+  /// Regla de dominio estricta para evitar exponer datos de pacientes.
+  seudonimo String @unique
+
+  medicacion MedicacionVigente[]
+  consultas  ConsultaInteraccion[]
+
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MedicacionVigente {
+  id String @id @default(uuid())
+
+  pacienteId String
+  paciente   Paciente @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+
+  medicamentoId String
+  medicamento   Medicamento @relation(fields: [medicamentoId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// Un paciente no puede tener la misma droga prescrita dos veces concurrentemente
+  @@unique([pacienteId, medicamentoId])
+}
+
+model ConsultaInteraccion {
+  id String @id @default(uuid())
+
+  /// Opcional: Puede ser una consulta del esquema de un paciente o una consulta aislada "suelta"
+  pacienteId String?
+  paciente   Paciente? @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+
+  observaciones ObservacionInteraccion[]
+
+  createdAt DateTime @default(now())
+}
+
+model ObservacionInteraccion {
+  id String @id @default(uuid())
+
+  consultaId String
+  consulta   ConsultaInteraccion @relation(fields: [consultaId], references: [id], onDelete: Cascade)
+
+  /// Medicamentos involucrados en la interaccion (el orden no importa)
+  medicamento1Id String
+  medicamento1   Medicamento @relation("ObservacionMed1", fields: [medicamento1Id], references: [id], onDelete: Cascade)
+
+  medicamento2Id String
+  medicamento2   Medicamento @relation("ObservacionMed2", fields: [medicamento2Id], references: [id], onDelete: Cascade)
+
+  /// Hereda de la escala unica de gravedad definida en Interaccion (Enum Severidad)
+  severidad Severidad
+
+  /// Observacion en lenguaje comprensible generada para el medico
+  descripcion String
+
   createdAt DateTime @default(now())
 }

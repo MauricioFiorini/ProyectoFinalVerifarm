@@ -14,22 +14,19 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-01
 **Entrega:** Juan José
-**Rama:** `feat/2.03-stock`
+**Rama:** `feat/2.04-clinico`
 
 ### Qué se hizo
 
-**La tarea 2.03: Modelos de stock `Lote` y `MovimientoStock`.**
-Se agregaron al `prisma/schema.prisma` los modelos que resuelven la gestión de inventario basada en FEFO y la trazabilidad de los ingresos y egresos.
+**La tarea 2.04: Modelos clínicos (`Paciente`, `MedicacionVigente`, `ConsultaInteraccion`, `ObservacionInteraccion`).**
+Se agregaron al `prisma/schema.prisma` los cuatro modelos fundamentales del módulo clínico, documentados con comentarios e integrados con el modelo `Medicamento` existente.
 
 **Detalles de la implementación:**
-- **Relaciones con Cascada:** Tanto `Lote` hacia `Medicamento` como `MovimientoStock` hacia `Lote` están configurados con `onDelete: Cascade`. Si se eliminase la entidad padre (aunque sea una acción restringida por reglas de negocio), se limpiarían en cascada sus dependientes.
-- **Identificadores UUID:** Se utilizaron `uuid()` en ambos modelos para no exponer el volumen real de lotes y movimientos registrados.
-- **`Lote`:**
-  - `numeroLote` y `medicamentoId` forman una clave única compuesta (`@@unique`) para garantizar que un mismo fabricante no duplique el lote en un mismo medicamento.
-  - El campo `fechaVencimiento` es el pilar para el sistema FEFO.
-- **`MovimientoStock`:**
-  - Enumera el `tipo` (`INGRESO` o `EGRESO`).
-  - Siguiendo las convenciones del dominio, **no se agregó un campo de saldo**. El saldo se calcula en tiempo real restando los egresos de los ingresos, por lo que el `MovimientoStock` solo tiene la `cantidad` absoluta que se movió.
-  - Carece del campo `usuarioId` de momento, ya que la entidad `Usuario` será creada más adelante en la tarea 2.06.
+- **Invariantes del dominio cumplidas:**
+  - `Paciente`: Solo se almacena un `seudonimo` único. Se evita guardar datos reales (nombre, documento, fecha de nacimiento) para cumplir con la regla 7 estricta del negocio.
+  - `MedicacionVigente`: Define el esquema terapéutico de un paciente. Incluye restricción `@@unique([pacienteId, medicamentoId])` para evitar prescribir la misma droga dos veces de forma concurrente al mismo paciente.
+- **Consultas y observaciones:**
+  - `ConsultaInteraccion`: Representa el evento de búsqueda. El `pacienteId` es opcional, ya que el sistema soporta consultas aisladas de medicamentos cruzados que no pertenecen a ningún paciente guardado.
+  - `ObservacionInteraccion`: Se liga a la consulta mediante `onDelete: Cascade`. Guarda los dos IDs de los medicamentos implicados (`medicamento1Id` y `medicamento2Id`), hereda la gravedad del enum `Severidad` y almacena un texto de la observación para mostrar al profesional.
 
 La tarea fue finalizada, marcada con `[x]` en el `ROADMAP.md` y eliminada de la tabla "En curso ahora".
