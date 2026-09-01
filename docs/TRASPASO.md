@@ -14,17 +14,20 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-01
 **Entrega:** Juan José
-**Rama:** `feat/2.05-interaccion`
+**Rama:** `feat/2.06-transversales`
 
 ### Qué se hizo
 
-**La tarea 2.05: Modelo `Interaccion`.**
-Se agregó al archivo `prisma/schema.prisma` el modelo que hace las veces de base de conocimiento (diccionario de interacciones) para el cruce de medicamentos.
+**La tarea 2.06: Modelos transversales (`Usuario` y `RegistroAuditoria`).**
+Se agregaron al archivo `prisma/schema.prisma` los dos últimos modelos de la base de datos. Se establecieron también las relaciones correspondientes hacia los modelos que requerían trazabilidad.
 
 **Detalles de la implementación:**
-- Guarda los `RxCUI` de las dos drogas que interactúan (`rxcui1` y `rxcui2`). Se decidió guardar directamente el código RxCUI y no relacionarlo al modelo `Medicamento` de forma dura en la base de datos, porque esta tabla actúa como un diccionario universal provisto por ONCHigh, que puede contener interacciones entre drogas que ni siquiera tenemos en nuestro catálogo local.
-- Se agregó el campo `severidad` con el enum `Severidad`, y un campo `descripcion` para detallar la advertencia clínica.
-- Se incluyó el campo `fuente` (ej. "ONCHigh", "Manual").
-- Se añadió un índice único compuesto `@@unique([rxcui1, rxcui2])` para evitar registrar la misma interacción dos veces. Por código habrá que asegurar ordenar alfanuméricamente los RxCUI antes de insertarlos.
+- **`Usuario`**:
+  - Cuenta con los datos básicos (`email`, `nombre`, `tipo` del enum `TipoUsuario`) y un flag `activo` para *soft delete*.
+  - Se vinculó `usuarioId` al modelo `MovimientoStock`, que había quedado pendiente de la tarea 2.03.
+  - Se vinculó de forma opcional (`usuarioId?`) al modelo `ConsultaInteraccion`, para registrar quién hizo la consulta si corresponde.
+- **`RegistroAuditoria`**:
+  - Se creó para satisfacer el diagrama de dominio y mantener consistencia con la documentación, aunque según las reglas no lo usaremos activamente durante este prototipo.
+  - Tiene una estructura genérica para abarcar eventos del sistema: `accion`, `entidad`, `entidadId` y `detalles` (que puede guardar JSON stringificado). Se vincula al `Usuario` mediante `onDelete: SetNull` para preservar la bitácora aún si se forzara el borrado del usuario.
 
-La tarea fue finalizada, marcada con `[x]` en el `ROADMAP.md` y eliminada de la tabla "En curso ahora".
+Con esta tarea, finaliza la escritura del esquema de Prisma para la Fase 2. La tarea fue marcada con `[x]` en el `ROADMAP.md` y eliminada de la tabla "En curso ahora".

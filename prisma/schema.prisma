@@ -117,6 +117,10 @@ model MovimientoStock {
   /// Por reglas de dominio, el saldo se calcula al vuelo restando egresos de ingresos.
   cantidad Int
 
+  /// Usuario que registro el movimiento
+  usuarioId String
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+
   /// El historial de movimientos es inmutable
   createdAt DateTime @default(now())
 }
@@ -158,6 +162,10 @@ model ConsultaInteraccion {
   /// Opcional: Puede ser una consulta del esquema de un paciente o una consulta aislada "suelta"
   pacienteId String?
   paciente   Paciente? @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+
+  /// Profesional que realizo la consulta
+  usuarioId String?
+  usuario   Usuario? @relation(fields: [usuarioId], references: [id])
 
   observaciones ObservacionInteraccion[]
 
@@ -209,4 +217,47 @@ model Interaccion {
 
   /// Evitar duplicados exactos. En codigo se debe ordenar rxcui1 y rxcui2 alfanumericamente.
   @@unique([rxcui1, rxcui2])
+}
+
+model Usuario {
+  id String @id @default(uuid())
+
+  email  String @unique
+  nombre String
+
+  /// Rol del usuario (ej. FARMACEUTICO, MEDICO)
+  tipo TipoUsuario
+
+  /// Soft delete
+  activo Boolean @default(true)
+
+  movimientos MovimientoStock[]
+  consultas   ConsultaInteraccion[]
+  auditorias  RegistroAuditoria[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RegistroAuditoria {
+  id String @id @default(uuid())
+
+  /// Usuario que realizo la accion (opcional por si fue una accion del sistema)
+  usuarioId String?
+  usuario   Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+
+  /// Descripcion de la accion realizada (ej. "NUEVO_LOTE", "EGRESO_STOCK")
+  accion String
+
+  /// Tabla o entidad afectada
+  entidad String
+
+  /// ID de la entidad afectada
+  entidadId String
+
+  /// Detalles adicionales en formato JSON (valores anteriores/nuevos, motivo)
+  detalles String?
+
+  /// Inmutable
+  createdAt DateTime @default(now())
 }
