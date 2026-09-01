@@ -101,12 +101,19 @@ reunión. **Antes de tomar una tarea, mirá si alguna la bloquea.**
 | D3 | **`rxcui` obligatorio u opcional.** Hoy el esquema lo pide obligatorio y el roadmap lo quiere opcional: la 3.07 dice "RxCUI opcional cargado a mano". Uno de los dos tiene que ceder. | 3.02 y 3.07 |
 | D4 | **¿La dosis va dentro del nombre?** Si `Medicamento.nombre` es "Paracetamol" o "Paracetamol 500mg". Es aparte de D3 aunque estén emparentadas: define qué significa que dos medicamentos tengan el mismo nombre, y con eso la validación de nombre único que la 3.01 **ya implementó**. | 3.02 y 3.07, y revisa la 3.01 |
 | D5 | **Modelo de `Lote`:** faltan `fechaIngreso` y `cantidadIngresada`, que el modelo de dominio sí tiene. Tocarlo es una migración, así que se decide antes de empezar la fase 4. | 4.01 y 4.02 |
-| D6 | **Los diez RxCUI del seed** mezclan códigos de ingrediente con códigos de producto, y hay que verificarlos contra RxNav antes de construir nada encima. | 5.02 y 5.03 |
+| D6 | **Los diez RxCUI del seed** mezclan códigos de ingrediente con códigos de producto, y hay que verificarlos contra RxNav antes de construir nada encima. **Traba la fase 5 entera:** además de la 5.02, bloquea la 5.03, que era la salida para avanzar sin D2. Se decide antes de empezar la fase 5. | 5.02 y 5.03 |
 | D7 | **Usuario de los movimientos:** `MovimientoStock.usuarioId` es obligatorio y no hay autenticación en el alcance del prototipo. | 4.02 |
 | D8 | **Ramas y revisión:** se sostiene la regla de "código va en rama y otro le pasa el ojo" o se cambia el documento. No bloquea ninguna tarea, pero se repite. | nada |
 
-**Las más urgentes son D3 y D4**, porque traban la 3.02, que es la próxima
-tarea libre de la fase 3.
+**Hay tres fases trabadas, no dos:** D3 y D4 traban la **fase 3** —la 3.02 y la
+3.07—, D5 traba la **fase 4** —la 4.01 y la 4.02— y D6 traba la **fase 5** —la
+5.02 y la 5.03—. Son cuatro decisiones sobre tres frentes, y ninguna de las tres
+fases arranca sin resolverlas.
+
+**Las más urgentes son D3 y D4**, porque traban la 3.02, que es la próxima tarea
+de la fase 3. **D6 subió de prioridad:** se la venía tratando como algo a cerrar
+antes de la fase 5, pero al bloquear la 5.03 se lleva puesta la única salida que
+había para avanzar en el módulo clínico sin esperar a D2.
 
 **D2 no frena el trabajo de hoy** y por eso va última en prioridad: la 5.03
 —carga manual de pares— permite avanzar con todo el módulo clínico sin esperarla.
@@ -400,7 +407,7 @@ queda fuera del prototipo (el RxCUI se carga a mano).
 | # | Tarea | Estado | Tamaño | Depende |
 |---|---|---|---|---|
 | 5.01 | `src/services/pacientes.ts`: alta con seudónimo, listado, búsqueda. **Sin datos filiatorios.** | `[ ]` | M | 3.04 |
-| 5.02 | `[?]` Importar el conjunto **ONCHigh** a la tabla `Interaccion`: mapear nombres a RxCUI y redactar las descripciones de severidad. **Bloqueada por D2.** | `[?]` | L | D2 |
+| 5.02 | Importar el conjunto **ONCHigh** a la tabla `Interaccion`: mapear nombres a RxCUI y redactar las descripciones de severidad. **Bloqueada por D2.** | `[?]` | L | D2 |
 | 5.03 | **Carga manual de al menos 15 pares** de psicofármacos que interactúan, con severidad y descripción, dentro del seed. Permite avanzar sin esperar a D2. **Pero está bloqueada por D6:** los pares se identifican por RxCUI y los diez del seed hay que verificarlos primero contra RxNav. | `[?]` | M | 2.07, D6 |
 | 5.04 | `src/services/medicacion.ts`: agregar medicamento a un paciente, suspender con motivo, listar vigentes. | `[ ]` | M | 5.01 |
 | 5.05 | Cálculo del **estado derivado** de la medicación (vigente / suspendida / finalizada) a partir de fechas y motivo. | `[ ]` | S | 5.04 |
