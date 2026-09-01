@@ -185,3 +185,28 @@ model ObservacionInteraccion {
 
   createdAt DateTime @default(now())
 }
+
+model Interaccion {
+  id String @id @default(uuid())
+
+  /// RxCUI de la primera droga involucrada
+  rxcui1 String
+
+  /// RxCUI de la segunda droga involucrada
+  rxcui2 String
+
+  /// Gravedad de la interaccion
+  severidad Severidad
+
+  /// Descripcion clinica o advertencia
+  descripcion String
+
+  /// Fuente de la informacion (ej. ONCHigh)
+  fuente String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// Evitar duplicados exactos. En codigo se debe ordenar rxcui1 y rxcui2 alfanumericamente.
+  @@unique([rxcui1, rxcui2])
+}

@@ -14,19 +14,17 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-01
 **Entrega:** Juan José
-**Rama:** `feat/2.04-clinico`
+**Rama:** `feat/2.05-interaccion`
 
 ### Qué se hizo
 
-**La tarea 2.04: Modelos clínicos (`Paciente`, `MedicacionVigente`, `ConsultaInteraccion`, `ObservacionInteraccion`).**
-Se agregaron al `prisma/schema.prisma` los cuatro modelos fundamentales del módulo clínico, documentados con comentarios e integrados con el modelo `Medicamento` existente.
+**La tarea 2.05: Modelo `Interaccion`.**
+Se agregó al archivo `prisma/schema.prisma` el modelo que hace las veces de base de conocimiento (diccionario de interacciones) para el cruce de medicamentos.
 
 **Detalles de la implementación:**
-- **Invariantes del dominio cumplidas:**
-  - `Paciente`: Solo se almacena un `seudonimo` único. Se evita guardar datos reales (nombre, documento, fecha de nacimiento) para cumplir con la regla 7 estricta del negocio.
-  - `MedicacionVigente`: Define el esquema terapéutico de un paciente. Incluye restricción `@@unique([pacienteId, medicamentoId])` para evitar prescribir la misma droga dos veces de forma concurrente al mismo paciente.
-- **Consultas y observaciones:**
-  - `ConsultaInteraccion`: Representa el evento de búsqueda. El `pacienteId` es opcional, ya que el sistema soporta consultas aisladas de medicamentos cruzados que no pertenecen a ningún paciente guardado.
-  - `ObservacionInteraccion`: Se liga a la consulta mediante `onDelete: Cascade`. Guarda los dos IDs de los medicamentos implicados (`medicamento1Id` y `medicamento2Id`), hereda la gravedad del enum `Severidad` y almacena un texto de la observación para mostrar al profesional.
+- Guarda los `RxCUI` de las dos drogas que interactúan (`rxcui1` y `rxcui2`). Se decidió guardar directamente el código RxCUI y no relacionarlo al modelo `Medicamento` de forma dura en la base de datos, porque esta tabla actúa como un diccionario universal provisto por ONCHigh, que puede contener interacciones entre drogas que ni siquiera tenemos en nuestro catálogo local.
+- Se agregó el campo `severidad` con el enum `Severidad`, y un campo `descripcion` para detallar la advertencia clínica.
+- Se incluyó el campo `fuente` (ej. "ONCHigh", "Manual").
+- Se añadió un índice único compuesto `@@unique([rxcui1, rxcui2])` para evitar registrar la misma interacción dos veces. Por código habrá que asegurar ordenar alfanuméricamente los RxCUI antes de insertarlos.
 
 La tarea fue finalizada, marcada con `[x]` en el `ROADMAP.md` y eliminada de la tabla "En curso ahora".
