@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| — | — | — | — | — | — |
+| 2.08 | Juan José | feat/2.08-seed | activa | — | 2026-09-01 |
 
 ### Reserva de tareas
 
@@ -280,7 +280,7 @@ decide cuando se empieza, no antes.
 | 2.05 | Modelo `Interaccion` (par de drogas por RxCUI, severidad, descripción, fuente). | `[x]` | M | 2.02 |
 | 2.06 | Modelos transversales: `Usuario` y `RegistroAuditoria`. **`RegistroAuditoria` se crea pero no se usa en el prototipo** — está en el modelo de dominio y sacarla contradiría la documentación. | `[x]` | S | 2.01 |
 | 2.07 | Primera migración: `npx prisma migrate dev --name inicial`. Verificar con Prisma Studio. | `[x]` | M | 2.02–2.06 |
-| 2.08 | `seed.ts` mínimo: 3 usuarios y 10 medicamentos. Suficiente para desarrollar. | `[ ]` | M | 2.07 |
+| 2.08 | `seed.ts` mínimo: 3 usuarios y 10 medicamentos. Suficiente para desarrollar. | `[~]` | M | 2.07 |
 | 2.09 | Verificar que los tres aplican la migración en su base local sin errores. | `[ ]` | M | 2.07 |
 
 ---
