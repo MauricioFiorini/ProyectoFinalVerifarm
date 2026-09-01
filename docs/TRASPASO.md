@@ -167,7 +167,7 @@ La tabla de verificación de la 2.09 **ya está hecha**: se agregó directo a `m
 el 2026-09-01, la tarea volvió a `[ ]` y la fila de Juan Pablo quedó marcada. Las
 otras dos casillas son el punto 1.
 
-**Y los cinco temas de reunión**, que lleva Juan Pablo. Están en "Bloqueos".
+**Y los siete temas de reunión**, que lleva Juan Pablo. Están en "Bloqueos".
 
 **Las tres vulnerabilidades `high` de `npm audit` siguen como estaban, a
 propósito.** Son `deepmerge-ts <8.0.0`, que entra por `@prisma/config` y por
@@ -280,19 +280,23 @@ está bloqueada por ninguna decisión de reunión. **Es lo más sano para arranc
 
 **Ni la 1.14 ni la 1.15 dejaron ninguno.**
 
-**Cinco decisiones de equipo, pendientes de reunión.** Las lleva Juan Pablo.
-Cada una traba algo:
+**Siete decisiones de equipo, pendientes de reunión.** Las lleva Juan Pablo.
+**Están todas en esta tabla**: lo que no figura acá, nadie lo cuenta como tema de
+reunión.
 
 | Decisión | Traba |
 |---|---|
-| **Identidad del medicamento** — `rxcui` obligatorio u opcional, y si la dosis va dentro del nombre | 3.02 y 3.07 |
+| **`rxcui` del medicamento** — obligatorio u opcional. Hoy el esquema lo pide obligatorio y el roadmap lo quiere opcional | 3.02 y 3.07 |
+| **La dosis dentro del nombre** — si `Medicamento.nombre` es "Paracetamol" o "Paracetamol 500mg". Es una decisión aparte de la del `rxcui`, aunque estén emparentadas: define qué significa que dos medicamentos tengan el mismo nombre, y por lo tanto la validación de nombre único que la 3.01 ya implementó | 3.02 y 3.07, y revisa la 3.01 |
 | **Modelo de `Lote`** — faltan `fechaIngreso` y `cantidadIngresada`, que el modelo de dominio sí tiene | 4.01 |
 | **Los diez RxCUI del seed** — mezclan códigos de ingrediente con códigos de producto, y hay que verificarlos contra RxNav | 5.02 y 5.03 |
 | **Usuario de los movimientos** — `MovimientoStock.usuarioId` es obligatorio y no hay autenticación en el alcance | 4.02 |
+| **D2 — ¿se adopta ONCHigh como fuente de interacciones?** Está en un repositorio público, pero sin RxCUI ni severidad: requiere mapeo y redacción propia | nada por ahora, traba la 5.02 cuando se llegue |
 | **Ramas y revisión** — se sostiene la regla o se cambia el documento | nada, pero se repite |
 
-**D2 sigue abierta** y sigue sin frenar nada: la tarea 5.03, carga manual de al
-menos 15 pares de psicofármacos en el seed, permite avanzar con todo el módulo
-clínico sin esperarla.
+**D2 no frena el trabajo de hoy**, y por eso está última en prioridad: la tarea
+5.03 —carga manual de al menos 15 pares de psicofármacos en el seed— permite
+avanzar con todo el módulo clínico sin esperarla. Pero es tema de reunión igual,
+y por eso está en la tabla.
 
 ---
