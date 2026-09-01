@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| — | — | — | — | — | — |
+| 2.03 | Juan José | feat/2.03-stock | activa | — | 2026-09-01 |
 
 ### Reserva de tareas
 
@@ -275,7 +275,7 @@ decide cuando se empieza, no antes.
 |---|---|---|---|---|
 | 2.01 | Enums: `TipoUsuario`, `TipoMovimiento`, `UnidadMedida` y `Severidad`. **`Severidad` es la única escala de gravedad**: vive en `Interaccion` y la observación hereda ese valor. No se crea `NivelCriticidad` — dos escalas paralelas son sobreingeniería para un prototipo. | `[x]` | S | 1.11 |
 | 2.02 | Modelo `Medicamento`. Comentar cada decisión en el propio archivo. | `[x]` | S | 2.01 |
-| 2.03 | Modelos de stock: `Lote` y `MovimientoStock`, con relaciones y `onDelete: Cascade`. | `[ ]` | M | 2.02 |
+| 2.03 | Modelos de stock: `Lote` y `MovimientoStock`, con relaciones y `onDelete: Cascade`. | `[~]` | M | 2.02 |
 | 2.04 | Modelos clínicos: `Paciente`, `MedicacionVigente`, `ConsultaInteraccion`, `ObservacionInteraccion`. | `[ ]` | M | 2.02 |
 | 2.05 | Modelo `Interaccion` (par de drogas por RxCUI, severidad, descripción, fuente). | `[ ]` | M | 2.02 |
 | 2.06 | Modelos transversales: `Usuario` y `RegistroAuditoria`. **`RegistroAuditoria` se crea pero no se usa en el prototipo** — está en el modelo de dominio y sacarla contradiría la documentación. | `[ ]` | S | 2.01 |
