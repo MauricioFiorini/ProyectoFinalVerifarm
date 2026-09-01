@@ -16,3 +16,31 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum TipoUsuario {
+  ADMINISTRADOR
+  FARMACEUTICO
+  MEDICO
+  ENFERMERO
+}
+
+enum TipoMovimiento {
+  INGRESO
+  EGRESO
+}
+
+enum UnidadMedida {
+  MG
+  ML
+  G
+  UI
+  COMPRIMIDO
+  AMPOLLA
+  GOTA
+}
+
+enum Severidad {
+  ALTA
+  MEDIA
+  BAJA
+}
