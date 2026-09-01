@@ -14,16 +14,16 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-01
 **Entrega:** Juan Pablo Malizani
-**Rama:** `docs/1.15-driver-adapter-y-comentario-de-db`
-**Commit:** la reserva `5c1f224` en `main`, más los dos de la rama
+**Ramas:** `docs/1.15-driver-adapter-y-comentario-de-db` (ya en `main`) y
+`fix/1.14-v2`, que es la que trae este traspaso
+**Commit:** las reservas `9c498ec` y `5c1f224` en `main`, más los tres commits de
+la 1.14 y los dos de la 1.15
 
-> **Ojo con el orden de merge.** La tarea **1.14** está terminada y en revisión
-> de Mauricio sobre `fix/1.14-lock-y-procedimiento-de-dependencias`, **sin
-> mergear todavía**. Esta rama salió de `main`, así que las dos tocan
-> `docs/TRASPASO.md` y `docs/ROADMAP.md` y **van a dar conflicto**. La 1.14 se
-> mergea primero; al resolver el conflicto de este archivo, **se queda esta
-> versión**, que ya incluye todo lo que decía la de la 1.14. En el roadmap, la
-> tabla "En curso ahora" queda **vacía** y las dos filas en `[x]`.
+> **Este traspaso cierra las dos tareas.** El orden de merge terminó siendo el
+> inverso al previsto: entró primero la 1.15 y después la 1.14, sobre
+> `fix/1.14-v2`, una rama abierta desde el último commit propio de la 1.14
+> porque la resolución de conflictos anterior había quedado firmada por un bot.
+> Este archivo es el de la 1.15 con lo que aporta la 1.14 incorporado.
 
 ### Qué se hizo
 
@@ -68,6 +68,47 @@ cierra.
 | `docs(1.15)` | La decisión `0004` y el comentario restituido en `src/lib/db.ts` |
 | `docs(1.15)` | El cierre: roadmap y este traspaso |
 
+**La tarea 1.14, que se mergea junto con esto: reparar `package-lock.json` por
+segunda vez, declarar `tsx` y fijar el procedimiento para agregar
+dependencias.** Salió de la misma revisión de la fase 2 y la 3.01 que originó la
+1.15, y no estaba en el roadmap.
+
+**El problema.** `npm ci` volvía a fallar con `EUSAGE`, reclamando
+`@emnapi/runtime@1.11.3` y `@emnapi/core@1.11.3`: **exactamente las dos entradas
+que había reparado la 1.13**, un día antes.
+
+| Commit | Tarea | Qué le hizo al lock |
+|---|---|---|
+| `03aafb8` | 1.13 | Agregó exactamente esos 2 nodos |
+| `ca338f5` | 2.08 | Eliminó exactamente esos 2, y agregó 18 |
+
+**La causa.** Son dependencias transitivas de paquetes **opcionales de
+plataforma** —`@img/sharp-wasm32`, `@tailwindcss/oxide-wasm32-wasi`— que no se
+instalan en ninguna de las tres máquinas. `npm install`, corrido sin
+`--package-lock-only`, poda del lock esos hijos pero **deja los padres**, que sí
+quedan porque llevan metadata de `os` y `cpu`. El lock queda declarando una
+dependencia sin el nodo que la satisface. `npm ci` valida el árbol y aborta;
+`npm install` reconcilia en silencio, y por eso el daño no se ve hasta que
+alguien clona limpio.
+
+**No es cosa de la máquina de nadie.** Se descartó con una prueba: en una misma
+máquina, sobre una copia del lock roto, `npm install --package-lock-only`
+**vuelve a agregar las dos entradas**. La misma máquina da los dos resultados
+según cómo se corra el comando.
+
+**Por qué `tsx` entra acá.** `package.json` y `prisma.config.ts` ejecutan
+`npx tsx prisma/seed.ts`, pero `tsx` no estaba declarada ni en `package.json` ni
+en el lock. En la máquina donde se escribió el seed anda porque `npx` la dejó
+cacheada; en un clon limpio la baja de la red sin versión fijada, y sin conexión
+el seed no corre. Se declaró en el mismo `npm install --package-lock-only` que
+reparó el lock, porque es una sola operación y no dos.
+
+| Commit | Qué trae |
+|---|---|
+| `fix(1.14)` | El lock reparado y `tsx@4.23.13` declarada, en un solo movimiento |
+| `docs(1.14)` | El procedimiento en la sección 11 de `CONVENCIONES.md`, la trampa nueva en la 14, y la decisión `0003` |
+| `docs(1.14)` | El cierre: roadmap y traspaso |
+
 ### Decisiones tomadas sobre la marcha
 
 **1. El comentario se amplió, no se pegó igual.** Restituir las nueve líneas
@@ -85,14 +126,34 @@ que no se toca el comportamiento del cliente. Queda anotada como consecuencia en
 la propia decisión 0004, para que quien la lea sepa que se vio y se dejó a
 propósito.
 
-**4. La `0004` se escribió sabiendo que la `0003` todavía no está en `main`.**
-Vive en la rama de la 1.14. Los dos archivos son distintos y no conflictúan; el
-único efecto es que hasta que la 1.14 se mergee, la referencia cruzada de
-`CONVENCIONES.md` a la 0003 apunta a un archivo que no está.
+**4. La `0004` se escribió sabiendo que la `0003` todavía no estaba en `main`.**
+Vivía en la rama de la 1.14. Los dos archivos son distintos y no conflictúan;
+**con este merge las dos decisiones quedan en `main`**, así que la referencia
+cruzada de `CONVENCIONES.md` a la 0003 ya apunta a un archivo que existe.
+
+**5. La 1.14 recibió número propio en vez de arreglarse al pasar.** Es la segunda
+vez que el lock se rompe igual. Un arreglo silencioso habría dejado el
+repositorio sano y la causa sin registrar, que es exactamente lo que pasó después
+de la 1.13.
+
+**6. `tsx` se fijó sin `^`**, igual que Prisma. Corre el seed, que es
+infraestructura de arranque. Esto **no** reinstala el `save-exact` de `.npmrc`
+que la decisión 0002 descartó: es una versión exacta escrita a mano para un
+paquete, no una configuración global.
+
+**7. Se evaluó y se descartó nombrar un dueño de dependencias.** Quien agregó
+`pg` y compañía corrió el comando correcto para lo que quería hacer, y el lock se
+rompió igual. El "quién" no ataca la causa; el "cómo" sí.
+
+**8. La 1.14 se remergeó sobre una rama nueva.** El primer intento se resolvió
+desde la interfaz de GitHub y dejó dos commits de merge firmados por un bot, lo
+que viola la regla de que ningún commit menciona a una IA. Esa rama se descartó
+entera y se abrió `fix/1.14-v2` desde `4d33a91`, el último commit propio de la
+tarea, resolviendo los conflictos a mano.
 
 ### Qué quedó sin hacer
 
-**De la 1.15, nada.** La tarea está completa y verificada.
+**De la 1.14 y la 1.15, nada.** Las dos tareas están completas y verificadas.
 
 **Del ordenamiento que salió de la revisión, dos cosas:**
 
@@ -100,16 +161,17 @@ Vive en la rama de la 1.14. Los dos archivos son distintos y no conflictúan; el
    tarea dice "verificar que **los tres** aplican la migración" y la cerró una
    persona con un commit de una línea. Es el mismo tratamiento que ya tienen la
    0.09 y la 1.11. **Va directo a `main`**, es corrección de documentación.
-2. **Mauricio y Juan José tienen que correr `npm ci` con el lock reparado.** Va
-   después de que se mergee la 1.14. Hasta entonces, lo único verificado es que
-   el lock anda en una máquina.
+2. **Mauricio y Juan José tienen que correr `npm ci` con el lock reparado.**
+   Ahora que la 1.14 está mergeada es lo inmediato: hasta que lo hagan, lo único
+   verificado es que el lock anda en una máquina.
 
 **Y los cinco temas de reunión**, que lleva Juan Pablo. Están en "Bloqueos".
 
 **Las tres vulnerabilidades `high` de `npm audit` siguen como estaban, a
 propósito.** Son `deepmerge-ts <8.0.0`, que entra por `@prisma/config` y por
 `prisma`. `npm audit fix --force` instala `prisma@6.12.0`: un downgrade que rompe
-y contradice el "Prisma queda clavado en 7.10.0" de `CONVENCIONES.md`.
+y contradice el "Prisma queda clavado en 7.10.0" de `CONVENCIONES.md`. Es una
+dependencia de desarrollo y no llega al código que corre.
 
 ### Cómo verificarlo
 
@@ -119,9 +181,11 @@ npm run setup
 npm run check
 ```
 
+De la 1.15:
+
 | Qué se probó | Resultado |
 |---|---|
-| `npm run check` sobre esta rama | Código 0: `tsc`, `eslint` y `prettier` |
+| `npm run check` | Código 0: `tsc`, `eslint` y `prettier` |
 | Los mensajes del runtime de Prisma | Encontrados en `@prisma/client@7.10.0` instalado |
 | `datasource` de `schema.prisma` | Confirmado sin `url` |
 | Cambios de comportamiento | **Ninguno**: solo comentarios y un archivo nuevo en `docs/decisiones/` |
@@ -129,10 +193,29 @@ npm run check
 La 1.15 no toca código ejecutable. El diff de `src/lib/db.ts` es enteramente
 comentario.
 
+De la 1.14, con **Node 24.20.0 y npm 11.19.0**, corriendo los comandos de verdad:
+
+| Qué se probó | Resultado |
+|---|---|
+| `npm ci` con el lock anterior | Falla, `EUSAGE`, dos entradas faltantes |
+| `npm ci` con el lock reparado | Instala sin errores |
+| Si `npm ci` reescribe el lock | No: mismo md5 antes y después |
+| Nodos que agrega el arreglo | 37 |
+| Nodos que elimina | **0** |
+| `npm install --package-lock-only` dos veces | md5 idéntico: es idempotente |
+| `npm run setup` | Regenera el cliente Prisma, código 0 |
+| `npx --offline tsx --version` | `tsx v4.23.13`, resuelto local, sin red |
+
+Las pruebas sobre locks rotos se hicieron en un directorio aparte, para no tocar
+el entorno de trabajo. **El `npx --offline` es la prueba que importa** para lo de
+`tsx`: confirma que se resuelve desde `node_modules` y no bajándola de
+internet.
+
 ### Qué sigue
 
 **Primero, las dos cosas de "Qué quedó sin hacer"**: la tabla de la 2.09 directo
-a `main`, y el `npm ci` de Mauricio y Juan José una vez mergeada la 1.14.
+a `main`, y el `npm ci` de Mauricio y Juan José con el lock ya reparado en
+`main`.
 
 **Después, la fase 3.** La próxima tarea libre es la **3.02**, validación con
 Zod, que depende de la 3.01 ya cerrada — pero **necesita antes la decisión sobre
@@ -157,22 +240,25 @@ está bloqueada por ninguna decisión de reunión. **Es lo más sano para arranc
 - **`npm run setup` también hace falta cada vez que cambia
   `prisma/schema.prisma`.**
 - **Si `npm ci` falla con `EUSAGE` y "Missing: ... from lock file"**, es el lock
-  roto otra vez. **No lo arregles con `npm install` a secas.** Trampas, sección
-  14.
+  roto otra vez. **No lo arregles con `npm install` a secas**: lo reconcilia en
+  silencio y esconde el problema. Trampas, sección 14.
 - **El cliente Prisma se instancia en un solo lugar, `src/lib/db.ts`.** No
   construyas un `PrismaClient` por tu cuenta en otro archivo: sin el adaptador no
   se conecta, y sin el singleton se acumulan pools. `prisma/seed.ts` es la única
   excepción y está explicada en la decisión 0004.
 - **Verificá tu versión de Node antes que nada.** Prisma 7 pide 20.19+, 22.12+ o
   24.0+. Si usás `fnm` o `nvm`, revisá cuál es tu versión **por defecto**.
-- **Los avisos de `npm warn install-scripts` son esperables.** De eso se encarga
-  `npm run setup`. No hay que aprobarlos.
+- **Los avisos de `npm warn install-scripts` son esperables.** npm 11 bloquea los
+  scripts de instalación; de eso se encarga `npm run setup`. No hay que
+  aprobarlos.
 - **`npm audit` reporta tres `high`. No correr `npm audit fix --force`.**
-- **El puerto de PostgreSQL es el 5433, no el 5432.**
+- **El puerto de PostgreSQL es el 5433, no el 5432.** `npm run setup` avisa si tu
+  URL apunta a otro. El porqué está en `docker-compose.yml`.
 - **Docker Desktop tiene que estar abierto.** No arranca solo en Windows.
 - **`prisma generate` sugiere actualizar a `@latest`. No hacerlo.** Hoy `latest`
   es un release candidate de la 8. Prisma queda clavado en `7.10.0`.
-- **El bloque `nextjs-agent-rules` vive en `AGENTS.md`, no en `CLAUDE.md`.**
+- **El bloque `nextjs-agent-rules` vive en `AGENTS.md`, no en `CLAUDE.md`.** Lo
+  regenera `next dev` solo. No editarlo a mano ni moverlo de archivo.
 - **En Tailwind 4 la paleta se toca en `src/app/globals.css`**, en el bloque
   `@theme`. No existe `tailwind.config`.
 - **La lógica de negocio va en `src/services/`**, nunca en componentes ni en route
@@ -191,7 +277,7 @@ está bloqueada por ninguna decisión de reunión. **Es lo más sano para arranc
 
 ### Bloqueos
 
-**La 1.15 no dejó ninguno.**
+**Ni la 1.14 ni la 1.15 dejaron ninguno.**
 
 **Cinco decisiones de equipo, pendientes de reunión.** Las lleva Juan Pablo.
 Cada una traba algo:

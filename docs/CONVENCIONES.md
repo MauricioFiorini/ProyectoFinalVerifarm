@@ -246,7 +246,9 @@ sistema no se entera.
 - Componentes en `PascalCase.tsx`; el resto en `camelCase.ts`.
 - **Tailwind puro.** Sin shadcn/ui, sin Recharts, sin bibliotecas de componentes.
 - **No instalar dependencias nuevas sin acordarlo.** El stack está cerrado:
-  Next.js, TypeScript, Prisma, Tailwind, Zod.
+  Next.js, TypeScript, Prisma, Tailwind, Zod. Cuando se acuerda una, se agrega
+  con el procedimiento de la sección 11 —`--package-lock-only`, después `npm ci`,
+  y recién ahí commitear—, que no es opcional: sin él el lock queda roto.
 - **Toda operación que escribe varios registros va en una transacción.** Un egreso
   FEFO repartido entre tres lotes son tres inserciones: entran las tres o
   ninguna.
@@ -285,6 +287,42 @@ que cambiar. El porqué está en
 
 **`npm ci` borra `node_modules` entero**, y con él el cliente Prisma generado,
 así que después de cada `npm ci` hay que correr `npm run setup`.
+
+### Para agregar o cambiar una dependencia
+
+Son tres pasos y ninguno es opcional:
+
+```bash
+npm install <paquete> --package-lock-only   # 1. reescribe el lock, no node_modules
+npm ci                                      # 2. verifica que el lock sea instalable
+npm run setup                               # (npm ci se llevo el cliente Prisma)
+```
+
+**Y recién entonces commitear**, que es el paso 3.
+
+**Por qué el `--package-lock-only`.** Sin ese flag, `npm install` arma el árbol
+partiendo en parte de lo que ya hay en `node_modules`, y poda del lock las
+dependencias de los paquetes **opcionales de plataforma** —los `@img/sharp-*`,
+los `@esbuild/*`, los `*-wasm32-wasi`— que en tu máquina nunca se instalaron
+porque son de otro sistema operativo. Pero deja los paquetes padre, que sí
+quedan en el lock porque llevan su metadata de `os` y `cpu`. El resultado es un
+lock que declara una dependencia y no tiene el nodo que la satisface: una
+referencia colgada. `npm ci` valida que el árbol esté completo y se niega a
+instalar. Con el flag, npm resuelve contra el registro sin mirar `node_modules`,
+y el lock queda completo para las tres plataformas. Es además idempotente:
+correrlo dos veces da el mismo archivo.
+
+**Por qué el `npm ci` antes de commitear.** Es el único control que existe. Un
+lock roto no se nota de ninguna otra forma: `npm install` lo reconcilia en
+silencio y le sigue instalando bien a todo el mundo, hasta que alguien clona
+limpio. Comparar dos locks dice si describen los mismos paquetes, no si alguno
+es instalable; lo único que responde esa pregunta es correr `npm ci`.
+
+**Esto ya pasó dos veces**, en `35559a5` (tarea 1.13) y en `ca338f5` (tarea
+2.08), las dos con las mismas dos entradas. La primera vez se reparó el archivo
+y se cambió el comando de arranque, y no alcanzó: el comando que rompe el lock
+no es el de arrancar, es el de agregar una dependencia. El diagnóstico completo
+está en `docs/decisiones/0003-como-se-agrega-una-dependencia.md`.
 
 ### Prisma queda clavado en 7.10.0
 
@@ -404,6 +442,16 @@ Lista viva. Se agrega, no se borra.
   arranque es `npm ci`. Si el cambio ya está en el árbol de trabajo y no se
   quería, se descarta con `git checkout -- package-lock.json` y se vuelve a
   correr `npm ci`. Ver la decisión 0002.
+- **`npm ci` falla con `EUSAGE` y `Missing: <paquete> from lock file`.** El lock
+  quedó internamente inconsistente: alguien agregó una dependencia con
+  `npm install` a secas, sin `--package-lock-only`, y npm podó del lock las
+  dependencias de los paquetes opcionales de plataforma dejando colgadas las
+  referencias de sus padres. **No se arregla con un `npm install` a secas**, que
+  lo reconcilia en silencio y vuelve a esconder el problema. Se regenera con
+  `npm install --package-lock-only` y se verifica con `npm ci` **antes** de
+  commitear. Pasó dos veces, en `35559a5` y en `ca338f5`, las dos con las mismas
+  dos entradas. El procedimiento está en la sección 11 y el diagnóstico en la
+  decisión 0003.
 - **El repositorio fuerza finales de línea LF** por `.gitattributes`
   (`* text=auto eol=lf`). Si aparecen diffs donde el archivo entero figura como
   modificado sin haberlo tocado, son finales de línea: revisar
