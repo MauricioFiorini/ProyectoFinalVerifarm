@@ -44,3 +44,29 @@ enum Severidad {
   MEDIA
   BAJA
 }
+
+model Medicamento {
+  /// Identificador unico generado para no exponer IDs incrementales ni depender del orden de insercion
+  id String @id @default(uuid())
+
+  /// El nombre de la droga es unico para evitar duplicados en el inventario.
+  /// Es la clave principal de busqueda para los usuarios.
+  nombre String @unique
+
+  /// RxCUI: Codigo estandarizado de RxNorm.
+  /// Es obligatorio y unico, ya que el motor de interacciones medicamentosas se basa en el.
+  rxcui String @unique
+
+  /// La unidad de medida de la presentacion, restringida por Enum para consistencia de datos.
+  unidad UnidadMedida
+
+  /// El limite para generar alertas visuales de reposicion en farmacia.
+  stockMinimo Int @default(0)
+
+  /// Soft delete: un medicamento no se borra fisicamente jamas.
+  /// Borrarlo romperia el historial inmutable de movimientos y prescripciones clinicas.
+  activo Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
