@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| — | — | — | — | — | — |
+| 2.05 | Juan José | feat/2.05-interaccion | activa | — | 2026-09-01 |
 
 ### Reserva de tareas
 
@@ -277,7 +277,7 @@ decide cuando se empieza, no antes.
 | 2.02 | Modelo `Medicamento`. Comentar cada decisión en el propio archivo. | `[x]` | S | 2.01 |
 | 2.03 | Modelos de stock: `Lote` y `MovimientoStock`, con relaciones y `onDelete: Cascade`. | `[x]` | M | 2.02 |
 | 2.04 | Modelos clínicos: `Paciente`, `MedicacionVigente`, `ConsultaInteraccion`, `ObservacionInteraccion`. | `[x]` | M | 2.02 |
-| 2.05 | Modelo `Interaccion` (par de drogas por RxCUI, severidad, descripción, fuente). | `[ ]` | M | 2.02 |
+| 2.05 | Modelo `Interaccion` (par de drogas por RxCUI, severidad, descripción, fuente). | `[~]` | M | 2.02 |
 | 2.06 | Modelos transversales: `Usuario` y `RegistroAuditoria`. **`RegistroAuditoria` se crea pero no se usa en el prototipo** — está en el modelo de dominio y sacarla contradiría la documentación. | `[ ]` | S | 2.01 |
 | 2.07 | Primera migración: `npx prisma migrate dev --name inicial`. Verificar con Prisma Studio. | `[ ]` | M | 2.02–2.06 |
 | 2.08 | `seed.ts` mínimo: 3 usuarios y 10 medicamentos. Suficiente para desarrollar. | `[ ]` | M | 2.07 |
