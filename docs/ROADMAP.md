@@ -100,7 +100,7 @@ reunión. **Antes de tomar una tarea, mirá si alguna la bloquea.**
 | D2 | ¿Se adopta **ONCHigh** como fuente de interacciones? Está disponible en un repositorio público, pero sin RxCUI ni severidad: requiere mapeo y redacción propia. | 5.02 |
 | D3 | **`rxcui` obligatorio u opcional.** Hoy el esquema lo pide obligatorio y el roadmap lo quiere opcional: la 3.07 dice "RxCUI opcional cargado a mano". Uno de los dos tiene que ceder. | 3.02 y 3.07 |
 | D4 | **¿La dosis va dentro del nombre?** Si `Medicamento.nombre` es "Paracetamol" o "Paracetamol 500mg". Es aparte de D3 aunque estén emparentadas: define qué significa que dos medicamentos tengan el mismo nombre, y con eso la validación de nombre único que la 3.01 **ya implementó**. | 3.02 y 3.07, y revisa la 3.01 |
-| D5 | **Modelo de `Lote`:** faltan `fechaIngreso` y `cantidadIngresada`, que el modelo de dominio sí tiene. Tocarlo es una migración, así que se decide antes de empezar la fase 4. | 4.01 |
+| D5 | **Modelo de `Lote`:** faltan `fechaIngreso` y `cantidadIngresada`, que el modelo de dominio sí tiene. Tocarlo es una migración, así que se decide antes de empezar la fase 4. | 4.01 y 4.02 |
 | D6 | **Los diez RxCUI del seed** mezclan códigos de ingrediente con códigos de producto, y hay que verificarlos contra RxNav antes de construir nada encima. | 5.02 y 5.03 |
 | D7 | **Usuario de los movimientos:** `MovimientoStock.usuarioId` es obligatorio y no hay autenticación en el alcance del prototipo. | 4.02 |
 | D8 | **Ramas y revisión:** se sostiene la regla de "código va en rama y otro le pasa el ojo" o se cambia el documento. No bloquea ninguna tarea, pero se repite. | nada |
@@ -110,7 +110,9 @@ tarea libre de la fase 3.
 
 **D2 no frena el trabajo de hoy** y por eso va última en prioridad: la 5.03
 —carga manual de pares— permite avanzar con todo el módulo clínico sin esperarla.
-Es tema de reunión igual.
+Es tema de reunión igual. **Ojo:** esa salida por la 5.03 vale contra D2, pero la
+5.03 tiene su propio bloqueo, D6, así que el módulo clínico hoy no arranca por
+ningún lado.
 
 **Las tareas que no dependen de ninguna de las siete se pueden tomar sin
 esperar la reunión.** La 3.05, los cuatro componentes base de
@@ -341,12 +343,12 @@ capas (servicio → route handler → pantalla) que copian las fases 4 y 5.
 | # | Tarea | Estado | Tamaño | Depende |
 |---|---|---|---|---|
 | 3.01 | `src/services/medicamentos.ts`: listar, buscar por nombre, obtener por id, crear. Validar nombre de droga único. | `[x]` | M | 2.09 |
-| 3.02 | Validación de entrada (Zod) para medicamento. | `[ ]` | S | 3.01 |
+| 3.02 | Validación de entrada (Zod) para medicamento. **Bloqueada por D3 y D4:** las dos definen qué se valida —si el `rxcui` es obligatorio y si la dosis va dentro del nombre—, así que el esquema de Zod no se puede escribir antes. | `[?]` | S | 3.01, D3, D4 |
 | 3.03 | `app/api/medicamentos/route.ts`: GET (listado con filtro) y POST (alta). | `[ ]` | M | 3.02 |
 | 3.04 | Manejo de errores unificado: función que traduce error de servicio a respuesta HTTP. | `[ ]` | M | 3.03 |
 | 3.05 | Componentes base en `src/components/ui/`: `Boton`, `Campo`, `Tabla`, `Modal`. **Solo esos cuatro.** | `[ ]` | L | 1.10 |
 | 3.06 | Pantalla `/medicamentos`: tabla con nombre de droga, RxCUI, unidad y stock mínimo. Buscador arriba. Botón **"Nuevo medicamento"**. | `[ ]` | M | 3.05, 3.03 |
-| 3.07 | Modal de alta: nombre de droga, unidad de medida (select), stock mínimo, RxCUI opcional **cargado a mano**. Botones **"Guardar"** y **"Cancelar"**. Errores por campo. | `[ ]` | M | 3.06 |
+| 3.07 | Modal de alta: nombre de droga, unidad de medida (select), stock mínimo, RxCUI opcional **cargado a mano**. Botones **"Guardar"** y **"Cancelar"**. Errores por campo. **Bloqueada por D3 y D4:** el "RxCUI opcional" de esta fila es justamente lo que D3 discute, y D4 define qué se escribe en el campo nombre. | `[?]` | M | 3.06, D3, D4 |
 | 3.08 | Estados de la tabla: cargando, vacía ("Todavía no hay medicamentos cargados") y error con botón **"Reintentar"**. | `[ ]` | M | 3.06 |
 
 ---
@@ -359,8 +361,8 @@ Uno de los dos argumentos centrales del proyecto.
 
 | # | Tarea | Estado | Tamaño | Depende |
 |---|---|---|---|---|
-| 4.01 | `src/services/lotes.ts`: alta de lote (número, ingreso, vencimiento, cantidad ingresada). Unicidad de número por medicamento. | `[ ]` | M | 3.04 |
-| 4.02 | Cálculo de **cantidad disponible por lote**: cantidad ingresada menos egresos. Función pura. | `[ ]` | M | 4.01 |
+| 4.01 | `src/services/lotes.ts`: alta de lote (número, ingreso, vencimiento, cantidad ingresada). Unicidad de número por medicamento. **Bloqueada por D5:** `fechaIngreso` y `cantidadIngresada` todavía no están en el modelo `Lote`, y agregarlas es una migración. | `[?]` | M | 3.04, D5 |
+| 4.02 | Cálculo de **cantidad disponible por lote**: cantidad ingresada menos egresos. Función pura. **Bloqueada por D5 y D7:** necesita `cantidadIngresada` en el modelo, y los egresos son `MovimientoStock`, que hoy exige un `usuarioId` que nadie puede completar sin autenticación. | `[?]` | M | 4.01, D5, D7 |
 | 4.03 | Cálculo de **stock disponible por medicamento**: suma de lotes no vencidos. | `[ ]` | M | 4.02 |
 | 4.04 | `src/services/movimientos.ts`: registrar ingreso y egreso **en transacción**. Un egreso nunca puede dejar el lote en negativo. | `[ ]` | L | 4.02 |
 | 4.05 | Consulta de **stock bajo**: medicamentos por debajo del mínimo. | `[ ]` | M | 4.03 |
@@ -399,7 +401,7 @@ queda fuera del prototipo (el RxCUI se carga a mano).
 |---|---|---|---|---|
 | 5.01 | `src/services/pacientes.ts`: alta con seudónimo, listado, búsqueda. **Sin datos filiatorios.** | `[ ]` | M | 3.04 |
 | 5.02 | `[?]` Importar el conjunto **ONCHigh** a la tabla `Interaccion`: mapear nombres a RxCUI y redactar las descripciones de severidad. **Bloqueada por D2.** | `[?]` | L | D2 |
-| 5.03 | **Carga manual de al menos 15 pares** de psicofármacos que interactúan, con severidad y descripción, dentro del seed. Permite avanzar sin esperar a D2. | `[ ]` | M | 2.07 |
+| 5.03 | **Carga manual de al menos 15 pares** de psicofármacos que interactúan, con severidad y descripción, dentro del seed. Permite avanzar sin esperar a D2. **Pero está bloqueada por D6:** los pares se identifican por RxCUI y los diez del seed hay que verificarlos primero contra RxNav. | `[?]` | M | 2.07, D6 |
 | 5.04 | `src/services/medicacion.ts`: agregar medicamento a un paciente, suspender con motivo, listar vigentes. | `[ ]` | M | 5.01 |
 | 5.05 | Cálculo del **estado derivado** de la medicación (vigente / suspendida / finalizada) a partir de fechas y motivo. | `[ ]` | S | 5.04 |
 | 5.06 | **Motor de interacciones**: dada una lista de RxCUI, devolver todos los pares que interactúan. Determinístico. | `[ ]` | L | 5.03 |
