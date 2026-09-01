@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| — | — | — | — | — | — |
+| 3.01 | Juan José | feat/3.01-servicio-medicamentos | activa | — | 2026-09-01 |
 
 ### Reserva de tareas
 
@@ -292,7 +292,7 @@ capas (servicio → route handler → pantalla) que copian las fases 4 y 5.
 
 | # | Tarea | Estado | Tamaño | Depende |
 |---|---|---|---|---|
-| 3.01 | `src/services/medicamentos.ts`: listar, buscar por nombre, obtener por id, crear. Validar nombre de droga único. | `[ ]` | M | 2.09 |
+| 3.01 | `src/services/medicamentos.ts`: listar, buscar por nombre, obtener por id, crear. Validar nombre de droga único. | `[~]` | M | 2.09 |
 | 3.02 | Validación de entrada (Zod) para medicamento. | `[ ]` | S | 3.01 |
 | 3.03 | `app/api/medicamentos/route.ts`: GET (listado con filtro) y POST (alta). | `[ ]` | M | 3.02 |
 | 3.04 | Manejo de errores unificado: función que traduce error de servicio a respuesta HTTP. | `[ ]` | M | 3.03 |
