@@ -14,17 +14,19 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-01
 **Entrega:** Juan José
-**Rama:** `feat/2.07-migracion`
+**Rama:** `feat/2.08-seed`
 
 ### Qué se hizo
 
-**La tarea 2.07: Primera migración de base de datos.**
-Se ejecutó satisfactoriamente la primera migración oficial del proyecto a partir del esquema validado, utilizando el comando `npx prisma migrate dev --name inicial`.
+**La tarea 2.08: Creación del `seed.ts` inicial.**
+Se configuró y ejecutó exitosamente el script de inicialización de la base de datos con datos de prueba, necesarios para comenzar el desarrollo del backend.
 
 **Detalles de la implementación:**
-- La migración fue generada bajo la carpeta `prisma/migrations` y sincronizada correctamente con la base de datos PostgreSQL de desarrollo (que corre en el puerto `5433` a través de Docker).
-- Las tablas para todas las entidades diseñadas en las tareas 2.02 a 2.06 ya se encuentran operativas en la base.
-- Se marcó la tarea como finalizada `[x]` en el `ROADMAP.md`.
+- Se instalaron las dependencias `pg` y `@prisma/adapter-pg` (y `@types/pg`), requisito clave e ineludible en Prisma 7 para poder instanciar el `PrismaClient` usando el _driver adapter_ compatible con PostgreSQL.
+- Se modificó `package.json` para registrar el comando de ejecución (`"seed": "npx tsx prisma/seed.ts"`) y se actualizó `prisma.config.ts` reflejando este nuevo comando bajo el bloque `migrations`.
+- Se creó `prisma/seed.ts` importando `dotenv/config` para asegurar la lectura de `DATABASE_URL`. El script incluye el cierre correcto del pool de conexión (`pool.end()`) para evitar que el proceso quede colgado.
+- El seed inserta:
+  - **3 Usuarios:** Un Administrador, un Farmacéutico y un Médico, listos para pruebas de autenticación y roles.
+  - **10 Medicamentos:** Diferentes psicofármacos, antibióticos y analgésicos con sus respectivos `RxCUI` y `UnidadMedida`, sentando una base sólida para probar las interacciones.
 
-**Siguientes pasos recomendados (Verificación local):**
-Queda en manos del equipo o del revisor actual ejecutar `npx prisma studio` en su máquina local para verificar visualmente desde el navegador que todas las tablas y relaciones (incluyendo cascadas y unics) se hayan creado según lo esperado.
+La tarea fue probada localmente ejecutando `npx prisma db seed` con éxito. Fue marcada con `[x]` en el `ROADMAP.md` y eliminada de la tabla "En curso ahora".
