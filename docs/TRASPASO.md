@@ -13,303 +13,165 @@ Ubicación en el repo: `docs/TRASPASO.md`
 ## Traspaso vigente
 
 **Fecha:** 2026-09-01
-**Entrega:** Juan Pablo Malizani
-**Ramas:** `docs/1.15-driver-adapter-y-comentario-de-db` y `fix/1.14-v2`. Las
-dos se mergearon a `main` el 2026-09-01 y se borraron: quedan nombradas como
-referencia del historial, no son ramas vivas
-**Commit:** las reservas `9c498ec` y `5c1f224` en `main`, más los tres commits de
-la 1.14 y los dos de la 1.15
-
-> **Este traspaso cierra las dos tareas.** El orden de merge terminó siendo el
-> inverso al previsto: entró primero la 1.15 y después la 1.14, sobre
-> `fix/1.14-v2`, una rama abierta desde el último commit propio de la 1.14
-> porque la resolución de conflictos anterior había quedado firmada por un bot.
-> Este archivo es el de la 1.15 con lo que aporta la 1.14 incorporado.
+**Entrega:** Mauricio Mateo Fiorini
+**Rama:** `main` (es documentación y una casilla de verificación)
+**Commit:** de `e252c50` al que trae este traspaso
 
 ### Qué se hizo
 
-**La tarea 1.15: escribir la decisión `0004` y restituir el comentario de
-`src/lib/db.ts`.**
+Dos cosas, y la segunda es la importante.
 
-Las dos mitades vienen de la misma revisión de la fase 2 y la 3.01, y las dos
-son documentación: **no se cambió el comportamiento de nada.**
+**1. La 2.09 quedó verificada en la máquina de Mauricio.** La migración inicial
+aplica sin errores. El detalle está en "Cómo verificarlo".
 
-**La decisión `0004`, sobre las cuatro dependencias del driver adapter.** Entre
-la 2.08 y la 3.01 entraron `pg`, `@prisma/adapter-pg`, `@types/pg` y `dotenv`,
-que no están en el stack que `CONVENCIONES.md` declara cerrado, y no había nada
-escrito sobre por qué. Están perfectamente justificadas; el problema era que
-nadie podía saberlo.
+**2. Se cerraron seis de las siete decisiones abiertas**, en la reunión del
+2026-09-01. Cada una quedó escrita en `docs/decisiones/`, con su contexto, la
+decisión y sus consecuencias:
 
-**El punto que hacía falta verificar, y se verificó.** El traspaso de la 3.01
-afirmaba que el adapter es "estrictamente obligatorio en Prisma 7". Es cierto, y
-ahora está probado en vez de repetido: los mensajes salen del runtime del
-paquete instalado, `@prisma/client@7.10.0`.
-
-```
-PrismaClient requires a driver adapter to connect to your database,
-but none was provided.
-```
-
-Hay una segunda evidencia, dentro del repositorio: el bloque `datasource` de
-`prisma/schema.prisma` **no tiene `url`**. La URL vive en `prisma.config.ts`, que
-alcanza para la CLI pero no lo lee el cliente que corre en la aplicación. Sin
-`url` en el esquema y sin adaptador, el cliente no tiene de dónde sacar la
-conexión. No hay otra salida.
-
-**El comentario de `src/lib/db.ts`.** El commit `d373370` borró nueve líneas que
-explicaban por qué el cliente vive en `globalThis` —el pool de conexiones y las
-recargas de Next—, fuera del alcance de la 3.01. Se restituyeron **y se
-ampliaron**, porque con Prisma 7 el argumento es más fuerte que antes: el pool ya
-no lo maneja Prisma por dentro, lo crea el proyecto con `new Pool()`. Sin el
-singleton, cada recarga de Next en desarrollo deja un pool abierto que nadie
-cierra.
-
-| Commit | Qué trae |
-|---|---|
-| `docs(1.15)` | La decisión `0004` y el comentario restituido en `src/lib/db.ts` |
-| `docs(1.15)` | El cierre: roadmap y este traspaso |
-
-**La tarea 1.14, que se mergea junto con esto: reparar `package-lock.json` por
-segunda vez, declarar `tsx` y fijar el procedimiento para agregar
-dependencias.** Salió de la misma revisión de la fase 2 y la 3.01 que originó la
-1.15, y no estaba en el roadmap.
-
-**El problema.** `npm ci` volvía a fallar con `EUSAGE`, reclamando
-`@emnapi/runtime@1.11.3` y `@emnapi/core@1.11.3`: **exactamente las dos entradas
-que había reparado la 1.13**, un día antes.
-
-| Commit | Tarea | Qué le hizo al lock |
+| Era | Se resolvió como | Archivo |
 |---|---|---|
-| `03aafb8` | 1.13 | Agregó exactamente esos 2 nodos |
-| `ca338f5` | 2.08 | Eliminó exactamente esos 2, y agregó 18 |
+| D2 | Se adopta **ONCHigh** como fuente de interacciones | `0010-se-adopta-onchigh.md` |
+| D3 | **`rxcui` opcional**, y único cuando tiene valor | `0005-el-rxcui-es-opcional.md` |
+| D4 | El nombre es el **principio activo, sin dosis** | `0006-el-nombre-no-lleva-la-dosis.md` |
+| D5 | `Lote` lleva **`fechaIngreso`**; la cantidad vive en los movimientos | `0007-lote-lleva-fecha-de-ingreso.md` |
+| D6 | Los RxCUI son de **ingrediente**, verificados contra RxNorm | `0008-los-rxcui-son-de-ingrediente.md` |
+| D7 | **Usuario fijo del seed**, desde una constante en el servicio | `0009-usuario-fijo-para-los-movimientos.md` |
 
-**La causa.** Son dependencias transitivas de paquetes **opcionales de
-plataforma** —`@img/sharp-wasm32`, `@tailwindcss/oxide-wasm32-wasi`— que no se
-instalan en ninguna de las tres máquinas. `npm install`, corrido sin
-`--package-lock-only`, poda del lock esos hijos pero **deja los padres**, que sí
-quedan porque llevan metadata de `os` y `cpu`. El lock queda declarando una
-dependencia sin el nodo que la satisface. `npm ci` valida el árbol y aborta;
-`npm install` reconcilia en silencio, y por eso el daño no se ve hasta que
-alguien clona limpio.
+**Queda abierta D8** —si se sostiene la regla de rama y revisión— que no bloquea
+ninguna tarea.
 
-**No es cosa de la máquina de nadie.** Se descartó con una prueba: en una misma
-máquina, sobre una copia del lock roto, `npm install --package-lock-only`
-**vuelve a agregar las dos entradas**. La misma máquina da los dos resultados
-según cómo se corra el comando.
+Con eso, **ninguna tarea del roadmap queda en `[?]`.** Las seis que estaban
+trabadas por una decisión pasaron a `[ ]`, con sus dependencias reescritas: la
+3.02, la 3.07, la 4.01, la 4.02, la 5.02 y la 5.03.
 
-**Por qué `tsx` entra acá.** `package.json` y `prisma.config.ts` ejecutan
-`npx tsx prisma/seed.ts`, pero `tsx` no estaba declarada ni en `package.json` ni
-en el lock. En la máquina donde se escribió el seed anda porque `npx` la dejó
-cacheada; en un clon limpio la baja de la red sin versión fijada, y sin conexión
-el seed no corre. Se declaró en el mismo `npm install --package-lock-only` que
-reparó el lock, porque es una sola operación y no dos.
+**Y se agregaron dos tareas a la fase 2**, que son la razón por la que las fases
+3, 4 y 5 todavía no arrancan:
 
-| Commit | Qué trae |
-|---|---|
-| `fix(1.14)` | El lock reparado y `tsx@4.23.13` declarada, en un solo movimiento |
-| `docs(1.14)` | El procedimiento en la sección 11 de `CONVENCIONES.md`, la trampa nueva en la 14, y la decisión `0003` |
-| `docs(1.14)` | El cierre: roadmap y traspaso |
+- **2.10** — Migración: `rxcui` a `String? @unique` y `fechaIngreso DateTime` en
+  `Lote`. Las dos en la misma migración.
+- **2.11** — Corregir el seed: nombres sin dosis, los diez RxCUI verificados
+  contra RxNorm y llevados a ingrediente, e `id` fijo para el usuario de los
+  movimientos.
 
 ### Decisiones tomadas sobre la marcha
 
-**1. El comentario se amplió, no se pegó igual.** Restituir las nueve líneas
-originales tal cual habría dejado un comentario correcto pero desactualizado:
-describía un `new PrismaClient()` que ya no es como se instancia. Se conservó el
-texto original entero y se le agregó lo que cambió con la 7.
+**Las dos tareas nuevas existen porque decidido no es hecho.** Tres de las seis
+decisiones —0005, 0007 y las tres del seed— no se aplican solas: son una
+migración y una corrección de datos. Marcar las fases como destrabadas sin ese
+trabajo hecho habría dejado el roadmap diciendo que se puede empezar la 4.01
+cuando el modelo `Lote` todavía no tiene `fechaIngreso`.
 
-**2. La afirmación sobre el adapter se verificó antes de escribirla.** Venía del
-traspaso de otra persona y `REGLAS_IA.md` pide no repetir lo que no se comprobó.
-Se comprobó contra el paquete instalado.
+**Las dos modificaciones de esquema van en una sola migración.** `rxcui` opcional
+y `Lote.fechaIngreso` podrían ser dos, pero cada migración es una pasada que los
+tres tienen que aplicar en su base. Una sola es un solo `prisma migrate dev` para
+todos.
 
-**3. No se agregó `dotenv/config` a `src/lib/db.ts`.** Es una mejora real y está
-identificada, pero **no era parte de esta tarea**: la 1.15 dice explícitamente
-que no se toca el comportamiento del cliente. Queda anotada como consecuencia en
-la propia decisión 0004, para que quien la lea sepa que se vio y se dejó a
-propósito.
+**La 5.03 no se elimina, aunque D2 haya elegido ONCHigh.** La 5.02 es de tamaño L
+y depende de un mapeo de DrugBank a RxCUI que puede resolver peor de lo esperado.
+La fase 5 es la más importante para la defensa. Quince pares cargados a mano son
+la red, y si hace falta o no se decide **cuando se sepa cómo resolvió el mapeo**,
+no antes.
 
-**4. La `0004` se escribió sabiendo que la `0003` todavía no estaba en `main`.**
-Vivía en la rama de la 1.14. Los dos archivos son distintos y no conflictúan;
-**con este merge las dos decisiones quedan en `main`**, así que la referencia
-cruzada de `CONVENCIONES.md` a la 0003 ya apunta a un archivo que existe.
-
-**5. La 1.14 recibió número propio en vez de arreglarse al pasar.** Es la segunda
-vez que el lock se rompe igual. Un arreglo silencioso habría dejado el
-repositorio sano y la causa sin registrar, que es exactamente lo que pasó después
-de la 1.13.
-
-**6. `tsx` se fijó sin `^`**, igual que Prisma. Corre el seed, que es
-infraestructura de arranque. Esto **no** reinstala el `save-exact` de `.npmrc`
-que la decisión 0002 descartó: es una versión exacta escrita a mano para un
-paquete, no una configuración global.
-
-**7. Se evaluó y se descartó nombrar un dueño de dependencias.** Quien agregó
-`pg` y compañía corrió el comando correcto para lo que quería hacer, y el lock se
-rompió igual. El "quién" no ataca la causa; el "cómo" sí.
-
-**8. La 1.14 se remergeó sobre una rama nueva.** El primer intento se resolvió
-desde la interfaz de GitHub y dejó dos commits de merge firmados por un bot, lo
-que viola la regla de que ningún commit menciona a una IA. Esa rama se descartó
-entera y se abrió `fix/1.14-v2` desde `4d33a91`, el último commit propio de la
-tarea, resolviendo los conflictos a mano.
+**Los diez RxCUI no se verificaron todavía, a propósito.** La decisión 0008 fija
+el criterio —nivel ingrediente, consultados contra RxNorm—, pero la consulta es
+trabajo y quedó como parte de la 2.11. Completarlos de memoria o por inferencia
+habría sido inventar datos clínicos, que es lo que `docs/REGLAS_IA.md` sección 5
+prohíbe explícitamente.
 
 ### Qué quedó sin hacer
 
-**De la 1.14 y la 1.15, nada.** Las dos tareas están completas y verificadas.
-
-**Del ordenamiento que salió de la revisión, una sola cosa, y no la puede hacer
-quien escribe esto:**
-
-1. **Mauricio y Juan José tienen que correr `npm ci` con el lock reparado y
-   aplicar la migración en su base local.** Son las dos verificaciones que faltan
-   y conviene hacerlas en la misma pasada. Hasta entonces, lo único verificado es
-   que el lock y la migración andan en una máquina.
-
-La tabla de verificación de la 2.09 **ya está hecha**: se agregó directo a `main`
-el 2026-09-01, la tarea volvió a `[ ]` y la fila de Juan Pablo quedó marcada. Las
-otras dos casillas son el punto 1.
-
-**Y los siete temas de reunión**, que lleva Juan Pablo. Están en "Bloqueos".
-
-**Las tres vulnerabilidades `high` de `npm audit` siguen como estaban, a
-propósito.** Son `deepmerge-ts <8.0.0`, que entra por `@prisma/config` y por
-`prisma`. `npm audit fix --force` instala `prisma@6.12.0`: un downgrade que rompe
-y contradice el "Prisma queda clavado en 7.10.0" de `CONVENCIONES.md`. Es una
-dependencia de desarrollo y no llega al código que corre.
+- **La 2.09 le falta a Juan José.** Juan Pablo y Mauricio tienen su casilla; la
+  tarea sigue en `[ ]` hasta que estén las tres.
+- **La 2.10 y la 2.11 no se empezaron.** Nadie las tiene tomadas.
+- **Los diez RxCUI del seed siguen sin verificar**, y siguen con la dosis dentro
+  del nombre. Es la 2.11.
+- **ONCHigh no se descargó.** La decisión de adoptarlo está tomada; los archivos
+  no están y el mapeo no se hizo. Es la 5.02, y va después de la 2.11.
+- **D8 sigue abierta.**
+- **`docs/TRASPASO.md` perdió su sección "Plantilla (no borrar)"** en algún
+  momento, y `docs/CONVENCIONES.md` sección 13 la sigue referenciando: dice que
+  el traspaso se reescribe "siguiendo su plantilla", que ya no está en ningún
+  lado. Este traspaso respeta los mismos siete títulos de siempre, pero la
+  plantilla habría que reponerla o cambiar la referencia.
 
 ### Cómo verificarlo
 
-```
-npm ci
-npm run setup
-npm run check
-```
-
-De la 1.15:
+**De la 2.09**, corrido en la máquina de Mauricio con Node 24.20.0 y npm 11.19.0:
 
 | Qué se probó | Resultado |
 |---|---|
-| `npm run check` | Código 0: `tsc`, `eslint` y `prettier` |
-| Los mensajes del runtime de Prisma | Encontrados en `@prisma/client@7.10.0` instalado |
-| `datasource` de `schema.prisma` | Confirmado sin `url` |
-| Cambios de comportamiento | **Ninguno**: solo comentarios y un archivo nuevo en `docs/decisiones/` |
+| `npm ci` | Instala y **deja el árbol limpio** |
+| `npm run setup` | Código 0, genera el cliente Prisma |
+| `docker compose up -d` | `healthy`, y confirmado que el contenedor es el de esta carpeta |
+| `npx prisma migrate status` antes | `1 migration found`, `have not yet been applied` |
+| `npx prisma migrate dev` | Aplica `20260901142250_inicial` sin errores |
+| `npx prisma migrate status` después | `Database schema is up to date!` — sin *drift* |
+| Tablas creadas | Las 10 del modelo más `_prisma_migrations` |
+| `npx prisma db seed` | `Seed completado con éxito`: 3 usuarios y 10 medicamentos |
+| `npm run check` | Código 0 |
 
-La 1.15 no toca código ejecutable. El diff de `src/lib/db.ts` es enteramente
-comentario.
+**De la decisión 0009**, que es la que tiene una prueba concreta: se corrió el
+seed dos veces seguidas y se compararon los ids del mismo usuario.
 
-De la 1.14, con **Node 24.20.0 y npm 11.19.0**, corriendo los comandos de verdad:
+```
+primera corrida:  01efb636-84a4-4557-a34c-b7949beaea8c | Admin Sistema
+segunda corrida:  ff3d97ca-acbe-42a8-b2dc-89228c28fdbf | Admin Sistema
+```
 
-| Qué se probó | Resultado |
-|---|---|
-| `npm ci` con el lock anterior | Falla, `EUSAGE`, dos entradas faltantes |
-| `npm ci` con el lock reparado | Instala sin errores |
-| Si `npm ci` reescribe el lock | No: mismo md5 antes y después |
-| Nodos que agrega el arreglo | 37 |
-| Nodos que elimina | **0** |
-| `npm install --package-lock-only` dos veces | md5 idéntico: es idempotente |
-| `npm run setup` | Regenera el cliente Prisma, código 0 |
-| `npx --offline tsx --version` | `tsx v4.23.13`, resuelto local, sin red |
+Cambian. Por eso la 2.11 tiene que darle `id` explícito al usuario del seed antes
+de que ninguna constante lo referencie.
 
-Las pruebas sobre locks rotos se hicieron en un directorio aparte, para no tocar
-el entorno de trabajo. **El `npx --offline` es la prueba que importa** para lo de
-`tsx`: confirma que se resuelve desde `node_modules` y no bajándola de
-internet.
+**De la decisión 0006:** se verificó que los diez medicamentos del seed son diez
+principios activos distintos, así que sacarles la dosis del nombre **no genera
+ninguna colisión** con la restricción de nombre único.
 
 ### Qué sigue
 
-**Primero, lo de "Qué quedó sin hacer"**: el `npm ci` y la migración de Mauricio
-y Juan José. Con eso la 2.09 vuelve a `[x]` y el ordenamiento queda cerrado.
+**La 2.10**, la migración. Es la que destraba más cosas: la 3.02 y la 4.01
+dependen de ella.
 
-**Después, la fase 3.** La próxima tarea libre es la **3.02**, validación con
-Zod, que depende de la 3.01 ya cerrada — pero **necesita antes la decisión sobre
-`rxcui`**, que está en "Bloqueos". Zod está en el stack acordado pero todavía no
-está instalada; cuando toque, se agrega con el procedimiento de la sección 11 de
-`CONVENCIONES.md`, que ahora es obligatorio.
+Después la **2.11**, el seed. Sin ella no arrancan ni la 4.02 —que necesita el
+usuario con `id` fijo— ni nada de la fase 5, porque los pares de interacciones se
+cruzan por RxCUI y hasta que los del seed no estén verificados no hay contra qué
+cruzar.
 
-La **3.05** —los cuatro componentes base de `src/components/ui/`— solo depende de
-la 1.10, así que la puede tomar otra persona en paralelo sin pisar a nadie, y no
-está bloqueada por ninguna decisión de reunión. **Es lo más sano para arrancar.**
+Las dos son de la fase 2 y **las toma una sola persona**, como el resto de esa
+fase: la 2.10 genera una migración, y dos migraciones en paralelo dejan la base
+de cada uno distinta.
+
+**En paralelo, y sin esperar nada:** la **3.05**, los cuatro componentes base de
+`src/components/ui/`, no depende de la 2.10 ni de la 2.11. Y **Juan José tiene
+pendiente su 2.09**.
+
+Después de la 2.11 se abre todo: la fase 3 por la 3.02, la fase 4 por la 4.01 y
+la fase 5 por la 5.02.
 
 ### Antes de arrancar, tener en cuenta
 
-- **Para agregar o cambiar una dependencia son tres pasos:**
-  `npm install <paquete> --package-lock-only`, después `npm ci`, y **recién ahí**
-  commitear. No es opcional: sin el flag el lock queda roto, y sin el `npm ci` no
-  hay forma de enterarse. Sección 11 de `CONVENCIONES.md` y decisión 0003.
-- **El comando de arranque sigue siendo `npm ci`, no `npm install`.** Decisión
-  0002.
-- **Después de cada `npm ci` hay que correr `npm run setup`.** `npm ci` borra
-  `node_modules` entero y se lleva el cliente Prisma generado.
-- **`npm run setup` también hace falta cada vez que cambia
-  `prisma/schema.prisma`.**
-- **Si `npm ci` falla con `EUSAGE` y "Missing: ... from lock file"**, es el lock
-  roto otra vez. **No lo arregles con `npm install` a secas**: lo reconcilia en
-  silencio y esconde el problema. Trampas, sección 14.
-- **El cliente Prisma se instancia en un solo lugar, `src/lib/db.ts`.** No
-  construyas un `PrismaClient` por tu cuenta en otro archivo: sin el adaptador no
-  se conecta, y sin el singleton se acumulan pools. `prisma/seed.ts` es la única
-  excepción y está explicada en la decisión 0004.
-- **Verificá tu versión de Node antes que nada.** Prisma 7 pide 20.19+, 22.12+ o
-  24.0+. Si usás `fnm` o `nvm`, revisá cuál es tu versión **por defecto**.
-- **Los avisos de `npm warn install-scripts` son esperables.** npm 11 bloquea los
-  scripts de instalación; de eso se encarga `npm run setup`. No hay que
-  aprobarlos.
-- **`npm audit` reporta tres `high`. No correr `npm audit fix --force`.**
-- **El puerto de PostgreSQL es el 5433, no el 5432.** `npm run setup` avisa si tu
-  URL apunta a otro. El porqué está en `docker-compose.yml`.
-- **Docker Desktop tiene que estar abierto.** No arranca solo en Windows.
-- **`prisma generate` sugiere actualizar a `@latest`. No hacerlo.** Hoy `latest`
-  es un release candidate de la 8. Prisma queda clavado en `7.10.0`.
-- **El bloque `nextjs-agent-rules` vive en `AGENTS.md`, no en `CLAUDE.md`.** Lo
-  regenera `next dev` solo. No editarlo a mano ni moverlo de archivo.
-- **En Tailwind 4 la paleta se toca en `src/app/globals.css`**, en el bloque
-  `@theme`. No existe `tailwind.config`.
-- **La lógica de negocio va en `src/services/`**, nunca en componentes ni en route
-  handlers, y son Route Handlers, no Server Actions.
-- **Preguntar antes de tocar `prisma/schema.prisma`.** Cada cambio genera
-  migraciones, y **nunca se edita una ya mergeada**: si está mal, se corrige con
-  una migración nueva.
-- **Código va en rama, una tarea por rama, y otra persona le pasa el ojo al
-  diff.** La fase 2 entera y la 3.01 entraron directo a `main` sin eso; el
-  traspaso de la 3.01 declaraba una rama `feat/3.01-servicio-medicamentos` que
-  **nunca existió**. Si el equipo decide que la regla no se sostiene, se cambia el
-  documento; lo que no sirve es tener una regla escrita que nadie sigue.
-- La lista de lo que **no** se implementa está en `docs/CONTEXTO.md` sección 6 y
-  en `docs/ROADMAP_PRODUCTO.md`. Los mockups de `concpeto/` son referencia
-  visual, no una especificación.
+- **La 2.10 agrega una migración, así que los tres van a tener que aplicarla.**
+  Conviene avisar cuando entre a `main`, y que nadie corra su 2.09 pendiente
+  justo antes: le tocaría hacerlo dos veces.
+- **Nunca se edita la migración inicial.** Ya está mergeada. `rxcui` opcional y
+  `fechaIngreso` van en una migración nueva.
+- **`npm run check` falla si `.next/` quedó de un build viejo.** El síntoma es
+  `Type 'Route' does not satisfy the constraint 'never'` en
+  `.next/types/validator.ts`, que es un archivo generado que el `tsconfig.json`
+  incluye. Se arregla con `rm -rf .next`. Le pasa a quien viene trabajando, no a
+  un clon limpio, y el error no apunta a su causa.
+- **El puerto de PostgreSQL es el 5433.** Si tenés PostgreSQL instalado en
+  Windows, con el 5432 Prisma conecta contra el tuyo y responde
+  `Authentication failed`.
+- **Docker Desktop no arranca solo** al iniciar sesión en Windows.
+- **El `rxcui` opcional no es permiso para dejarlo vacío.** Los diez del seed van
+  con código real y verificado. Lo opcional es la red para lo que se cargue
+  después, no un atajo.
+- **Nada de lo que entre a `Interaccion` se inventa.** Ni pares, ni severidades,
+  ni descripciones. Lo que no venga de ONCHigh o del artículo citado, no entra.
 
 ### Bloqueos
 
-**Ni la 1.14 ni la 1.15 dejaron ninguno.**
+**Ninguno por decisión.** Las seis que trababan las fases 3, 4 y 5 están
+cerradas, y D8 no bloquea ninguna tarea.
 
-**Siete decisiones de equipo, pendientes de reunión.** Las lleva Juan Pablo.
-**Están todas en esta tabla**: lo que no figura acá, nadie lo cuenta como tema de
-reunión.
-
-| Decisión | Traba |
-|---|---|
-| **D3 — `rxcui` del medicamento**, obligatorio u opcional. Hoy el esquema lo pide obligatorio y el roadmap lo quiere opcional | 3.02 y 3.07 |
-| **D4 — la dosis dentro del nombre**: si `Medicamento.nombre` es "Paracetamol" o "Paracetamol 500mg". Es una decisión aparte de D3, aunque estén emparentadas: define qué significa que dos medicamentos tengan el mismo nombre, y por lo tanto la validación de nombre único que la 3.01 ya implementó | 3.02 y 3.07, y revisa la 3.01 |
-| **D5 — modelo de `Lote`**: faltan `fechaIngreso` y `cantidadIngresada`, que el modelo de dominio sí tiene | 4.01 y 4.02 |
-| **D6 — los diez RxCUI del seed** mezclan códigos de ingrediente con códigos de producto, y hay que verificarlos contra RxNav. **Traba la fase 5 entera**, incluida la 5.03 | 5.02 y 5.03 |
-| **D7 — usuario de los movimientos**: `MovimientoStock.usuarioId` es obligatorio y no hay autenticación en el alcance | 4.02 |
-| **D2 — ¿se adopta ONCHigh como fuente de interacciones?** Está en un repositorio público, pero sin RxCUI ni severidad: requiere mapeo y redacción propia | nada por ahora, traba la 5.02 cuando se llegue |
-| **D8 — ramas y revisión**: se sostiene la regla o se cambia el documento | nada, pero se repite |
-
-Los números son los mismos que usa la tabla "Decisiones abiertas" de
-`docs/ROADMAP.md`, donde además figura qué tarea queda en `[?]` por cada una. D2
-conserva su número porque la 5.02 ya la referenciaba.
-
-**Hay tres fases trabadas, no dos:** D3 y D4 traban la **fase 3**, D5 la **fase
-4** y D6 la **fase 5**. Son cuatro decisiones sobre tres frentes. **D6 subió de
-prioridad** al aparecer que también bloquea la 5.03: se la venía tratando como
-algo a cerrar antes de la fase 5, y resulta que es lo que hoy impide arrancar el
-módulo clínico.
-
-**D2 no frena el trabajo de hoy**, y por eso está última en prioridad: la tarea
-5.03 —carga manual de al menos 15 pares de psicofármacos en el seed— permite
-avanzar con todo el módulo clínico sin esperarla. Pero es tema de reunión igual,
-y por eso está en la tabla. **Con una salvedad que apareció al revisar:** esa
-salida por la 5.03 vale contra D2, pero **la 5.03 está bloqueada por D6**, así
-que hoy el módulo clínico no arranca por ningún lado.
-
----
+**Lo que traba hoy es trabajo, no reunión:** la 2.10 y la 2.11. Alguien las tiene
+que tomar.
