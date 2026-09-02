@@ -320,7 +320,7 @@ decide cuando se empieza, no antes.
 | 2.06 | Modelos transversales: `Usuario` y `RegistroAuditoria`. **`RegistroAuditoria` se crea pero no se usa en el prototipo** — está en el modelo de dominio y sacarla contradiría la documentación. | `[x]` | S | 2.01 |
 | 2.07 | Primera migración: `npx prisma migrate dev --name inicial`. Verificar con Prisma Studio. | `[x]` | M | 2.02–2.06 |
 | 2.08 | `seed.ts` mínimo: 3 usuarios y 10 medicamentos. Suficiente para desarrollar. | `[x]` | M | 2.07 |
-| 2.09 | Verificar que los tres aplican la migración en su base local sin errores. | `[ ]` | M | 2.07 |
+| 2.09 | Verificar que los tres aplican la migración en su base local sin errores. | `[x]` | M | 2.07 |
 | 2.10 | **Migración: `rxcui` opcional y `Lote.fechaIngreso`.** Pasar `Medicamento.rxcui` a `String? @unique` y agregar `fechaIngreso DateTime` a `Lote`. **No se edita la migración inicial**, se agrega una nueva. **No se agrega `cantidadIngresada`**: la cantidad vive en los movimientos. Ver las decisiones `0005` y `0007`. Las dos van en la misma migración para que los tres apliquen una sola. | `[ ]` | M | 2.09 |
 | 2.11 | **Corregir el seed** según las decisiones `0006`, `0008` y `0009`, todo en el mismo archivo y la misma pasada: nombres sin dosis (`"Paracetamol"`, no `"Paracetamol 500mg"`); los diez RxCUI **verificados uno por uno contra RxNorm** y llevados a nivel de ingrediente, anotando la fecha de la consulta —el que no resuelva queda sin `rxcui`, que ahora se puede, y se anota por qué—; y **`id` explícito y fijo** para el usuario `farmacia@verifarm.com`, porque hoy el seed usa `@default(uuid())` y el id cambia en cada corrida. | `[ ]` | M | 2.10 |
 
@@ -336,7 +336,7 @@ tres".
 |---|---|
 | Juan Pablo | `[x]` |
 | Mauricio | `[x]` |
-| Juan José | `[ ]` |
+| Juan José | `[x]` |
 
 **La 2.09 pasa a `[x]` en la tabla de tareas solo cuando las tres filas están
 completas.** Mientras haya una casilla vacía, queda en `[ ]`, aunque en tu máquina
