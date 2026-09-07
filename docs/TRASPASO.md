@@ -14,127 +14,166 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-07
 **Entrega:** Mauricio Mateo Fiorini
-**Rama:** `feat/3.06-pantalla-medicamentos` (**sin mergear**)
-**Commit:** de `540ee97` a `52a3d77`, más el que trae este traspaso
+**Rama:** `feat/4.03-logica-de-stock` (**sin mergear**)
+**Commit:** de `792907c` a `377455a`, más el que trae este traspaso
 
 ### Qué se hizo
 
-**La fase 3 está completa: 3.01 a 3.08.** Con la 3.05 ya en `main`, este bloque
-cierra las tres que faltaban, que son las tres la misma pantalla.
+**Toda la lógica de la fase 4: de la 4.03 a la 4.10.** Con la 4.01 y la 4.02 ya
+en `main`, el módulo de stock está completo por dentro: se calculan saldos, se
+registran movimientos, funciona FEFO y hay API para todo. **Falta la interfaz**,
+que es de la 4.11 a la 4.17.
 
 | Commit | Tarea | Qué dejó |
 |---|---|---|
-| `540ee97` | 3.06 | `/medicamentos`: tabla, buscador y botón de alta |
-| `70847bc` | 3.07 | Modal de alta con errores por campo |
-| `52a3d77` | 3.08 | Estados de carga, vacío y error con "Reintentar" |
+| `792907c` | 4.03 | Stock por medicamento, sumando lotes no vencidos |
+| `9838dc1` | 4.04 | `movimientos.ts`: ingreso y egreso en transacción |
+| `c951552` | 4.05, 4.06 | Consultas de stock bajo y vencimientos próximos |
+| `6ffbed7` | 4.07 | **`fefo.ts`: el motor, como función pura** |
+| `09451fb` | 4.08, 4.09 | `dispensacion.ts`: previsualizar y ejecutar |
+| `377455a` | 4.10 | Endpoints de lotes, movimientos y dispensación |
 
-Archivos nuevos, todos en `src/app/medicamentos/`:
+### La verificación de FEFO, que el roadmap pide anotar
 
-- **`page.tsx`** — componente de servidor. Solo arma el encabezado.
-- **`ListaMedicamentos.tsx`** — componente de cliente. Tabla, buscador, estados.
-- **`ModalNuevoMedicamento.tsx`** — el formulario de alta.
-- **`unidades.ts`** — nombres legibles de `UnidadMedida`.
+**Los cinco casos borde**, con fecha de referencia 2026-09-07:
 
-**El catálogo funciona de punta a punta**: se listan los medicamentos, se busca
-por nombre, se da de alta uno nuevo y aparece en la tabla sin recargar.
+| Caso | Pedido | Plan que devuelve | ¿Correcto? |
+|---|---|---|---|
+| 1 — un solo lote alcanza | 60 | `60×A` | ✅ |
+| 2 — reparto entre dos | 100 | `60×A + 40×B` | ✅ |
+| 3 — lote vencido se ignora | 30 | `30×B` (el vencido con 500 no entra) | ✅ |
+| 4 — la existencia no alcanza | 100 | `30×A + 25×B`, cubre 55, **falta 45** | ✅ |
+| 5 — dos vencen el mismo día | 60 | `40×A + 20×Z` | ✅ |
+
+**El caso 5 se verificó además pasando los lotes en los dos órdenes posibles**, y
+el plan sale idéntico: el desempate por número de lote hace que el resultado no
+dependa de cómo los devuelva la base.
+
+Casos extra que también se pasaron: lote con disponible cero se ignora; un lote
+que vence **hoy** todavía sirve; sin lotes elegibles devuelve plan vacío con el
+faltante completo; y reparto entre tres lotes.
+
+**Contra la base**, con dos lotes de un mismo medicamento:
+
+- El lote que **entró después pero vence antes sale primero**. Es la prueba de
+  que es FEFO y no FIFO, que es medio proyecto.
+- Previsualizar **no escribe**: el stock quedó igual antes y después.
+- Ejecutar crea **un movimiento por línea del plan**.
+- Una dispensación que falla **no deja ningún movimiento**.
+
+**Por HTTP**, contra el servidor levantado: previsualizar responde 200 con
+`ejecutado: false`; ejecutar responde 201; pedir de más responde **422** con el
+mensaje "se pidieron 500 y hay 160 disponibles en lotes vigentes".
 
 ### Decisiones tomadas sobre la marcha
 
-**El formulario no revalida nada.** Manda lo que la persona escribió y pinta lo
-que el servidor conteste. Las reglas viven en un solo lugar —el esquema de Zod de
-la 3.02 y el servicio de la 3.01— y repetirlas en el cliente garantiza que en
-algún momento digan cosas distintas. Es lo que hace que el mensaje "el nombre es
-el principio activo, sin dosis" llegue igual desde la API hasta el input.
+**El motor FEFO vive en su propio archivo y no toca nada.** No lee la base, no
+lee el reloj —la fecha entra por parámetro— y no escribe. No es elegancia: como
+el prototipo no lleva pruebas automatizadas, la verificación es a mano, y una
+función pura se verifica con datos inventados sin levantar Docker.
 
-**Los tres estados viven en la pantalla, no en `<Tabla>`.** La tabla no sabe que
-existe una petición HTTP y no tiene por qué enterarse. `ListaMedicamentos` decide
-si dibuja el indicador de carga, el panel de error o la tabla. Es lo que ya
-estaba anotado en `Tabla.tsx` cuando se hizo la 3.05.
+**Se corrigió un defecto que apareció verificando.** La primera versión devolvía,
+para una cantidad inválida, un plan vacío con `faltante: 0`, y eso hacía que
+pedir **−5 unidades diera "alcanza: true"**. Un plan inválido que se declara
+exitoso es peor que un error, porque se propaga en silencio. Ahora el motor corta
+con `RangeError`; la validación de lo que escribe una persona la hace
+`dispensacion.ts` con `ErrorDeNegocio`, así que ese error nunca le llega a un
+usuario.
 
-**Hay dos mensajes de tabla vacía, no uno.** Sin búsqueda dice "Todavía no hay
-medicamentos cargados", que es lo que pide la tarea. Con búsqueda dice "No se
-encontraron medicamentos que coincidan con «…»". Son situaciones distintas y el
-primer mensaje sería falso en el segundo caso.
+**El desempate de vencimientos es explícito.** Si dos lotes vencen el mismo día
+se ordena por número de lote, y por id si hiciera falta. Sin eso, el mismo pedido
+podría producir dos planes distintos en dos corridas, y una demostración que no
+se repite igual es un problema en una defensa.
 
-**El modal se desmonta al cerrarse.** La primera versión limpiaba el formulario
-con un `useEffect`, y ESLint lo rechazó con `react-hooks/set-state-in-effect`.
-La regla tiene razón: montarlo solo cuando hace falta es menos código, no
-provoca un render extra por apertura, y cada apertura arranca limpia por
-construcción. El listado lo renderiza con `{modalAbierto ? … : null}`.
+**Las transacciones son SERIALIZABLE.** Un egreso primero LEE lo disponible y
+después ESCRIBE; entre esas dos cosas otro egreso podría colarse, y los dos
+dejarían el lote en negativo sin que ninguno haya hecho nada mal por su cuenta.
+En un prototipo de un solo usuario no va a pasar; se hizo igual porque el
+invariante es del dominio y no de la cantidad de usuarios.
 
-**El buscador espera 250 ms antes de pedir.** Sin eso, escribir "clonazepam"
-dispara diez consultas y las respuestas pueden llegar desordenadas, dejando en
-pantalla el resultado de un texto viejo.
+**Al ejecutar se vuelve a planificar dentro de la transacción.** El plan que vio
+la persona se calculó antes de que apretara "Confirmar", y en el medio pudo
+entrar otro egreso. Reusar aquel plan sería escribir sobre una foto vieja.
 
-**El error del campo se borra apenas se lo toca.** Dejarlo mientras la persona
-corrige es confuso: ya no describe lo que hay escrito.
+**Un solo endpoint para previsualizar y ejecutar**, con `ejecutar` en el cuerpo y
+**`false` por defecto**: olvidarse el campo previsualiza, nunca escribe por
+descuido. Es lo que necesita el modal de la 4.14, que primero muestra el plan y
+recién al confirmar lo ejecuta.
 
-**El `rxcui` ausente se muestra como "sin cargar", en gris.** No se deja la celda
-vacía: un medicamento sin código no participa del cruce de interacciones, y eso
-tiene que verse. Es la decisión 0005 hecha visible.
+**`/api/movimientos` solo tiene POST.** No hay PUT ni DELETE y no se van a
+agregar: el historial es un libro mayor y un error se corrige con un movimiento
+nuevo.
+
+**Un lote que vence hoy todavía sirve.** El vencimiento es una fecha, no una
+hora: si se comparara contra el instante actual, un lote pasaría a estar vencido
+a mitad de la mañana.
 
 ### Qué quedó sin hacer
 
-- **La rama no está mergeada.** Otra persona le tiene que pasar el ojo.
-- **No hay navegación.** A `/medicamentos` se llega escribiendo la URL: la barra
-  lateral es la tarea **6.01** y la pantalla de inicio la **6.03**.
-- **`/` sigue siendo la página de ejemplo de `create-next-app`**, con los logos
-  de Next y Vercel. Es a propósito, por lo mismo.
-- **No se puede editar ni borrar un medicamento.** Ninguna tarea del prototipo lo
-  pide; el catálogo es de alta y consulta.
-- **Toda la fase 4 de la 4.03 en adelante**, incluido el motor FEFO.
+- **La rama no está mergeada.** Otra persona le tiene que pasar el ojo, y en este
+  caso conviene que mire con atención `fefo.ts`.
+- **Toda la interfaz de la fase 4: de la 4.11 a la 4.17.** Hoy el módulo de stock
+  se puede usar entero por API, pero no tiene ninguna pantalla.
+- **`obtenerVencimientosProximos` no devuelve los lotes YA vencidos**, solo los
+  que vencen dentro de N días. Es lo que pide la tarea, y está anotado en el
+  código. Si el equipo decide que un lote vencido con unidades encima también
+  tiene que aparecer en la alerta, es un cambio de criterio y hay que escribirlo.
+- **No hay endpoint de stock bajo ni de vencimientos próximos.** Los servicios
+  existen; la 4.10 pedía lotes, movimientos y dispensación. Los va a necesitar la
+  pantalla de inicio, que es la 6.03.
 
 ### Cómo verificarlo
 
-Con `docker compose up -d` y `npm run dev`, entrando a
-`http://localhost:3000/medicamentos`. Todo esto se probó en el navegador:
+Los servicios se probaron con scripts temporales que se borraron después, y los
+endpoints con `curl` contra `npm run dev`. Todos los datos de prueba se
+eliminaron: la base quedó con **0 lotes y 0 movimientos**.
 
-| Qué | Resultado |
-|---|---|
-| Listado | Los 10 del seed, con sus RxCUI, unidad y stock mínimo |
-| Buscador | Escribir "pam" deja Clonazepam y Diazepam |
-| Sin resultados | "No se encontraron medicamentos que coincidan con «zzz»." |
-| Modal, envío vacío | Error debajo de cada campo, con el borde en rojo |
-| Modal, nombre con dosis | "El nombre es el principio activo, sin dosis…" |
-| Modal, alta válida | Se cierra, el listado se refresca y el nuevo aparece |
-| Alta sin RxCUI | Entra, y en la tabla se ve **"sin cargar"** |
-| **Estado de error** | Se detuvo el contenedor de PostgreSQL: aparece el panel rojo con "Reintentar" |
-| **Reintentar** | Con la base de vuelta, recupera **conservando el filtro** que estaba puesto |
+Para repetirlo, con la base levantada:
 
-El estado de error no se simuló con código: se paró la base de verdad con
-`docker compose stop` y se la volvió a levantar. Los datos de prueba que se
-crearon desde la pantalla se borraron.
+```
+# alta de lote
+curl -X POST localhost:3000/api/lotes -H "Content-Type: application/json" \
+  -d '{"medicamentoId":"…","numeroLote":"L-1","fechaIngreso":"2026-09-01","fechaVencimiento":"2026-11-15"}'
 
-`npm run check` da 0.
+# ingreso
+curl -X POST localhost:3000/api/movimientos -H "Content-Type: application/json" \
+  -d '{"loteId":"…","tipo":"INGRESO","cantidad":60}'
+
+# previsualizar (no escribe)
+curl -X POST localhost:3000/api/dispensaciones -H "Content-Type: application/json" \
+  -d '{"medicamentoId":"…","cantidad":100}'
+
+# ejecutar
+curl -X POST localhost:3000/api/dispensaciones -H "Content-Type: application/json" \
+  -d '{"medicamentoId":"…","cantidad":100,"ejecutar":true}'
+```
+
+`npm run check` da 0 después de cada tarea.
 
 ### Qué sigue
 
-**El merge de la rama**, con revisión de otro.
+**El merge**, y después la interfaz del módulo de stock, de la **4.11** a la
+4.17. El camino es 4.11 (pantalla `/stock`) → 4.12 (lotes de un medicamento) →
+4.13 (modal de ingreso) → **4.14 (modal de dispensación FEFO)** → 4.15 (aviso de
+existencia insuficiente) → 4.16 (historial) → 4.17 (indicadores de vencimiento).
 
-Después, la fase 4 desde la **4.03**, stock disponible por medicamento, que ya
-tiene todo lo que necesita en `src/services/stock.ts`.
-
-El camino sigue por la 4.04 —movimientos en transacción— y llega al **motor FEFO
-(4.07)**, que es la tarea con más casos borde del proyecto. **No lleva pruebas
-automatizadas**, así que hay que verificar a mano los cinco casos que lista el
-roadmap y anotar el resultado en el PR: un solo lote alcanza, hay que repartir
-entre dos, hay un lote vencido que se ignora, la existencia no alcanza, y dos
-lotes vencen el mismo día.
+La 4.14 es la que muestra el plan —"60 del lote A, vence 03/2027 · 40 del lote B,
+vence 11/2027"— y **ya tiene todo lo que necesita**: el endpoint devuelve
+exactamente eso.
 
 ### Antes de arrancar, tener en cuenta
 
-- **Las pantallas consumen la API, no importan el servicio.** Si una pantalla
-  necesita una regla, se agrega al servicio y se expone por la API; no se
-  reescribe en el cliente.
-- **Los cuatro componentes de `src/components/ui/` son los únicos que hay.** Si
-  hace falta uno nuevo, se habla: la regla de la 3.05 es "solo esos cuatro".
-- **Los mensajes de error los escribe el servidor.** Si un mensaje se lee mal en
-  pantalla, se corrige en el servicio o en el esquema de Zod, no en el modal.
-- **ESLint rechaza `setState` dentro de un `useEffect`.** Si aparece, casi
-  siempre significa que el estado se puede derivar o que el componente se tiene
-  que montar de cero.
+- **Si tocás `fefo.ts`, hay que volver a pasar los cinco casos borde y anotar el
+  resultado en el PR.** Es lo único que hay en lugar de pruebas automatizadas.
+- **Un servicio que lanza `new Error` pelado se responde como 500.** Los errores
+  del dominio van con `ErrorDeNegocio`, que lleva código y campo.
+- **El disponible se calcula, nunca se lee de una columna.** Si en algún momento
+  hace falta una consulta rápida, se optimiza la consulta; no se agrega columna.
+- **Para listar varios lotes con su disponible está `obtenerDisponiblePorLote`**,
+  que resuelve todos en una consulta. Pedirlo lote por lote son N consultas.
+- **La dispensación no confía en el plan que le manden**: siempre replanifica.
+  Cualquier endpoint nuevo que ejecute movimientos tiene que hacer lo mismo.
 - **El puerto sigue siendo el 5433** y Docker Desktop no arranca solo.
-- **`npm run check` falla si `.next/` quedó de un build viejo.** `rm -rf .next`.
 - **Después de cambiar el esquema, `npm run setup` antes de `npm run check`.**
 
 ### Bloqueos
