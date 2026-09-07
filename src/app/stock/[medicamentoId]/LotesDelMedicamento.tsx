@@ -8,6 +8,7 @@ import { NOMBRE_DE_UNIDAD } from "@/lib/unidades";
 import { formatearFecha } from "@/lib/fechas";
 import { ModalIngreso } from "./ModalIngreso";
 import { ModalDispensar } from "./ModalDispensar";
+import { ModalHistorial } from "./ModalHistorial";
 
 // Lotes de un medicamento (tarea 4.12).
 //
@@ -34,7 +35,14 @@ export type MedicamentoDeApi = {
 type Respuesta = { medicamento: MedicamentoDeApi; lotes: LoteDeApi[] };
 type Estado = "cargando" | "listo" | "error";
 
-const COLUMNAS: Columna<LoteDeApi>[] = [
+/**
+ * Las columnas se arman con una funcion porque la ultima necesita un callback
+ * del componente. Definirlas como constante obligaria a meter el estado del
+ * modal en un contexto o a duplicar la tabla.
+ */
+const columnas = (
+  verMovimientos: (lote: LoteDeApi) => void,
+): Columna<LoteDeApi>[] => [
   {
     clave: "numero",
     encabezado: "Lote",
@@ -58,6 +66,21 @@ const COLUMNAS: Columna<LoteDeApi>[] = [
     alineacion: "derecha",
     celda: (l) => <span className="font-medium">{l.disponible}</span>,
   },
+  {
+    clave: "acciones",
+    encabezado: <span className="sr-only">Acciones</span>,
+    alineacion: "derecha",
+    // Solo consultar. No hay editar ni borrar: el historial es un libro mayor.
+    celda: (l) => (
+      <button
+        type="button"
+        onClick={() => verMovimientos(l)}
+        className="rounded-md border border-borde bg-superficie px-3 py-1.5 text-sm font-medium text-texto hover:bg-superficie-tenue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-marca-600"
+      >
+        Movimientos
+      </button>
+    ),
+  },
 ];
 
 export function LotesDelMedicamento({
@@ -68,6 +91,9 @@ export function LotesDelMedicamento({
   const [datos, setDatos] = useState<Respuesta | null>(null);
   const [estado, setEstado] = useState<Estado>("cargando");
   const [modal, setModal] = useState<"ingreso" | "dispensar" | null>(null);
+  const [loteDelHistorial, setLoteDelHistorial] = useState<LoteDeApi | null>(
+    null,
+  );
 
   const cargar = useCallback(async () => {
     try {
@@ -151,7 +177,7 @@ export function LotesDelMedicamento({
       </header>
 
       <Tabla
-        columnas={COLUMNAS}
+        columnas={columnas(setLoteDelHistorial)}
         filas={lotes}
         claveDeFila={(l) => l.id}
         descripcion={`Lotes de ${medicamento.nombre}`}
@@ -173,6 +199,14 @@ export function LotesDelMedicamento({
           nombreMedicamento={medicamento.nombre}
           alCerrar={() => setModal(null)}
           alDispensar={() => void cargar()}
+        />
+      ) : null}
+
+      {loteDelHistorial ? (
+        <ModalHistorial
+          loteId={loteDelHistorial.id}
+          numeroLote={loteDelHistorial.numeroLote}
+          alCerrar={() => setLoteDelHistorial(null)}
         />
       ) : null}
     </div>

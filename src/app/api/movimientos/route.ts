@@ -1,5 +1,12 @@
-import { registrarEgreso, registrarIngreso } from "@/services/movimientos";
-import { esquemaRegistrarMovimiento } from "@/types/lote";
+import {
+  listarMovimientosDeLote,
+  registrarEgreso,
+  registrarIngreso,
+} from "@/services/movimientos";
+import {
+  esquemaListarMovimientos,
+  esquemaRegistrarMovimiento,
+} from "@/types/lote";
 import {
   leerJson,
   respuestaDeError,
@@ -12,6 +19,30 @@ import {
 // historial de movimientos es un libro mayor. Un error se corrige con un
 // movimiento nuevo, no reescribiendo el anterior. Ver docs/CONVENCIONES.md
 // seccion 7.
+
+/**
+ * GET /api/movimientos?loteId=…
+ *
+ * Historial de un lote, del mas nuevo al mas viejo. Solo lectura: no hay PUT ni
+ * DELETE y no los va a haber.
+ */
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+
+  const entrada = esquemaListarMovimientos.safeParse({
+    loteId: searchParams.get("loteId") ?? "",
+  });
+
+  if (!entrada.success) {
+    return respuestaDeValidacion(entrada.error.issues);
+  }
+
+  try {
+    return Response.json(await listarMovimientosDeLote(entrada.data.loteId));
+  } catch (error) {
+    return respuestaDeError(error, "GET /api/movimientos");
+  }
+}
 
 /**
  * POST /api/movimientos

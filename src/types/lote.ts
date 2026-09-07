@@ -86,3 +86,7 @@ export const esquemaDispensar = z.object({
 });
 
 export type DispensarEntrada = z.infer<typeof esquemaDispensar>;
+
+export const esquemaListarMovimientos = z.object({
+  loteId: identificador,
+});
