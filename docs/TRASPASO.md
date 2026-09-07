@@ -14,191 +14,128 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-07
 **Entrega:** Mauricio Mateo Fiorini
-**Rama:** `feat/2.10-modelo-segun-decisiones` (**sin mergear**)
-**Commit:** de `c153296` a `761d922`, más el que trae este traspaso
+**Rama:** `feat/3.06-pantalla-medicamentos` (**sin mergear**)
+**Commit:** de `540ee97` a `52a3d77`, más el que trae este traspaso
 
 ### Qué se hizo
 
-**Siete tareas: 2.10, 2.11, 3.02, 3.03, 3.04, 4.01 y 4.02.** Con eso la fase 2
-queda cerrada, la fase 3 tiene toda su capa de servicio y API, y la fase 4
-arrancó. Un commit por tarea.
+**La fase 3 está completa: 3.01 a 3.08.** Con la 3.05 ya en `main`, este bloque
+cierra las tres que faltaban, que son las tres la misma pantalla.
 
 | Commit | Tarea | Qué dejó |
 |---|---|---|
-| `c153296` | 2.10 | Migración: `rxcui` opcional, `Lote.fechaIngreso` |
-| `1a850cc` | 2.11 | Seed corregido: nombres sin dosis, RxCUI verificados, ids fijos |
-| `768b2f5` | 3.02 | `src/types/medicamento.ts` — validación con Zod |
-| `7b50363` | 3.03 | `src/app/api/medicamentos/route.ts` — GET y POST |
-| `05b306a` | 3.04 | `src/services/errores.ts` y `src/lib/respuestaHttp.ts` |
-| `c20fa49` | 4.01 | `src/services/lotes.ts` |
-| `761d922` | 4.02 | `src/services/stock.ts` |
+| `540ee97` | 3.06 | `/medicamentos`: tabla, buscador y botón de alta |
+| `70847bc` | 3.07 | Modal de alta con errores por campo |
+| `52a3d77` | 3.08 | Estados de carga, vacío y error con "Reintentar" |
 
-**Dependencia nueva: Zod 4.5.4**, fijada exacta. Se agregó siguiendo el
-procedimiento de la decisión 0003 —`--package-lock-only`, después `npm ci` como
-control, después `npm run setup`— y el lock quedó instalable.
+Archivos nuevos, todos en `src/app/medicamentos/`:
 
-### El hallazgo grave: siete de los diez RxCUI estaban mal
+- **`page.tsx`** — componente de servidor. Solo arma el encabezado.
+- **`ListaMedicamentos.tsx`** — componente de cliente. Tabla, buscador, estados.
+- **`ModalNuevoMedicamento.tsx`** — el formulario de alta.
+- **`unidades.ts`** — nombres legibles de `UnidadMedida`.
 
-La verificación de la 2.11 contra la API de RxNorm (RxNav) el 2026-09-07 encontró
-esto:
-
-| Seed decía | Código | RxNorm dice que es |
-|---|---|---|
-| Amoxicilina | `725` | **anfetamina** |
-| Clonazepam | `32968` | **clopidogrel** |
-| Sertralina | `36567` | **simvastatina** |
-| Ibuprofeno | `200803` | no resuelve |
-| Haloperidol | `5174` | no resuelve |
-| Paracetamol | `198440` | un producto (TTY=SCD), no un ingrediente |
-
-**Tres apuntaban a una droga completamente distinta.** Solo cuatro estaban bien
-(diazepam, fluoxetina, risperidona, escitalopram).
-
-Esto no es una anécdota: es el modo de falla que describe la decisión 0005. Un
-código equivocado no rompe nada, no da error, y el motor de interacciones habría
-cruzado clonazepam contra las interacciones del clopidogrel sin que nadie se
-entere. **Es el argumento concreto de por qué el `rxcui` es opcional en vez de
-obligatorio**, y conviene tenerlo a mano para la defensa.
-
-Los diez códigos nuevos son todos de nivel ingrediente (TTY=IN) y están
-verificados uno por uno. El seed los lleva junto al nombre que RxNorm les da, en
-un campo `nombreRxNorm`, para poder reverificarlos sin adivinar.
+**El catálogo funciona de punta a punta**: se listan los medicamentos, se busca
+por nombre, se da de alta uno nuevo y aparece en la tabla sin recargar.
 
 ### Decisiones tomadas sobre la marcha
 
-**Dónde vive cada cosa nueva**, que no estaba definido y conviene respetarlo:
+**El formulario no revalida nada.** Manda lo que la persona escribió y pinta lo
+que el servidor conteste. Las reglas viven en un solo lugar —el esquema de Zod de
+la 3.02 y el servicio de la 3.01— y repetirlas en el cliente garantiza que en
+algún momento digan cosas distintas. Es lo que hace que el mensaje "el nombre es
+el principio activo, sin dosis" llegue igual desde la API hasta el input.
 
-- `src/types/medicamento.ts` — los esquemas de Zod. Definen la forma de la
-  entrada y de ahí sale el tipo con `z.infer`.
-- `src/services/errores.ts` — `ErrorDeNegocio`, el contrato de error de la capa
-  de servicio. **No tiene ni un número de estado HTTP**: los servicios siguen sin
-  saber que existe HTTP.
-- `src/lib/respuestaHttp.ts` — la traducción a códigos. Es el único lugar del
-  proyecto donde un error se convierte en un número.
-- `src/services/stock.ts` — los cálculos de existencias, separado de `lotes.ts`,
-  que es el alta y la consulta de lotes.
-- `src/lib/usuariosSemilla.ts` — los ids fijos del seed y la constante
-  `USUARIO_PROVISORIO_ID`. El seed **importa de ahí**, así que hay una sola
-  fuente.
+**Los tres estados viven en la pantalla, no en `<Tabla>`.** La tabla no sabe que
+existe una petición HTTP y no tiene por qué enterarse. `ListaMedicamentos` decide
+si dibuja el indicador de carga, el panel de error o la tabla. Es lo que ya
+estaba anotado en `Tabla.tsx` cuando se hizo la 3.05.
 
-**El error de negocio lleva un código, no un mensaje que haya que interpretar.**
-La 3.03 dejó el alta con nombre repetido devolviendo **500**, porque el servicio
-lanzaba `new Error("...ya existe")` y desde el handler no había forma de
-distinguir eso de una caída real de la base. La alternativa —mirar el texto del
-mensaje— se rompe la primera vez que alguien lo reescribe. Con
-`ErrorDeNegocio("DUPLICADO", ...)` el duplicado ahora responde **409**.
+**Hay dos mensajes de tabla vacía, no uno.** Sin búsqueda dice "Todavía no hay
+medicamentos cargados", que es lo que pide la tarea. Con búsqueda dice "No se
+encontraron medicamentos que coincidan con «…»". Son situaciones distintas y el
+primer mensaje sería falso en el segundo caso.
 
-**El error trae opcionalmente el campo al que corresponde.** Es lo que permite
-que la pantalla de la 3.07 lo muestre al lado del input y no en un cartel suelto.
+**El modal se desmonta al cerrarse.** La primera versión limpiaba el formulario
+con un `useEffect`, y ESLint lo rechazó con `react-hooks/set-state-in-effect`.
+La regla tiene razón: montarlo solo cuando hace falta es menos código, no
+provoca un render extra por apertura, y cada apertura arranca limpia por
+construcción. El listado lo renderiza con `{modalAbierto ? … : null}`.
 
-**La validación del nombre sin dosis es una ayuda, no una prueba.** Rechaza el
-patrón común —un número seguido de una unidad— y no puede garantizar que no entre
-una dosis escrita de otra forma. Está anotado en el propio archivo para que nadie
-lo confunda con una garantía.
+**El buscador espera 250 ms antes de pedir.** Sin eso, escribir "clonazepam"
+dispara diez consultas y las respuestas pueden llegar desordenadas, dejando en
+pantalla el resultado de un texto viejo.
 
-**El `rxcui` vacío se trata como ausente.** Un formulario manda `""` cuando el
-campo quedó en blanco, y eso significa "no lo cargaron", no "el código es vacío".
-Zod lo transforma a `null`.
+**El error del campo se borra apenas se lo toca.** Dejarlo mientras la persona
+corrige es confuso: ya no describe lo que hay escrito.
 
-**Los tres usuarios del seed llevan `id` fijo, no solo el farmacéutico.** La
-decisión 0009 pedía el del farmacéutico; se hicieron los tres porque el problema
-es el mismo y la fase 5 va a necesitar el del médico para las consultas.
+**El `rxcui` ausente se muestra como "sin cargar", en gris.** No se deja la celda
+vacía: un medicamento sin código no participa del cruce de interacciones, y eso
+tiene que verse. Es la decisión 0005 hecha visible.
 
 ### Qué quedó sin hacer
 
-- **La rama no está mergeada.** Otra persona le tiene que pasar el ojo antes.
-- **Fase 3, interfaz: 3.05, 3.06, 3.07 y 3.08.** Toda la parte visual. La 3.05
-  —los cuatro componentes base de `src/components/ui/`— no depende de nada de
-  esto y se puede tomar en paralelo.
-- **Fase 4, de la 4.03 en adelante**, incluido el motor FEFO (4.07), que es la
-  tarea con más casos borde del proyecto.
-- **`crearLote` deja el lote en cero.** Es correcto: la cantidad entra como
-  movimiento de tipo `INGRESO`, y eso es la tarea 4.04. La pantalla de alta
-  (4.13) va a tener que hacer las dos cosas en una transacción.
-- **La constante `USUARIO_PROVISORIO_ID` todavía no la usa ningún servicio.**
-  La va a usar la 4.04, que es la que escribe movimientos.
-- **D8 sigue abierta.**
+- **La rama no está mergeada.** Otra persona le tiene que pasar el ojo.
+- **No hay navegación.** A `/medicamentos` se llega escribiendo la URL: la barra
+  lateral es la tarea **6.01** y la pantalla de inicio la **6.03**.
+- **`/` sigue siendo la página de ejemplo de `create-next-app`**, con los logos
+  de Next y Vercel. Es a propósito, por lo mismo.
+- **No se puede editar ni borrar un medicamento.** Ninguna tarea del prototipo lo
+  pide; el catálogo es de alta y consulta.
+- **Toda la fase 4 de la 4.03 en adelante**, incluido el motor FEFO.
 
 ### Cómo verificarlo
 
-Todo se probó corriendo, contra la base local.
+Con `docker compose up -d` y `npm run dev`, entrando a
+`http://localhost:3000/medicamentos`. Todo esto se probó en el navegador:
 
-**2.10 — la migración.** Se generó `20260907134105_rxcui_opcional_y_fecha_ingreso`
-y aplicó sin errores; `prisma migrate status` responde `Database schema is up to
-date!`. Se comprobó además, con transacciones que se revirtieron, que:
-
-- **dos `rxcui` en `NULL` conviven** (`INSERT 0 2`), que es de lo que depende que
-  el campo pueda ser opcional;
-- **un `rxcui` repetido se sigue rechazando**
-  (`duplicate key value violates unique constraint "Medicamento_rxcui_key"`).
-
-**2.11 — el seed.** Corre y carga 3 usuarios y 10 medicamentos con los nombres
-sin dosis. Se ejecutó **dos veces seguidas** y los tres ids de usuario quedaron
-idénticos, que es el bug que la decisión 0009 venía a cerrar.
-
-**3.02 — la validación.** Nueve casos, todos con el resultado esperado: acepta
-con y sin `rxcui`, convierte `""` a `null`, y rechaza nombre con dosis, nombre
-vacío, `rxcui` no numérico, unidad inválida, `stockMinimo` negativo y
-`stockMinimo` decimal.
-
-**3.03 y 3.04 — el endpoint**, contra el servidor levantado:
-
-| Pedido | Respuesta |
+| Qué | Resultado |
 |---|---|
-| `GET /api/medicamentos` | 200, los 10 |
-| `GET /api/medicamentos?buscar=ser` | 200, solo Sertralina |
-| `POST` válido **sin `rxcui`** | **201**, con `"rxcui": null` |
-| `POST` con nombre repetido | **409** y el campo `nombre` |
-| `POST` con `rxcui` repetido | **409** y el campo `rxcui` |
-| `POST` con dosis en el nombre | **400** y el campo `nombre` |
-| `POST` con JSON roto | 400 |
+| Listado | Los 10 del seed, con sus RxCUI, unidad y stock mínimo |
+| Buscador | Escribir "pam" deja Clonazepam y Diazepam |
+| Sin resultados | "No se encontraron medicamentos que coincidan con «zzz»." |
+| Modal, envío vacío | Error debajo de cada campo, con el borde en rojo |
+| Modal, nombre con dosis | "El nombre es el principio activo, sin dosis…" |
+| Modal, alta válida | Se cierra, el listado se refresca y el nuevo aparece |
+| Alta sin RxCUI | Entra, y en la tabla se ve **"sin cargar"** |
+| **Estado de error** | Se detuvo el contenedor de PostgreSQL: aparece el panel rojo con "Reintentar" |
+| **Reintentar** | Con la base de vuelta, recupera **conservando el filtro** que estaba puesto |
 
-**4.01 y 4.02.** La función pura `calcularDisponible` devuelve 0 sin movimientos,
-100 con un ingreso de 100, 70 tras un egreso de 30, y 120 tras otro ingreso de
-50. Contra la base: las cuatro reglas de `crearLote` rechazan lo que tienen que
-rechazar —fecha de ingreso futura, vencimiento anterior al ingreso, medicamento
-inexistente y número vacío—, el alta válida entra, el número repetido para el
-mismo medicamento da `DUPLICADO`, y el disponible de un lote pasa de 0 a **75**
-tras registrar 120 de ingreso y 45 de egreso. Todos los datos de prueba se
-borraron: la base quedó con 0 lotes.
+El estado de error no se simuló con código: se paró la base de verdad con
+`docker compose stop` y se la volvió a levantar. Los datos de prueba que se
+crearon desde la pantalla se borraron.
 
-**`npm run check` da 0** después de cada tarea.
+`npm run check` da 0.
 
 ### Qué sigue
 
 **El merge de la rama**, con revisión de otro.
 
-Después, dos frentes que no se pisan:
+Después, la fase 4 desde la **4.03**, stock disponible por medicamento, que ya
+tiene todo lo que necesita en `src/services/stock.ts`.
 
-- **Interfaz de la fase 3:** la **3.05** primero —los cuatro componentes base,
-  `Boton`, `Campo`, `Tabla` y `Modal`, y solo esos cuatro—, después la 3.06, la
-  3.07 y la 3.08.
-- **Lógica de la fase 4:** la **4.03**, stock disponible por medicamento, que ya
-  tiene todo lo que necesita en `src/services/stock.ts`.
-
-El **motor FEFO (4.07)** es la tarea con más casos borde del proyecto y no lleva
-pruebas automatizadas: los casos a verificar a mano están listados en el roadmap
-y hay que anotar el resultado en el PR.
+El camino sigue por la 4.04 —movimientos en transacción— y llega al **motor FEFO
+(4.07)**, que es la tarea con más casos borde del proyecto. **No lleva pruebas
+automatizadas**, así que hay que verificar a mano los cinco casos que lista el
+roadmap y anotar el resultado en el PR: un solo lote alcanza, hay que repartir
+entre dos, hay un lote vencido que se ignora, la existencia no alcanza, y dos
+lotes vencen el mismo día.
 
 ### Antes de arrancar, tener en cuenta
 
-- **Hay una migración nueva.** Después de hacer `git pull` hay que correr
-  `npx prisma migrate dev`, o la base local queda vieja.
-- **`prisma migrate dev` no dejó el cliente regenerado.** Pasó en esta máquina:
-  después de cambiar el esquema, `npm run check` falló con
-  `Type 'string | null' is not assignable to type 'string'` porque los tipos del
-  cliente seguían siendo los viejos. **Se arregla con `npm run setup`.** Si
-  cambiás el esquema, corré `npm run setup` antes de `npm run check`.
-- **Hay una dependencia nueva, Zod**, así que después del `git pull` va `npm ci`.
-- **Los errores de negocio van con `ErrorDeNegocio`, no con `new Error`.** Si un
-  servicio nuevo lanza un `Error` pelado, el handler lo va a responder como 500.
-- **Los route handlers no escriben números de estado en los caminos de error.**
-  Usan `respuestaDeError` y `respuestaDeValidacion` de `src/lib/respuestaHttp.ts`.
-- **Ningún `rxcui` se completa de memoria.** Los del seed salieron de consultar
-  RxNorm; siete de los diez anteriores estaban mal, tres apuntando a otra droga.
+- **Las pantallas consumen la API, no importan el servicio.** Si una pantalla
+  necesita una regla, se agrega al servicio y se expone por la API; no se
+  reescribe en el cliente.
+- **Los cuatro componentes de `src/components/ui/` son los únicos que hay.** Si
+  hace falta uno nuevo, se habla: la regla de la 3.05 es "solo esos cuatro".
+- **Los mensajes de error los escribe el servidor.** Si un mensaje se lee mal en
+  pantalla, se corrige en el servicio o en el esquema de Zod, no en el modal.
+- **ESLint rechaza `setState` dentro de un `useEffect`.** Si aparece, casi
+  siempre significa que el estado se puede derivar o que el componente se tiene
+  que montar de cero.
 - **El puerto sigue siendo el 5433** y Docker Desktop no arranca solo.
-- **`npm run check` falla si `.next/` quedó de un build viejo.** Se arregla con
-  `rm -rf .next`.
+- **`npm run check` falla si `.next/` quedó de un build viejo.** `rm -rf .next`.
+- **Después de cambiar el esquema, `npm run setup` antes de `npm run check`.**
 
 ### Bloqueos
 
