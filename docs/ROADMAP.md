@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| 4.01 | Mauricio | `feat/2.10-modelo-segun-decisiones` | activa | fase 3 hecha hasta 3.04 | 2026-09-07 |
+| — | — | — | — | — | — |
 
 ### Reserva de tareas
 
@@ -381,7 +381,7 @@ Uno de los dos argumentos centrales del proyecto.
 | # | Tarea | Estado | Tamaño | Depende |
 |---|---|---|---|---|
 | 4.01 | `src/services/lotes.ts`: alta de lote (número, **fecha de ingreso**, vencimiento). Unicidad de número por medicamento. **La cantidad no es campo del lote**: entra como movimiento de tipo `INGRESO` (decisión `0007`). Validar que `fechaIngreso` no sea futura y que `fechaVencimiento` sea posterior a `fechaIngreso`, no solo posterior a hoy. | `[x]` | M | 3.04, 2.10 |
-| 4.02 | Cálculo de **cantidad disponible por lote**: suma de los movimientos de ingreso menos la de los egresos. Función pura. El `usuarioId` que exige `MovimientoStock` sale de la constante del seed (decisión `0009`). | `[ ]` | M | 4.01, 2.11 |
+| 4.02 | Cálculo de **cantidad disponible por lote**: suma de los movimientos de ingreso menos la de los egresos. Función pura. El `usuarioId` que exige `MovimientoStock` sale de la constante del seed (decisión `0009`). | `[x]` | M | 4.01, 2.11 |
 | 4.03 | Cálculo de **stock disponible por medicamento**: suma de lotes no vencidos. | `[ ]` | M | 4.02 |
 | 4.04 | `src/services/movimientos.ts`: registrar ingreso y egreso **en transacción**. Un egreso nunca puede dejar el lote en negativo. | `[ ]` | L | 4.02 |
 | 4.05 | Consulta de **stock bajo**: medicamentos por debajo del mínimo. | `[ ]` | M | 4.03 |
