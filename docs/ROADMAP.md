@@ -363,7 +363,7 @@ capas (servicio → route handler → pantalla) que copian las fases 4 y 5.
 |---|---|---|---|---|
 | 3.01 | `src/services/medicamentos.ts`: listar, buscar por nombre, obtener por id, crear. Validar nombre de droga único. | `[x]` | M | 2.09 |
 | 3.02 | Validación de entrada (Zod) para medicamento. El `rxcui` es **opcional, y único cuando tiene valor** (decisión `0005`); el nombre es el **principio activo, sin dosis** (decisión `0006`). | `[x]` | S | 3.01, 2.10 |
-| 3.03 | `app/api/medicamentos/route.ts`: GET (listado con filtro) y POST (alta). | `[ ]` | M | 3.02 |
+| 3.03 | `app/api/medicamentos/route.ts`: GET (listado con filtro) y POST (alta). | `[x]` | M | 3.02 |
 | 3.04 | Manejo de errores unificado: función que traduce error de servicio a respuesta HTTP. | `[ ]` | M | 3.03 |
 | 3.05 | Componentes base en `src/components/ui/`: `Boton`, `Campo`, `Tabla`, `Modal`. **Solo esos cuatro.** | `[ ]` | L | 1.10 |
 | 3.06 | Pantalla `/medicamentos`: tabla con nombre de droga, RxCUI, unidad y stock mínimo. Buscador arriba. Botón **"Nuevo medicamento"**. | `[ ]` | M | 3.05, 3.03 |
