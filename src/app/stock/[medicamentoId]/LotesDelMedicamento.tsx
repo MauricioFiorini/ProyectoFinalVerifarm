@@ -7,6 +7,7 @@ import { Tabla, type Columna } from "@/components/ui/Tabla";
 import { NOMBRE_DE_UNIDAD } from "@/lib/unidades";
 import { formatearFecha } from "@/lib/fechas";
 import { ModalIngreso } from "./ModalIngreso";
+import { ModalDispensar } from "./ModalDispensar";
 
 // Lotes de un medicamento (tarea 4.12).
 //
@@ -135,10 +136,17 @@ export function LotesDelMedicamento({
           </p>
         </div>
 
-        {/* La dispensacion la conecta la tarea 4.14. */}
         <div className="flex gap-3">
           <Boton onClick={() => setModal("ingreso")}>Registrar ingreso</Boton>
-          <Boton variante="primario">Dispensar</Boton>
+          <Boton
+            variante="primario"
+            onClick={() => setModal("dispensar")}
+            // Sin nada disponible no hay nada que dispensar, y abrir el modal
+            // solo para que diga que no alcanza es hacerle perder un clic.
+            disabled={total === 0}
+          >
+            Dispensar
+          </Boton>
         </div>
       </header>
 
@@ -156,6 +164,15 @@ export function LotesDelMedicamento({
           nombreMedicamento={medicamento.nombre}
           alCerrar={() => setModal(null)}
           alRegistrar={() => void cargar()}
+        />
+      ) : null}
+
+      {modal === "dispensar" ? (
+        <ModalDispensar
+          medicamentoId={medicamento.id}
+          nombreMedicamento={medicamento.nombre}
+          alCerrar={() => setModal(null)}
+          alDispensar={() => void cargar()}
         />
       ) : null}
     </div>
