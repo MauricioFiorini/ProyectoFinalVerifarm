@@ -8,11 +8,17 @@ import { Tabla, type Columna } from "@/components/ui/Tabla";
 import { NOMBRE_DE_UNIDAD } from "./unidades";
 import { ModalNuevoMedicamento } from "./ModalNuevoMedicamento";
 
-// Listado de medicamentos (tarea 3.06).
+// Listado de medicamentos (tareas 3.06 y 3.08).
 //
-// Es un componente de cliente porque tiene buscador y va a tener el modal de
-// alta (3.07). Consume la API en /api/medicamentos, no importa el servicio: la
-// pantalla no habla con la base. Ver docs/ARQUITECTURA.md seccion 3.
+// Es un componente de cliente porque tiene buscador y modal de alta. Consume la
+// API en /api/medicamentos, no importa el servicio: la pantalla no habla con la
+// base. Ver docs/ARQUITECTURA.md seccion 3.
+//
+// LOS TRES ESTADOS VIVEN ACA, NO EN <Tabla>
+//
+// "Cargando", "vacio" y "error" son estados de la PANTALLA, no de la tabla: la
+// tabla no sabe que existe una peticion HTTP y no tiene por que enterarse. Aca
+// se decide que se dibuja en cada caso.
 
 /**
  * Medicamento tal como llega del endpoint. NO es el tipo de Prisma: al pasar por
@@ -25,6 +31,8 @@ export type MedicamentoDeApi = {
   unidad: UnidadMedida;
   stockMinimo: number;
 };
+
+type Estado = "cargando" | "listo" | "error";
 
 const COLUMNAS: Columna<MedicamentoDeApi>[] = [
   {
@@ -60,18 +68,31 @@ const COLUMNAS: Columna<MedicamentoDeApi>[] = [
 
 export function ListaMedicamentos() {
   const [medicamentos, setMedicamentos] = useState<MedicamentoDeApi[]>([]);
+  const [estado, setEstado] = useState<Estado>("cargando");
   const [buscar, setBuscar] = useState("");
   const [modalAbierto, setModalAbierto] = useState(false);
+  // Se guarda el texto con el que se trajo lo que hay en pantalla, para poder
+  // distinguir "no hay nada cargado" de "no hay resultados para esta busqueda".
+  const [textoBuscado, setTextoBuscado] = useState("");
 
   const cargar = useCallback(async (texto: string) => {
-    const url = texto.trim()
-      ? `/api/medicamentos?buscar=${encodeURIComponent(texto.trim())}`
+    const limpio = texto.trim();
+    const url = limpio
+      ? `/api/medicamentos?buscar=${encodeURIComponent(limpio)}`
       : "/api/medicamentos";
 
-    const respuesta = await fetch(url);
-    if (!respuesta.ok) return;
+    try {
+      const respuesta = await fetch(url);
+      if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
 
-    setMedicamentos((await respuesta.json()) as MedicamentoDeApi[]);
+      setMedicamentos((await respuesta.json()) as MedicamentoDeApi[]);
+      setTextoBuscado(limpio);
+      setEstado("listo");
+    } catch {
+      // No se distingue "el servidor contesto mal" de "no hay red": para quien
+      // esta del otro lado las dos cosas se arreglan igual, reintentando.
+      setEstado("error");
+    }
   }, []);
 
   // Se espera a que la persona deje de tipear antes de pedir. Sin esto, escribir
@@ -100,12 +121,23 @@ export function ListaMedicamentos() {
         </Boton>
       </div>
 
-      <Tabla
-        columnas={COLUMNAS}
-        filas={medicamentos}
-        claveDeFila={(m) => m.id}
-        descripcion="Catálogo de medicamentos"
-      />
+      {estado === "cargando" ? (
+        <EstadoCargando />
+      ) : estado === "error" ? (
+        <EstadoError alReintentar={() => void cargar(buscar)} />
+      ) : (
+        <Tabla
+          columnas={COLUMNAS}
+          filas={medicamentos}
+          claveDeFila={(m) => m.id}
+          descripcion="Catálogo de medicamentos"
+          mensajeVacio={
+            textoBuscado
+              ? `No se encontraron medicamentos que coincidan con «${textoBuscado}».`
+              : "Todavía no hay medicamentos cargados"
+          }
+        />
+      )}
 
       {modalAbierto ? (
         <ModalNuevoMedicamento
@@ -115,6 +147,38 @@ export function ListaMedicamentos() {
           alCrear={() => void cargar(buscar)}
         />
       ) : null}
+    </div>
+  );
+}
+
+function EstadoCargando() {
+  return (
+    <div
+      className="flex items-center justify-center gap-3 rounded-lg border border-borde bg-superficie px-4 py-12 text-sm text-texto-tenue"
+      // `polite` y no `assertive`: es una espera, no una alarma. Un lector de
+      // pantalla lo anuncia cuando termina lo que estaba diciendo.
+      role="status"
+      aria-live="polite"
+    >
+      <span
+        aria-hidden="true"
+        className="size-4 animate-spin rounded-full border-2 border-borde border-t-marca-600"
+      />
+      Cargando medicamentos…
+    </div>
+  );
+}
+
+function EstadoError({ alReintentar }: { alReintentar: () => void }) {
+  return (
+    <div
+      role="alert"
+      className="flex flex-col items-center gap-4 rounded-lg border border-critico-borde bg-critico-fondo px-4 py-12 text-center"
+    >
+      <p className="text-sm text-critico-texto">
+        No se pudo cargar el listado de medicamentos.
+      </p>
+      <Boton onClick={alReintentar}>Reintentar</Boton>
     </div>
   );
 }
