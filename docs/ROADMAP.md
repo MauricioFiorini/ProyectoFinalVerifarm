@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| 4.05 | Mauricio | `feat/4.03-logica-de-stock` | activa | 4.03 y 4.04 hechas | 2026-09-07 |
+| 4.07 | Mauricio | `feat/4.03-logica-de-stock` | activa | 4.03 a 4.06 hechas | 2026-09-07 |
 
 ### Reserva de tareas
 
@@ -384,8 +384,8 @@ Uno de los dos argumentos centrales del proyecto.
 | 4.02 | Cálculo de **cantidad disponible por lote**: suma de los movimientos de ingreso menos la de los egresos. Función pura. El `usuarioId` que exige `MovimientoStock` sale de la constante del seed (decisión `0009`). | `[x]` | M | 4.01, 2.11 |
 | 4.03 | Cálculo de **stock disponible por medicamento**: suma de lotes no vencidos. | `[x]` | M | 4.02 |
 | 4.04 | `src/services/movimientos.ts`: registrar ingreso y egreso **en transacción**. Un egreso nunca puede dejar el lote en negativo. | `[x]` | L | 4.02 |
-| 4.05 | Consulta de **stock bajo**: medicamentos por debajo del mínimo. | `[ ]` | M | 4.03 |
-| 4.06 | Consulta de **vencimientos próximos**: lotes con disponible mayor a cero que vencen dentro de N días. N configurable. | `[ ]` | M | 4.03 |
+| 4.05 | Consulta de **stock bajo**: medicamentos por debajo del mínimo. | `[x]` | M | 4.03 |
+| 4.06 | Consulta de **vencimientos próximos**: lotes con disponible mayor a cero que vencen dentro de N días. N configurable. | `[x]` | M | 4.03 |
 | 4.07 | **Motor FEFO**: dado un medicamento y una cantidad, devolver el plan de egreso — qué lote y cuánto de cada uno — priorizando el vencimiento más próximo. **Función pura**: recibe los lotes y devuelve el plan, sin tocar la base. Excluye lotes vencidos y con disponible cero. | `[ ]` | L | 4.04 |
 | 4.08 | Reparto entre varios lotes cuando el primero no alcanza, y error explícito de existencia insuficiente. | `[ ]` | M | 4.07 |
 | 4.09 | Ejecución del plan: convertir el plan en N movimientos **en una única transacción**. O entran todos o ninguno. | `[ ]` | M | 4.08 |
