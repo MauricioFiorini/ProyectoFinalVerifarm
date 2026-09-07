@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| — | — | — | — | — | — |
+| 3.05 | Mauricio | `feat/3.05-componentes-base` | activa | — | 2026-09-07 |
 
 ### Reserva de tareas
 
@@ -365,7 +365,7 @@ capas (servicio → route handler → pantalla) que copian las fases 4 y 5.
 | 3.02 | Validación de entrada (Zod) para medicamento. El `rxcui` es **opcional, y único cuando tiene valor** (decisión `0005`); el nombre es el **principio activo, sin dosis** (decisión `0006`). | `[x]` | S | 3.01, 2.10 |
 | 3.03 | `app/api/medicamentos/route.ts`: GET (listado con filtro) y POST (alta). | `[x]` | M | 3.02 |
 | 3.04 | Manejo de errores unificado: función que traduce error de servicio a respuesta HTTP. | `[x]` | M | 3.03 |
-| 3.05 | Componentes base en `src/components/ui/`: `Boton`, `Campo`, `Tabla`, `Modal`. **Solo esos cuatro.** | `[ ]` | L | 1.10 |
+| 3.05 | Componentes base en `src/components/ui/`: `Boton`, `Campo`, `Tabla`, `Modal`. **Solo esos cuatro.** | `[~]` | L | 1.10 |
 | 3.06 | Pantalla `/medicamentos`: tabla con nombre de droga, RxCUI, unidad y stock mínimo. Buscador arriba. Botón **"Nuevo medicamento"**. | `[ ]` | M | 3.05, 3.03 |
 | 3.07 | Modal de alta: nombre de droga, unidad de medida (select), stock mínimo, RxCUI **opcional, cargado a mano**. Botones **"Guardar"** y **"Cancelar"**. Errores por campo. El "opcional" quedó confirmado por la decisión `0005`; el nombre va sin dosis (`0006`). | `[ ]` | M | 3.06, 3.02 |
 | 3.08 | Estados de la tabla: cargando, vacía ("Todavía no hay medicamentos cargados") y error con botón **"Reintentar"**. | `[ ]` | M | 3.06 |
