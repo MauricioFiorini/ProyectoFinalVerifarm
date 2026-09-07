@@ -5,7 +5,7 @@ import type { UnidadMedida } from "@prisma/client";
 import { Boton } from "@/components/ui/Boton";
 import { Campo } from "@/components/ui/Campo";
 import { Tabla, type Columna } from "@/components/ui/Tabla";
-import { NOMBRE_DE_UNIDAD } from "./unidades";
+import { NOMBRE_DE_UNIDAD } from "@/lib/unidades";
 import { ModalNuevoMedicamento } from "./ModalNuevoMedicamento";
 
 // Listado de medicamentos (tareas 3.06 y 3.08).

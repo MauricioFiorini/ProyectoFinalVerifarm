@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Boton } from "@/components/ui/Boton";
 import { Campo, CampoSelector } from "@/components/ui/Campo";
 import { Modal } from "@/components/ui/Modal";
-import { OPCIONES_DE_UNIDAD } from "./unidades";
+import { OPCIONES_DE_UNIDAD } from "@/lib/unidades";
 
 // Modal de alta de medicamento (tarea 3.07).
 //

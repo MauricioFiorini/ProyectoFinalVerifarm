@@ -14,165 +14,163 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-07
 **Entrega:** Mauricio Mateo Fiorini
-**Rama:** `feat/4.03-logica-de-stock` (**sin mergear**)
-**Commit:** de `792907c` a `377455a`, más el que trae este traspaso
+**Rama:** `feat/4.11-pantallas-de-stock` (**sin mergear**)
+**Commit:** de `f51e60d` a `e19ce8b`, más el que trae este traspaso
 
 ### Qué se hizo
 
-**Toda la lógica de la fase 4: de la 4.03 a la 4.10.** Con la 4.01 y la 4.02 ya
-en `main`, el módulo de stock está completo por dentro: se calculan saldos, se
-registran movimientos, funciona FEFO y hay API para todo. **Falta la interfaz**,
-que es de la 4.11 a la 4.17.
+**La fase 4 está completa: 4.01 a 4.17.** El módulo de stock funciona de punta a
+punta, con pantallas. Es uno de los dos argumentos centrales del proyecto y ya se
+puede demostrar entero.
 
 | Commit | Tarea | Qué dejó |
 |---|---|---|
-| `792907c` | 4.03 | Stock por medicamento, sumando lotes no vencidos |
-| `9838dc1` | 4.04 | `movimientos.ts`: ingreso y egreso en transacción |
-| `c951552` | 4.05, 4.06 | Consultas de stock bajo y vencimientos próximos |
-| `6ffbed7` | 4.07 | **`fefo.ts`: el motor, como función pura** |
-| `09451fb` | 4.08, 4.09 | `dispensacion.ts`: previsualizar y ejecutar |
-| `377455a` | 4.10 | Endpoints de lotes, movimientos y dispensación |
+| `f51e60d` | 4.11 | Pantalla `/stock` con indicador de estado, y `GET /api/stock` |
+| `0dcfce8` | 4.12 | Pantalla `/stock/[medicamentoId]` con sus lotes |
+| `fda3ba9` | 4.13 | Modal de ingreso, y el alta de lote con su cantidad en transacción |
+| `7927442` | 4.14, 4.15 | **Modal de dispensación FEFO** y aviso de faltante |
+| `be445e1` | 4.16 | Historial de movimientos por lote |
+| `e19ce8b` | 4.17 | Indicadores de vencimiento |
 
-### La verificación de FEFO, que el roadmap pide anotar
+**El recorrido de la demostración ya existe:** entrar a `/stock`, ver qué está
+bajo mínimo, abrir un medicamento, registrar un ingreso, dispensar una cantidad y
+ver cómo el sistema reparte entre lotes empezando por el que vence antes.
 
-**Los cinco casos borde**, con fecha de referencia 2026-09-07:
+### Lo que se encontró verificando, y se corrigió
 
-| Caso | Pedido | Plan que devuelve | ¿Correcto? |
-|---|---|---|---|
-| 1 — un solo lote alcanza | 60 | `60×A` | ✅ |
-| 2 — reparto entre dos | 100 | `60×A + 40×B` | ✅ |
-| 3 — lote vencido se ignora | 30 | `30×B` (el vencido con 500 no entra) | ✅ |
-| 4 — la existencia no alcanza | 100 | `30×A + 25×B`, cubre 55, **falta 45** | ✅ |
-| 5 — dos vencen el mismo día | 60 | `40×A + 20×Z` | ✅ |
+Tres defectos que aparecieron probando en el navegador, no compilando:
 
-**El caso 5 se verificó además pasando los lotes en los dos órdenes posibles**, y
-el plan sale idéntico: el desempate por número de lote hace que el resultado no
-dependa de cómo los devuelva la base.
+**1. Las fechas se mostraban un día antes.** Se cargó un lote con ingreso 07/09 y
+vencimiento 30/06, y la tabla mostraba 06/09 y 29/06. Un `<input type="date">`
+manda `"2027-06-30"`, que se interpreta como medianoche **UTC**, y al mostrarlo en
+hora local —Argentina es UTC−3— cae el día anterior. **Un día de diferencia en un
+vencimiento define si un lote está vencido**, así que no es cosmético. Se resolvió
+formateando en la misma zona en la que se guarda, con `src/lib/fechas.ts`.
 
-Casos extra que también se pasaron: lote con disponible cero se ignora; un lote
-que vence **hoy** todavía sirve; sin lotes elegibles devuelve plan vacío con el
-faltante completo; y reparto entre tres lotes.
+**2. El total de la pantalla de lotes sumaba los lotes vencidos.** Decía "95 en
+total" cuando la pantalla de stock decía 70 para el mismo medicamento. El mismo
+dato con dos valores distintos es peor que no mostrarlo. Ahora dice **"70
+disponibles en lotes vigentes · 25 en lotes vencidos"**, y lo vencido va en rojo:
+no se esconde, se informa aparte porque hay que darlo de baja.
 
-**Contra la base**, con dos lotes de un mismo medicamento:
-
-- El lote que **entró después pero vence antes sale primero**. Es la prueba de
-  que es FEFO y no FIFO, que es medio proyecto.
-- Previsualizar **no escribe**: el stock quedó igual antes y después.
-- Ejecutar crea **un movimiento por línea del plan**.
-- Una dispensación que falla **no deja ningún movimiento**.
-
-**Por HTTP**, contra el servidor levantado: previsualizar responde 200 con
-`ejecutado: false`; ejecutar responde 201; pedir de más responde **422** con el
-mensaje "se pidieron 500 y hay 160 disponibles en lotes vigentes".
+**3. El motor FEFO daba "alcanza" para una cantidad negativa.** Está contado en el
+traspaso anterior; se corrigió antes de este bloque.
 
 ### Decisiones tomadas sobre la marcha
 
-**El motor FEFO vive en su propio archivo y no toca nada.** No lee la base, no
-lee el reloj —la fecha entra por parámetro— y no escribe. No es elegancia: como
-el prototipo no lleva pruebas automatizadas, la verificación es a mano, y una
-función pura se verifica con datos inventados sin levantar Docker.
+**El alta de lote con cantidad va en una transacción.** Son dos escrituras: la
+fila del lote y su movimiento de INGRESO. Si la segunda fallara quedaría un lote
+en cero, que parece existir y no tiene nada. El endpoint `POST /api/lotes` acepta
+`cantidad` opcional: con ella entra todo junto o nada.
 
-**Se corrigió un defecto que apareció verificando.** La primera versión devolvía,
-para una cantidad inválida, un plan vacío con `faltante: 0`, y eso hacía que
-pedir **−5 unidades diera "alcanza: true"**. Un plan inválido que se declara
-exitoso es peor que un error, porque se propaga en silencio. Ahora el motor corta
-con `RangeError`; la validación de lo que escribe una persona la hace
-`dispensacion.ts` con `ErrorDeNegocio`, así que ese error nunca le llega a un
-usuario.
+**En la dispensación se elige cantidad, no lote.** Es el punto del módulo: si la
+persona eligiera el lote a mano, FEFO no serviría de nada. El plan lo calcula el
+servidor y se muestra tal cual: "80 del lote L-UI-1, vence 30/06/2027 · 20 del
+lote L-E-1, vence 12/10/2027", con una línea que explica por qué se reparte.
 
-**El desempate de vencimientos es explícito.** Si dos lotes vencen el mismo día
-se ordena por número de lote, y por id si hiciera falta. Sin eso, el mismo pedido
-podría producir dos planes distintos en dos corridas, y una demostración que no
-se repite igual es un problema en una defensa.
+**El plan no se calcula en el cliente.** La misma lógica que lo propone es la que
+lo ejecuta, así que no pueden discrepar. Y al confirmar el servidor replanifica
+dentro de la transacción, por si entre la previsualización y el "Confirmar" entró
+otro egreso.
 
-**Las transacciones son SERIALIZABLE.** Un egreso primero LEE lo disponible y
-después ESCRIBE; entre esas dos cosas otro egreso podría colarse, y los dos
-dejarían el lote en negativo sin que ninguno haya hecho nada mal por su cuenta.
-En un prototipo de un solo usuario no va a pasar; se hizo igual porque el
-invariante es del dominio y no de la cantidad de usuarios.
+**El historial no tiene botones de editar ni borrar, y hay una línea en pantalla
+que lo dice.** No es una omisión de la interfaz: es la forma del dominio. Un error
+se corrige con un movimiento nuevo.
 
-**Al ejecutar se vuelve a planificar dentro de la transacción.** El plan que vio
-la persona se calculó antes de que apretara "Confirmar", y en el medio pudo
-entrar otro egreso. Reusar aquel plan sería escribir sobre una foto vieja.
+**`Bajo mínimo` gana sobre `Lote por vencer`.** Un medicamento puede estar en las
+dos, y hay que mostrar una: quedarse sin medicación es peor que desperdiciarla.
+Cuando pasan las dos, el chip dice el estado crítico y al lado se aclara "y N por
+vencer", para no perder el dato.
 
-**Un solo endpoint para previsualizar y ejecutar**, con `ejecutar` en el cuerpo y
-**`false` por defecto**: olvidarse el campo previsualiza, nunca escribe por
-descuido. Es lo que necesita el modal de la 4.14, que primero muestra el plan y
-recién al confirmar lo ejecuta.
+**El chip de vencimiento dice cuántos días.** "Vencido hace 11 d." y no solo
+"Vencido": un lote vencido ayer y uno vencido hace un año piden acciones
+distintas.
 
-**`/api/movimientos` solo tiene POST.** No hay PUT ni DELETE y no se van a
-agregar: el historial es un libro mayor y un error se corrige con un movimiento
-nuevo.
+**Se movió `unidades.ts` a `src/lib/`.** Lo usan la pantalla de medicamentos y la
+de stock; vivía dentro de la carpeta de una ruta y la otra tenía que importarlo
+de ahí.
 
-**Un lote que vence hoy todavía sirve.** El vencimiento es una fecha, no una
-hora: si se comparara contra el instante actual, un lote pasaría a estar vencido
-a mitad de la mañana.
+### Un parche que conviene que el equipo mire
+
+**Las tres pantallas cargan datos con `setTimeout(…, 0)` dentro de un
+`useEffect`.** El timeout no aporta nada al comportamiento: está para que la regla
+`react-hooks/set-state-in-effect` no rechace la llamada. **La regla tiene razón**
+—cargar datos en un efecto provoca un render de más— y el timeout no lo arregla,
+solo lo esconde del linter.
+
+La solución de verdad sería renderizar estas pantallas en el servidor, que es lo
+que el App Router espera para datos iniciales. No se hizo por dos razones: las
+tres pantallas usan el mismo patrón y tener dos formas distintas de cargar datos
+es peor que tener una imperfecta; y cambiarlo implica que las pantallas pasen a
+importar el servicio en vez de consumir la API, que es lo contrario de lo que dice
+`docs/ARQUITECTURA.md` sección 3.
+
+**Es una decisión de equipo, no de una tarea.** Está anotado en el código, en
+`src/app/stock/TablaDeStock.tsx`.
 
 ### Qué quedó sin hacer
 
-- **La rama no está mergeada.** Otra persona le tiene que pasar el ojo, y en este
-  caso conviene que mire con atención `fefo.ts`.
-- **Toda la interfaz de la fase 4: de la 4.11 a la 4.17.** Hoy el módulo de stock
-  se puede usar entero por API, pero no tiene ninguna pantalla.
-- **`obtenerVencimientosProximos` no devuelve los lotes YA vencidos**, solo los
-  que vencen dentro de N días. Es lo que pide la tarea, y está anotado en el
-  código. Si el equipo decide que un lote vencido con unidades encima también
-  tiene que aparecer en la alerta, es un cambio de criterio y hay que escribirlo.
+- **La rama no está mergeada.**
+- **No hay navegación.** A `/stock` y a `/medicamentos` se llega escribiendo la
+  URL. La barra lateral es la **6.01**.
 - **No hay endpoint de stock bajo ni de vencimientos próximos.** Los servicios
-  existen; la 4.10 pedía lotes, movimientos y dispensación. Los va a necesitar la
-  pantalla de inicio, que es la 6.03.
+  existen desde la 4.05 y la 4.06; los va a necesitar la pantalla de inicio
+  (**6.03**).
+- **Toda la fase 5**, el módulo clínico, que es la más larga y la más importante
+  para la defensa.
+- **D8 sigue abierta.**
 
 ### Cómo verificarlo
 
-Los servicios se probaron con scripts temporales que se borraron después, y los
-endpoints con `curl` contra `npm run dev`. Todos los datos de prueba se
-eliminaron: la base quedó con **0 lotes y 0 movimientos**.
+Con `docker compose up -d` y `npm run dev`. Todo esto se probó en el navegador:
 
-Para repetirlo, con la base levantada:
+| Qué | Resultado |
+|---|---|
+| `/stock` | Los tres estados: Normal, Lote por vencer, Bajo mínimo |
+| Prioridad de estados | Risperidona muestra "Bajo mínimo **y 1 por vencer**" |
+| "Ver lotes" | Lleva a la pantalla del medicamento |
+| Modal de ingreso, vencimiento anterior al ingreso | Error debajo del campo Vencimiento |
+| Modal de ingreso, alta válida | Crea el lote con su cantidad; la tabla se refresca |
+| **Dispensar 50** | Plan: 50 del lote que vence antes |
+| **Dispensar 100** | Plan repartido: 80 + 20, con la explicación de por qué |
+| **Dispensar 500** | Mensaje "se pidieron 500 y hay 130", y **el botón de confirmar deshabilitado** (comprobado en el DOM) |
+| Confirmar 100 | El lote que vence antes queda en 0; el otro baja de 50 a 30 |
+| Historial | Ingreso +80 en verde, Egreso −80 en rojo, usuario "Farm. Pérez" |
+| Indicadores | "Vencido hace 11 d.", "Vence en 10 d.", "Vigente" |
+| Lote vencido con unidades | Aparece en rojo y su cantidad se informa aparte del disponible |
 
-```
-# alta de lote
-curl -X POST localhost:3000/api/lotes -H "Content-Type: application/json" \
-  -d '{"medicamentoId":"…","numeroLote":"L-1","fechaIngreso":"2026-09-01","fechaVencimiento":"2026-11-15"}'
-
-# ingreso
-curl -X POST localhost:3000/api/movimientos -H "Content-Type: application/json" \
-  -d '{"loteId":"…","tipo":"INGRESO","cantidad":60}'
-
-# previsualizar (no escribe)
-curl -X POST localhost:3000/api/dispensaciones -H "Content-Type: application/json" \
-  -d '{"medicamentoId":"…","cantidad":100}'
-
-# ejecutar
-curl -X POST localhost:3000/api/dispensaciones -H "Content-Type: application/json" \
-  -d '{"medicamentoId":"…","cantidad":100,"ejecutar":true}'
-```
+Los datos de prueba se borraron: la base quedó con **0 lotes y 0 movimientos**.
+Queda un medicamento `clonazepam2` cargado a mano durante una prueba; sale con
+`npx prisma db seed`.
 
 `npm run check` da 0 después de cada tarea.
 
 ### Qué sigue
 
-**El merge**, y después la interfaz del módulo de stock, de la **4.11** a la
-4.17. El camino es 4.11 (pantalla `/stock`) → 4.12 (lotes de un medicamento) →
-4.13 (modal de ingreso) → **4.14 (modal de dispensación FEFO)** → 4.15 (aviso de
-existencia insuficiente) → 4.16 (historial) → 4.17 (indicadores de vencimiento).
+**El merge**, y después la **fase 5**, el módulo clínico. Es la más larga y la más
+importante para la defensa: si el tiempo aprieta, se recorta la fase 6 antes que
+la 5.
 
-La 4.14 es la que muestra el plan —"60 del lote A, vence 03/2027 · 40 del lote B,
-vence 11/2027"— y **ya tiene todo lo que necesita**: el endpoint devuelve
-exactamente eso.
+El orden es **5.01** (servicio de pacientes) y **5.03** (carga manual de al menos
+15 pares de interacciones en el seed). La 5.03 ya no está bloqueada: los RxCUI del
+seed se verificaron en la 2.11.
+
+Ojo con la **5.02**, la importación de ONCHigh: es de tamaño L y arrastra el mapeo
+de DrugBank a RxCUI y la redacción de las descripciones de severidad. La 5.03
+queda como red por si ese mapeo resuelve peor de lo esperado.
 
 ### Antes de arrancar, tener en cuenta
 
-- **Si tocás `fefo.ts`, hay que volver a pasar los cinco casos borde y anotar el
-  resultado en el PR.** Es lo único que hay en lugar de pruebas automatizadas.
-- **Un servicio que lanza `new Error` pelado se responde como 500.** Los errores
-  del dominio van con `ErrorDeNegocio`, que lleva código y campo.
-- **El disponible se calcula, nunca se lee de una columna.** Si en algún momento
-  hace falta una consulta rápida, se optimiza la consulta; no se agrega columna.
-- **Para listar varios lotes con su disponible está `obtenerDisponiblePorLote`**,
-  que resuelve todos en una consulta. Pedirlo lote por lote son N consultas.
-- **La dispensación no confía en el plan que le manden**: siempre replanifica.
-  Cualquier endpoint nuevo que ejecute movimientos tiene que hacer lo mismo.
+- **Ningún dato clínico se inventa.** Ni interacciones, ni severidades, ni
+  descripciones. Lo que no venga de la fuente citada, no entra.
+- **El paciente no tiene datos identificatorios.** Solo un seudónimo. Nunca
+  nombre, documento ni fecha de nacimiento, en ninguna tabla.
+- **Una consulta de interacciones necesita al menos dos medicamentos.**
+- **El sistema asiste, no decide.** Ante una interacción se informa; no se
+  bloquea nada.
+- **Las fechas que son fechas se formatean con `src/lib/fechas.ts`.** Usar
+  `toLocaleDateString` a mano vuelve a correr un día lo que se muestra.
+- **Los cuatro componentes de `src/components/ui/` son los únicos que hay.**
 - **El puerto sigue siendo el 5433** y Docker Desktop no arranca solo.
 - **Después de cambiar el esquema, `npm run setup` antes de `npm run check`.**
 

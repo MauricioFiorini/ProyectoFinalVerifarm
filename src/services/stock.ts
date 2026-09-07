@@ -289,3 +289,159 @@ export async function obtenerVencimientosProximos(
     }))
     .filter((l) => l.disponible > 0);
 }
+
+// --- Estado de stock por medicamento (tarea 4.11) ---------------------------
+
+/**
+ * Como esta un medicamento, para el indicador de la pantalla de stock.
+ *
+ * Son EXCLUYENTES y tienen prioridad: un medicamento puede estar bajo minimo Y
+ * tener un lote por vencer al mismo tiempo, y hay que mostrar uno solo.
+ */
+export type EstadoDeStock =
+  /** Por debajo del minimo. Hay que reponer. */
+  | "BAJO_MINIMO"
+  /** Alcanza, pero hay medicacion que se va a vencer. Hay que usarla. */
+  | "POR_VENCER"
+  /** Nada que hacer. */
+  | "NORMAL";
+
+/**
+ * Decide el estado. FUNCION PURA.
+ *
+ * **Bajo minimo gana sobre por vencer.** Los dos piden accion, pero no la misma:
+ * quedarse sin medicacion es peor que desperdiciarla, y ademas el que esta bajo
+ * minimo tiene que aparecer arriba en la lista de lo que hay que comprar.
+ */
+export function calcularEstadoDeStock(
+  disponible: number,
+  stockMinimo: number,
+  tieneLotePorVencer: boolean,
+): EstadoDeStock {
+  if (disponible < stockMinimo) return "BAJO_MINIMO";
+  if (tieneLotePorVencer) return "POR_VENCER";
+  return "NORMAL";
+}
+
+export type StockDeMedicamento = {
+  id: string;
+  nombre: string;
+  unidad: UnidadMedida;
+  stockMinimo: number;
+  disponible: number;
+  estado: EstadoDeStock;
+  /** Cuantos lotes vigentes con unidades vencen dentro del plazo. */
+  lotesPorVencer: number;
+};
+
+/**
+ * Estado de stock de todos los medicamentos activos (tarea 4.11).
+ *
+ * Una sola consulta trae medicamentos, lotes y movimientos; el resto es
+ * aritmetica en memoria. Con el volumen de un prototipo alcanza y sobra, y evita
+ * una consulta por medicamento.
+ */
+export async function listarEstadoDeStock(
+  dias: number = DIAS_PARA_VENCIMIENTO_PROXIMO,
+  referencia: Date = new Date(),
+): Promise<StockDeMedicamento[]> {
+  const limite = new Date(referencia);
+  limite.setHours(23, 59, 59, 999);
+  limite.setDate(limite.getDate() + dias);
+
+  const medicamentos = await db.medicamento.findMany({
+    where: { activo: true },
+    orderBy: { nombre: "asc" },
+    select: {
+      id: true,
+      nombre: true,
+      unidad: true,
+      stockMinimo: true,
+      lotes: {
+        select: {
+          fechaVencimiento: true,
+          movimientos: { select: { tipo: true, cantidad: true } },
+        },
+      },
+    },
+  });
+
+  return medicamentos.map((m) => {
+    const vigentes = m.lotes.filter(
+      (l) => !estaVencido(l.fechaVencimiento, referencia),
+    );
+
+    const disponible = vigentes.reduce(
+      (total, l) => total + calcularDisponible(l.movimientos),
+      0,
+    );
+
+    const lotesPorVencer = vigentes.filter(
+      (l) =>
+        l.fechaVencimiento <= limite && calcularDisponible(l.movimientos) > 0,
+    ).length;
+
+    return {
+      id: m.id,
+      nombre: m.nombre,
+      unidad: m.unidad,
+      stockMinimo: m.stockMinimo,
+      disponible,
+      estado: calcularEstadoDeStock(
+        disponible,
+        m.stockMinimo,
+        lotesPorVencer > 0,
+      ),
+      lotesPorVencer,
+    };
+  });
+}
+
+// --- Estado de vencimiento de un lote (tarea 4.17) --------------------------
+
+/**
+ * Como esta un lote respecto de su vencimiento.
+ *
+ * **`VENCIDO` es lo que hace visible al lote que la alerta de la 4.06 no
+ * devuelve.** Esa consulta mira hacia adelante —lo que esta por vencer— y el
+ * lote ya vencido con unidades encima se ve aca, en el listado.
+ */
+export type EstadoDeVencimiento = "VENCIDO" | "POR_VENCER" | "VIGENTE";
+
+/**
+ * Decide el estado de vencimiento de un lote. FUNCION PURA.
+ *
+ * La fecha de referencia entra por parametro para poder verificarla en
+ * cualquier fecha sin tocar el reloj de la maquina.
+ */
+export function calcularEstadoDeVencimiento(
+  fechaVencimiento: Date,
+  dias: number = DIAS_PARA_VENCIMIENTO_PROXIMO,
+  referencia: Date = new Date(),
+): EstadoDeVencimiento {
+  if (estaVencido(fechaVencimiento, referencia)) return "VENCIDO";
+
+  const limite = new Date(referencia);
+  limite.setHours(23, 59, 59, 999);
+  limite.setDate(limite.getDate() + dias);
+
+  return fechaVencimiento <= limite ? "POR_VENCER" : "VIGENTE";
+}
+
+/**
+ * Cuantos dias faltan para el vencimiento. Negativo si ya vencio.
+ *
+ * Se cuenta contra el comienzo del dia, no contra el instante actual: un
+ * vencimiento es una fecha, no una hora.
+ */
+export function diasHastaVencimiento(
+  fechaVencimiento: Date,
+  referencia: Date = new Date(),
+): number {
+  const inicioDeHoy = new Date(referencia);
+  inicioDeHoy.setHours(0, 0, 0, 0);
+  const UN_DIA = 1000 * 60 * 60 * 24;
+  return Math.round(
+    (fechaVencimiento.getTime() - inicioDeHoy.getTime()) / UN_DIA,
+  );
+}

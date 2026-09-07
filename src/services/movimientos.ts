@@ -143,3 +143,48 @@ export async function registrarEgreso(
     { isolationLevel: "Serializable" },
   );
 }
+
+// --- Historial (tarea 4.16) -------------------------------------------------
+
+export type MovimientoDelHistorial = {
+  id: string;
+  tipo: TipoMovimiento;
+  cantidad: number;
+  fecha: Date;
+  nombreUsuario: string;
+};
+
+/**
+ * Historial de movimientos de un lote, del mas nuevo al mas viejo.
+ *
+ * Es de solo lectura y no existe ninguna funcion para modificarlo: el historial
+ * es un libro mayor. La pantalla de la 4.16 tampoco ofrece editar ni borrar, y
+ * eso no es una omision de la interfaz sino la forma del dominio.
+ *
+ * `createdAt` es la fecha del asiento —cuando se registro el movimiento— y aca
+ * si es lo correcto: a diferencia de `Lote.fechaIngreso`, que es cuando llego la
+ * medicacion, un movimiento ocurre en el momento en que se anota.
+ */
+export async function listarMovimientosDeLote(
+  loteId: string,
+): Promise<MovimientoDelHistorial[]> {
+  const movimientos = await db.movimientoStock.findMany({
+    where: { loteId },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      tipo: true,
+      cantidad: true,
+      createdAt: true,
+      usuario: { select: { nombre: true } },
+    },
+  });
+
+  return movimientos.map((m) => ({
+    id: m.id,
+    tipo: m.tipo,
+    cantidad: m.cantidad,
+    fecha: m.createdAt,
+    nombreUsuario: m.usuario.nombre,
+  }));
+}

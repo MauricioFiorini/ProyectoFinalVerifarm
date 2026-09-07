@@ -30,6 +30,18 @@ export const esquemaCrearLote = z.object({
     .max(60, "El numero de lote no puede superar los 60 caracteres."),
   fechaIngreso: fecha,
   fechaVencimiento: fecha,
+  /**
+   * Cantidad que ingresa junto con el lote. Opcional.
+   *
+   * Si viene, el alta del lote y su movimiento de INGRESO entran en una sola
+   * transaccion. Si no viene, el lote queda en cero y la cantidad se registra
+   * despues por /api/movimientos.
+   */
+  cantidad: z
+    .number()
+    .int("La cantidad tiene que ser un numero entero.")
+    .positive("La cantidad tiene que ser mayor que cero.")
+    .optional(),
 });
 
 export type CrearLoteEntrada = z.infer<typeof esquemaCrearLote>;
@@ -74,3 +86,7 @@ export const esquemaDispensar = z.object({
 });
 
 export type DispensarEntrada = z.infer<typeof esquemaDispensar>;
+
+export const esquemaListarMovimientos = z.object({
+  loteId: identificador,
+});
