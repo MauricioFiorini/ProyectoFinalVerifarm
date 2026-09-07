@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| 4.08 | Mauricio | `feat/4.03-logica-de-stock` | activa | motor FEFO hecho y verificado | 2026-09-07 |
+| 4.10 | Mauricio | `feat/4.03-logica-de-stock` | activa | 4.03 a 4.09 hechas | 2026-09-07 |
 
 ### Reserva de tareas
 
@@ -387,8 +387,8 @@ Uno de los dos argumentos centrales del proyecto.
 | 4.05 | Consulta de **stock bajo**: medicamentos por debajo del mínimo. | `[x]` | M | 4.03 |
 | 4.06 | Consulta de **vencimientos próximos**: lotes con disponible mayor a cero que vencen dentro de N días. N configurable. | `[x]` | M | 4.03 |
 | 4.07 | **Motor FEFO**: dado un medicamento y una cantidad, devolver el plan de egreso — qué lote y cuánto de cada uno — priorizando el vencimiento más próximo. **Función pura**: recibe los lotes y devuelve el plan, sin tocar la base. Excluye lotes vencidos y con disponible cero. | `[x]` | L | 4.04 |
-| 4.08 | Reparto entre varios lotes cuando el primero no alcanza, y error explícito de existencia insuficiente. | `[ ]` | M | 4.07 |
-| 4.09 | Ejecución del plan: convertir el plan en N movimientos **en una única transacción**. O entran todos o ninguno. | `[ ]` | M | 4.08 |
+| 4.08 | Reparto entre varios lotes cuando el primero no alcanza, y error explícito de existencia insuficiente. | `[x]` | M | 4.07 |
+| 4.09 | Ejecución del plan: convertir el plan en N movimientos **en una única transacción**. O entran todos o ninguno. | `[x]` | M | 4.08 |
 | 4.10 | Route handlers de lotes, movimientos y dispensación. La dispensación devuelve el plan sin ejecutarlo (previsualización) o lo ejecuta, según parámetro. | `[ ]` | M | 4.09 |
 
 > **Nota sobre FEFO sin pruebas automatizadas.** El prototipo no lleva tests, así
