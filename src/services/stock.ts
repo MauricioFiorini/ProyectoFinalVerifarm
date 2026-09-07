@@ -396,3 +396,52 @@ export async function listarEstadoDeStock(
     };
   });
 }
+
+// --- Estado de vencimiento de un lote (tarea 4.17) --------------------------
+
+/**
+ * Como esta un lote respecto de su vencimiento.
+ *
+ * **`VENCIDO` es lo que hace visible al lote que la alerta de la 4.06 no
+ * devuelve.** Esa consulta mira hacia adelante —lo que esta por vencer— y el
+ * lote ya vencido con unidades encima se ve aca, en el listado.
+ */
+export type EstadoDeVencimiento = "VENCIDO" | "POR_VENCER" | "VIGENTE";
+
+/**
+ * Decide el estado de vencimiento de un lote. FUNCION PURA.
+ *
+ * La fecha de referencia entra por parametro para poder verificarla en
+ * cualquier fecha sin tocar el reloj de la maquina.
+ */
+export function calcularEstadoDeVencimiento(
+  fechaVencimiento: Date,
+  dias: number = DIAS_PARA_VENCIMIENTO_PROXIMO,
+  referencia: Date = new Date(),
+): EstadoDeVencimiento {
+  if (estaVencido(fechaVencimiento, referencia)) return "VENCIDO";
+
+  const limite = new Date(referencia);
+  limite.setHours(23, 59, 59, 999);
+  limite.setDate(limite.getDate() + dias);
+
+  return fechaVencimiento <= limite ? "POR_VENCER" : "VIGENTE";
+}
+
+/**
+ * Cuantos dias faltan para el vencimiento. Negativo si ya vencio.
+ *
+ * Se cuenta contra el comienzo del dia, no contra el instante actual: un
+ * vencimiento es una fecha, no una hora.
+ */
+export function diasHastaVencimiento(
+  fechaVencimiento: Date,
+  referencia: Date = new Date(),
+): number {
+  const inicioDeHoy = new Date(referencia);
+  inicioDeHoy.setHours(0, 0, 0, 0);
+  const UN_DIA = 1000 * 60 * 60 * 24;
+  return Math.round(
+    (fechaVencimiento.getTime() - inicioDeHoy.getTime()) / UN_DIA,
+  );
+}

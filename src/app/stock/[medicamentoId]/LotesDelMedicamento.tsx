@@ -2,10 +2,12 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { UnidadMedida } from "@prisma/client";
+import type { EstadoDeVencimiento } from "@/services/stock";
 import { Boton } from "@/components/ui/Boton";
 import { Tabla, type Columna } from "@/components/ui/Tabla";
 import { NOMBRE_DE_UNIDAD } from "@/lib/unidades";
 import { formatearFecha } from "@/lib/fechas";
+import { ChipDeVencimiento } from "../indicadores";
 import { ModalIngreso } from "./ModalIngreso";
 import { ModalDispensar } from "./ModalDispensar";
 import { ModalHistorial } from "./ModalHistorial";
@@ -22,6 +24,8 @@ export type LoteDeApi = {
   fechaIngreso: string;
   fechaVencimiento: string;
   disponible: number;
+  estadoVencimiento: EstadoDeVencimiento;
+  diasParaVencer: number;
 };
 
 export type MedicamentoDeApi = {
@@ -58,7 +62,15 @@ const columnas = (
   {
     clave: "vencimiento",
     encabezado: "Vencimiento",
-    celda: (l) => formatearFecha(l.fechaVencimiento),
+    celda: (l) => (
+      <div className="flex flex-wrap items-center gap-2">
+        <span>{formatearFecha(l.fechaVencimiento)}</span>
+        <ChipDeVencimiento
+          estado={l.estadoVencimiento}
+          diasParaVencer={l.diasParaVencer}
+        />
+      </div>
+    ),
   },
   {
     clave: "disponible",
@@ -147,7 +159,18 @@ export function LotesDelMedicamento({
   }
 
   const { medicamento, lotes } = datos;
-  const total = lotes.reduce((a, l) => a + l.disponible, 0);
+
+  // El total NO suma los lotes vencidos. Sumarlos daria un numero mayor que el
+  // de la pantalla de stock, que si los excluye, y el mismo dato con dos
+  // valores distintos es peor que no mostrarlo. Lo vencido se informa aparte,
+  // porque hay que darlo de baja.
+  const disponible = lotes
+    .filter((l) => l.estadoVencimiento !== "VENCIDO")
+    .reduce((a, l) => a + l.disponible, 0);
+
+  const enVencidos = lotes
+    .filter((l) => l.estadoVencimiento === "VENCIDO")
+    .reduce((a, l) => a + l.disponible, 0);
 
   return (
     <div className="flex flex-col gap-6">
@@ -158,7 +181,14 @@ export function LotesDelMedicamento({
           </h1>
           <p className="mt-1 text-sm text-texto-tenue">
             {NOMBRE_DE_UNIDAD[medicamento.unidad]} · mínimo{" "}
-            {medicamento.stockMinimo} · {total} en total entre todos los lotes
+            {medicamento.stockMinimo} · {disponible} disponibles en lotes
+            vigentes
+            {enVencidos > 0 ? (
+              <span className="text-critico-texto">
+                {" "}
+                · {enVencidos} en lotes vencidos
+              </span>
+            ) : null}
           </p>
         </div>
 
@@ -169,7 +199,7 @@ export function LotesDelMedicamento({
             onClick={() => setModal("dispensar")}
             // Sin nada disponible no hay nada que dispensar, y abrir el modal
             // solo para que diga que no alcanza es hacerle perder un clic.
-            disabled={total === 0}
+            disabled={disponible === 0}
           >
             Dispensar
           </Boton>

@@ -3,7 +3,11 @@ import {
   crearLoteConIngreso,
   listarLotesDeMedicamento,
 } from "@/services/lotes";
-import { obtenerDisponiblePorLote } from "@/services/stock";
+import {
+  calcularEstadoDeVencimiento,
+  diasHastaVencimiento,
+  obtenerDisponiblePorLote,
+} from "@/services/stock";
 import { obtenerMedicamentoPorId } from "@/services/medicamentos";
 import { esquemaCrearLote, esquemaListarLotes } from "@/types/lote";
 import {
@@ -58,9 +62,13 @@ export async function GET(request: Request) {
 
     return Response.json({
       medicamento,
+      // El estado de vencimiento lo decide el servicio, no la pantalla: es una
+      // regla del dominio y tiene que ser la misma en todos lados.
       lotes: lotes.map((l) => ({
         ...l,
         disponible: disponibles.get(l.id) ?? 0,
+        estadoVencimiento: calcularEstadoDeVencimiento(l.fechaVencimiento),
+        diasParaVencer: diasHastaVencimiento(l.fechaVencimiento),
       })),
     });
   } catch (error) {

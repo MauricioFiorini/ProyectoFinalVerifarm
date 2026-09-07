@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| 4.17 | Mauricio | `feat/4.11-pantallas-de-stock` | activa | 4.11 a 4.16 hechas | 2026-09-07 |
+| — | — | — | — | — | — |
 
 ### Reserva de tareas
 
@@ -407,7 +407,7 @@ Uno de los dos argumentos centrales del proyecto.
 | 4.14 | Modal de dispensación con FEFO: se elige **cantidad, no lote**. El sistema muestra el plan propuesto ("60 del lote A, vence 03/2027 · 40 del lote B, vence 11/2027"). Botones **"Confirmar egreso"** y **"Cancelar"**. | `[x]` | M | 4.13, 4.10 |
 | 4.15 | Aviso de existencia insuficiente: mensaje con el disponible real y botón de confirmar deshabilitado. | `[x]` | S | 4.14 |
 | 4.16 | Historial de movimientos por lote: fecha, tipo, cantidad, usuario. **Sin botones de editar ni borrar** (es un libro mayor). | `[x]` | M | 4.12 |
-| 4.17 | Indicadores visuales de vencimiento: vencido, vence en menos de 30 días, vigente. **Es lo que hace visible al lote ya vencido**, que la alerta de la 4.06 no devuelve a propósito. | `[ ]` | S | 4.12 |
+| 4.17 | Indicadores visuales de vencimiento: vencido, vence en menos de 30 días, vigente. **Es lo que hace visible al lote ya vencido**, que la alerta de la 4.06 no devuelve a propósito. | `[x]` | S | 4.12 |
 
 ---
 
