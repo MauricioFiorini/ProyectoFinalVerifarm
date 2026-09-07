@@ -385,7 +385,7 @@ Uno de los dos argumentos centrales del proyecto.
 | 4.03 | Cálculo de **stock disponible por medicamento**: suma de lotes no vencidos. | `[x]` | M | 4.02 |
 | 4.04 | `src/services/movimientos.ts`: registrar ingreso y egreso **en transacción**. Un egreso nunca puede dejar el lote en negativo. | `[x]` | L | 4.02 |
 | 4.05 | Consulta de **stock bajo**: medicamentos por debajo del mínimo. | `[x]` | M | 4.03 |
-| 4.06 | Consulta de **vencimientos próximos**: lotes con disponible mayor a cero que vencen dentro de N días. N configurable. | `[x]` | M | 4.03 |
+| 4.06 | Consulta de **vencimientos próximos**: lotes con disponible mayor a cero que vencen dentro de N días. N configurable. **Mira hacia adelante: no devuelve los lotes ya vencidos.** Se planteó si debía incluirlos y el equipo resolvió que no: un lote vencido con unidades encima se ve en el listado de lotes, que marca su estado (tarea 4.17). La alerta es de lo que está por vencer; lo ya vencido es una condición del lote, no un aviso. | `[x]` | M | 4.03 |
 | 4.07 | **Motor FEFO**: dado un medicamento y una cantidad, devolver el plan de egreso — qué lote y cuánto de cada uno — priorizando el vencimiento más próximo. **Función pura**: recibe los lotes y devuelve el plan, sin tocar la base. Excluye lotes vencidos y con disponible cero. | `[x]` | L | 4.04 |
 | 4.08 | Reparto entre varios lotes cuando el primero no alcanza, y error explícito de existencia insuficiente. | `[x]` | M | 4.07 |
 | 4.09 | Ejecución del plan: convertir el plan en N movimientos **en una única transacción**. O entran todos o ninguno. | `[x]` | M | 4.08 |
@@ -407,7 +407,7 @@ Uno de los dos argumentos centrales del proyecto.
 | 4.14 | Modal de dispensación con FEFO: se elige **cantidad, no lote**. El sistema muestra el plan propuesto ("60 del lote A, vence 03/2027 · 40 del lote B, vence 11/2027"). Botones **"Confirmar egreso"** y **"Cancelar"**. | `[ ]` | M | 4.13, 4.10 |
 | 4.15 | Aviso de existencia insuficiente: mensaje con el disponible real y botón de confirmar deshabilitado. | `[ ]` | S | 4.14 |
 | 4.16 | Historial de movimientos por lote: fecha, tipo, cantidad, usuario. **Sin botones de editar ni borrar** (es un libro mayor). | `[ ]` | M | 4.12 |
-| 4.17 | Indicadores visuales de vencimiento: vencido, vence en menos de 30 días, vigente. | `[ ]` | S | 4.12 |
+| 4.17 | Indicadores visuales de vencimiento: vencido, vence en menos de 30 días, vigente. **Es lo que hace visible al lote ya vencido**, que la alerta de la 4.06 no devuelve a propósito. | `[ ]` | S | 4.12 |
 
 ---
 
