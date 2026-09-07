@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| 4.12 | Mauricio | `feat/4.11-pantallas-de-stock` | activa | 4.11 hecha | 2026-09-07 |
+| 4.13 | Mauricio | `feat/4.11-pantallas-de-stock` | activa | 4.11 y 4.12 hechas | 2026-09-07 |
 
 ### Reserva de tareas
 
@@ -402,7 +402,7 @@ Uno de los dos argumentos centrales del proyecto.
 | # | Tarea | Estado | Tamaño | Depende |
 |---|---|---|---|---|
 | 4.11 | Pantalla `/stock`: tabla de medicamentos con disponible, mínimo e **indicador de estado** (bajo mínimo / lote por vencer / normal). Botón **"Ver lotes"** por fila. | `[x]` | M | 4.10, 3.05 |
-| 4.12 | Pantalla `/stock/[medicamentoId]`: lotes con número, vencimiento y disponible. Botones **"Registrar ingreso"** y **"Dispensar"**. | `[ ]` | M | 4.11 |
+| 4.12 | Pantalla `/stock/[medicamentoId]`: lotes con número, vencimiento y disponible. Botones **"Registrar ingreso"** y **"Dispensar"**. | `[x]` | M | 4.11 |
 | 4.13 | Modal de ingreso: número de lote, fecha de ingreso, vencimiento, cantidad. Botones **"Registrar"** y **"Cancelar"**. Validar que el vencimiento sea futuro. | `[ ]` | M | 4.12 |
 | 4.14 | Modal de dispensación con FEFO: se elige **cantidad, no lote**. El sistema muestra el plan propuesto ("60 del lote A, vence 03/2027 · 40 del lote B, vence 11/2027"). Botones **"Confirmar egreso"** y **"Cancelar"**. | `[ ]` | M | 4.13, 4.10 |
 | 4.15 | Aviso de existencia insuficiente: mensaje con el disponible real y botón de confirmar deshabilitado. | `[ ]` | S | 4.14 |
