@@ -1,5 +1,6 @@
 import { db } from "../lib/db";
 import { Medicamento, UnidadMedida } from "@prisma/client";
+import { ErrorDeNegocio } from "./errores";
 
 export async function listarMedicamentos(): Promise<Medicamento[]> {
   return db.medicamento.findMany({
@@ -52,8 +53,10 @@ export async function crearMedicamento(
   });
 
   if (existente) {
-    throw new Error(
+    throw new ErrorDeNegocio(
+      "DUPLICADO",
       `El medicamento con nombre "${data.nombre}" ya existe en el catalogo.`,
+      "nombre",
     );
   }
 
@@ -66,7 +69,11 @@ export async function crearMedicamento(
     });
 
     if (existenteRxcui) {
-      throw new Error(`El RxCUI "${data.rxcui}" ya se encuentra registrado.`);
+      throw new ErrorDeNegocio(
+        "DUPLICADO",
+        `El RxCUI "${data.rxcui}" ya se encuentra registrado.`,
+        "rxcui",
+      );
     }
   }
 
