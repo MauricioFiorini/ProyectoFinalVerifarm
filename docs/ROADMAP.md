@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| 3.03 | Mauricio | `feat/2.10-modelo-segun-decisiones` | activa | 2.10, 2.11 y 3.02 hechas | 2026-09-07 |
+| 3.04 | Mauricio | `feat/2.10-modelo-segun-decisiones` | activa | 3.03 hecha, endpoint probado | 2026-09-07 |
 
 ### Reserva de tareas
 
