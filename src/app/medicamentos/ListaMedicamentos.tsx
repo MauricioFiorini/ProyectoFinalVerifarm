@@ -6,6 +6,7 @@ import { Boton } from "@/components/ui/Boton";
 import { Campo } from "@/components/ui/Campo";
 import { Tabla, type Columna } from "@/components/ui/Tabla";
 import { NOMBRE_DE_UNIDAD } from "./unidades";
+import { ModalNuevoMedicamento } from "./ModalNuevoMedicamento";
 
 // Listado de medicamentos (tarea 3.06).
 //
@@ -60,6 +61,7 @@ const COLUMNAS: Columna<MedicamentoDeApi>[] = [
 export function ListaMedicamentos() {
   const [medicamentos, setMedicamentos] = useState<MedicamentoDeApi[]>([]);
   const [buscar, setBuscar] = useState("");
+  const [modalAbierto, setModalAbierto] = useState(false);
 
   const cargar = useCallback(async (texto: string) => {
     const url = texto.trim()
@@ -93,8 +95,9 @@ export function ListaMedicamentos() {
           />
         </div>
 
-        {/* El alta la conecta la tarea 3.07, que trae el modal. */}
-        <Boton variante="primario">Nuevo medicamento</Boton>
+        <Boton variante="primario" onClick={() => setModalAbierto(true)}>
+          Nuevo medicamento
+        </Boton>
       </div>
 
       <Tabla
@@ -103,6 +106,15 @@ export function ListaMedicamentos() {
         claveDeFila={(m) => m.id}
         descripcion="Catálogo de medicamentos"
       />
+
+      {modalAbierto ? (
+        <ModalNuevoMedicamento
+          alCerrar={() => setModalAbierto(false)}
+          // Se recarga con el texto que haya en el buscador, para no perder
+          // el filtro que la persona tenia puesto.
+          alCrear={() => void cargar(buscar)}
+        />
+      ) : null}
     </div>
   );
 }
