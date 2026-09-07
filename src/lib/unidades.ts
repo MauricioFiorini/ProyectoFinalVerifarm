@@ -2,9 +2,10 @@ import { UnidadMedida } from "@prisma/client";
 
 // Nombres legibles de las unidades de medida.
 //
-// El enum guarda "COMPRIMIDO" y en pantalla tiene que decir "Comprimido". Vive
-// al lado de las pantallas que lo usan —la tabla de la 3.06 y el select de la
-// 3.07— y no en src/types/, que es donde estan los esquemas de validacion.
+// El enum guarda "COMPRIMIDO" y en pantalla tiene que decir "Comprimido".
+//
+// Vive en src/lib/ y no dentro de la carpeta de una ruta porque lo usan dos
+// pantallas: la de medicamentos (3.06 y 3.07) y la de stock (4.11).
 //
 // El Record esta tipado contra el enum a proposito: si alguien agrega una unidad
 // en schema.prisma y se olvida de nombrarla aca, no compila.
