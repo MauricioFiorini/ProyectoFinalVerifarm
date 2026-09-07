@@ -1,6 +1,7 @@
 import { db } from "../lib/db";
-import { Lote } from "@prisma/client";
+import { Lote, TipoMovimiento } from "@prisma/client";
 import { ErrorDeNegocio } from "./errores";
+import { USUARIO_PROVISORIO_ID } from "../lib/usuariosSemilla";
 
 // Alta y consulta de lotes (tarea 4.01).
 //
@@ -121,5 +122,125 @@ export async function listarLotesDeMedicamento(
   return db.lote.findMany({
     where: { medicamentoId },
     orderBy: { fechaVencimiento: "asc" },
+  });
+}
+
+// --- Alta de lote con su ingreso inicial (tarea 4.13) -----------------------
+
+/**
+ * Reglas de un lote que no necesitan la base. Se separan para que las use tanto
+ * `crearLote` como el alta con ingreso, sin duplicarlas.
+ */
+function validarDatosDeLote(data: CrearLoteInput): string {
+  const numeroLote = data.numeroLote.trim();
+
+  if (numeroLote === "") {
+    throw new ErrorDeNegocio(
+      "REGLA_DE_NEGOCIO",
+      "El numero de lote no puede estar vacio.",
+      "numeroLote",
+    );
+  }
+
+  const finDeHoy = new Date();
+  finDeHoy.setHours(23, 59, 59, 999);
+
+  if (data.fechaIngreso > finDeHoy) {
+    throw new ErrorDeNegocio(
+      "REGLA_DE_NEGOCIO",
+      "La fecha de ingreso no puede ser futura.",
+      "fechaIngreso",
+    );
+  }
+
+  if (data.fechaVencimiento <= data.fechaIngreso) {
+    throw new ErrorDeNegocio(
+      "REGLA_DE_NEGOCIO",
+      "El vencimiento tiene que ser posterior a la fecha de ingreso.",
+      "fechaVencimiento",
+    );
+  }
+
+  return numeroLote;
+}
+
+/**
+ * Da de alta un lote **y registra su ingreso inicial, en una sola transaccion**.
+ *
+ * POR QUE NO SON DOS LLAMADAS
+ *
+ * Son dos escrituras: la fila del lote y el movimiento de INGRESO. Si la segunda
+ * fallara quedaria un lote en cero, que parece existir y no tiene nada: alguien
+ * lo veria en la pantalla y no entenderia por que no se puede dispensar. O entran
+ * las dos o ninguna. Es la regla de docs/CONVENCIONES.md seccion 9.
+ *
+ * La cantidad NO se guarda en el lote: se guarda como movimiento, y el
+ * disponible se calcula sumando. Ver docs/decisiones/0007.
+ */
+export async function crearLoteConIngreso(
+  data: CrearLoteInput,
+  cantidad: number,
+  usuarioId: string = USUARIO_PROVISORIO_ID,
+): Promise<Lote> {
+  if (!Number.isInteger(cantidad) || cantidad <= 0) {
+    throw new ErrorDeNegocio(
+      "REGLA_DE_NEGOCIO",
+      "La cantidad tiene que ser un numero entero mayor que cero.",
+      "cantidad",
+    );
+  }
+
+  const numeroLote = validarDatosDeLote(data);
+
+  return db.$transaction(async (tx) => {
+    const medicamento = await tx.medicamento.findUnique({
+      where: { id: data.medicamentoId },
+      select: { id: true },
+    });
+
+    if (!medicamento) {
+      throw new ErrorDeNegocio(
+        "NO_ENCONTRADO",
+        "El medicamento indicado no existe.",
+        "medicamentoId",
+      );
+    }
+
+    const existente = await tx.lote.findUnique({
+      where: {
+        medicamentoId_numeroLote: {
+          medicamentoId: data.medicamentoId,
+          numeroLote,
+        },
+      },
+    });
+
+    if (existente) {
+      throw new ErrorDeNegocio(
+        "DUPLICADO",
+        `Ya existe un lote "${numeroLote}" para ese medicamento.`,
+        "numeroLote",
+      );
+    }
+
+    const lote = await tx.lote.create({
+      data: {
+        medicamentoId: data.medicamentoId,
+        numeroLote,
+        fechaIngreso: data.fechaIngreso,
+        fechaVencimiento: data.fechaVencimiento,
+      },
+    });
+
+    await tx.movimientoStock.create({
+      data: {
+        loteId: lote.id,
+        tipo: TipoMovimiento.INGRESO,
+        cantidad,
+        usuarioId,
+      },
+    });
+
+    return lote;
   });
 }

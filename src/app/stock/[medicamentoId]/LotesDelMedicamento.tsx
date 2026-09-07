@@ -5,6 +5,8 @@ import type { UnidadMedida } from "@prisma/client";
 import { Boton } from "@/components/ui/Boton";
 import { Tabla, type Columna } from "@/components/ui/Tabla";
 import { NOMBRE_DE_UNIDAD } from "@/lib/unidades";
+import { formatearFecha } from "@/lib/fechas";
+import { ModalIngreso } from "./ModalIngreso";
 
 // Lotes de un medicamento (tarea 4.12).
 //
@@ -31,15 +33,6 @@ export type MedicamentoDeApi = {
 type Respuesta = { medicamento: MedicamentoDeApi; lotes: LoteDeApi[] };
 type Estado = "cargando" | "listo" | "error";
 
-/** Fecha en formato local corto. Las que llegan por JSON son texto ISO. */
-export function fecha(iso: string): string {
-  return new Date(iso).toLocaleDateString("es-AR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-}
-
 const COLUMNAS: Columna<LoteDeApi>[] = [
   {
     clave: "numero",
@@ -50,13 +43,13 @@ const COLUMNAS: Columna<LoteDeApi>[] = [
     clave: "ingreso",
     encabezado: "Ingreso",
     celda: (l) => (
-      <span className="text-texto-tenue">{fecha(l.fechaIngreso)}</span>
+      <span className="text-texto-tenue">{formatearFecha(l.fechaIngreso)}</span>
     ),
   },
   {
     clave: "vencimiento",
     encabezado: "Vencimiento",
-    celda: (l) => fecha(l.fechaVencimiento),
+    celda: (l) => formatearFecha(l.fechaVencimiento),
   },
   {
     clave: "disponible",
@@ -73,6 +66,7 @@ export function LotesDelMedicamento({
 }) {
   const [datos, setDatos] = useState<Respuesta | null>(null);
   const [estado, setEstado] = useState<Estado>("cargando");
+  const [modal, setModal] = useState<"ingreso" | "dispensar" | null>(null);
 
   const cargar = useCallback(async () => {
     try {
@@ -141,9 +135,9 @@ export function LotesDelMedicamento({
           </p>
         </div>
 
-        {/* El ingreso lo conecta la tarea 4.13 y la dispensacion la 4.14. */}
+        {/* La dispensacion la conecta la tarea 4.14. */}
         <div className="flex gap-3">
-          <Boton>Registrar ingreso</Boton>
+          <Boton onClick={() => setModal("ingreso")}>Registrar ingreso</Boton>
           <Boton variante="primario">Dispensar</Boton>
         </div>
       </header>
@@ -155,6 +149,15 @@ export function LotesDelMedicamento({
         descripcion={`Lotes de ${medicamento.nombre}`}
         mensajeVacio="Este medicamento todavía no tiene lotes cargados"
       />
+
+      {modal === "ingreso" ? (
+        <ModalIngreso
+          medicamentoId={medicamento.id}
+          nombreMedicamento={medicamento.nombre}
+          alCerrar={() => setModal(null)}
+          alRegistrar={() => void cargar()}
+        />
+      ) : null}
     </div>
   );
 }

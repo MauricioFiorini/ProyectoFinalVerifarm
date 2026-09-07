@@ -1,4 +1,8 @@
-import { crearLote, listarLotesDeMedicamento } from "@/services/lotes";
+import {
+  crearLote,
+  crearLoteConIngreso,
+  listarLotesDeMedicamento,
+} from "@/services/lotes";
 import { obtenerDisponiblePorLote } from "@/services/stock";
 import { obtenerMedicamentoPorId } from "@/services/medicamentos";
 import { esquemaCrearLote, esquemaListarLotes } from "@/types/lote";
@@ -67,8 +71,12 @@ export async function GET(request: Request) {
 /**
  * POST /api/lotes
  *
- * Alta de un lote. **Queda en cero**: la cantidad entra como movimiento de tipo
- * INGRESO, por `POST /api/movimientos`. Ver docs/decisiones/0007.
+ * Alta de un lote. Si el cuerpo trae `cantidad`, se registra ademas su ingreso
+ * inicial **en la misma transaccion**; si no, el lote queda en cero y la
+ * cantidad se carga despues por `POST /api/movimientos`.
+ *
+ * La cantidad nunca se guarda en el lote: es un movimiento, y el disponible se
+ * calcula sumando. Ver docs/decisiones/0007.
  */
 export async function POST(request: Request) {
   const cuerpo = await leerJson(request);
@@ -80,8 +88,15 @@ export async function POST(request: Request) {
     return respuestaDeValidacion(entrada.error.issues);
   }
 
+  const { cantidad, ...datosDelLote } = entrada.data;
+
   try {
-    const lote = await crearLote(entrada.data);
+    // Con cantidad, el lote y su ingreso entran juntos o no entra ninguno. Sin
+    // cantidad, el lote queda en cero y se carga despues.
+    const lote = cantidad
+      ? await crearLoteConIngreso(datosDelLote, cantidad)
+      : await crearLote(datosDelLote);
+
     return Response.json(lote, { status: 201 });
   } catch (error) {
     return respuestaDeError(error, "POST /api/lotes");
