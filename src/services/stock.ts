@@ -95,3 +95,72 @@ export async function obtenerDisponiblePorLote(
 
   return disponibles;
 }
+
+// --- Stock por medicamento (tarea 4.03) -------------------------------------
+
+/** Lo que el calculo por medicamento necesita saber de cada lote. */
+export type LoteParaCalculo = {
+  fechaVencimiento: Date;
+  movimientos: MovimientoParaCalculo[];
+};
+
+/**
+ * Si un lote esta vencido a una fecha dada.
+ *
+ * FUNCION PURA, y la fecha entra por parametro en vez de leerse de `new Date()`
+ * adentro: asi se puede verificar el comportamiento en cualquier fecha sin tocar
+ * el reloj de la maquina.
+ *
+ * CRITERIO: un lote que vence HOY todavia sirve. Se compara contra el comienzo
+ * del dia, no contra el instante actual, porque el vencimiento es una fecha y no
+ * una hora: si no, un lote pasaria a estar vencido a mitad de la mañana.
+ */
+export function estaVencido(
+  fechaVencimiento: Date,
+  referencia: Date = new Date(),
+): boolean {
+  const inicioDelDia = new Date(referencia);
+  inicioDelDia.setHours(0, 0, 0, 0);
+  return fechaVencimiento < inicioDelDia;
+}
+
+/**
+ * Stock disponible de un medicamento: la suma de lo disponible en sus lotes NO
+ * VENCIDOS.
+ *
+ * FUNCION PURA.
+ *
+ * Los lotes vencidos se excluyen a proposito, aunque tengan unidades fisicas
+ * encima: no se pueden dispensar, asi que contarlos daria un numero que dice que
+ * hay medicacion cuando no la hay para usar. Es el mismo criterio con el que el
+ * motor FEFO (4.07) los descarta.
+ */
+export function calcularStockDeMedicamento(
+  lotes: LoteParaCalculo[],
+  referencia: Date = new Date(),
+): number {
+  return lotes
+    .filter((l) => !estaVencido(l.fechaVencimiento, referencia))
+    .reduce((total, l) => total + calcularDisponible(l.movimientos), 0);
+}
+
+/**
+ * Stock disponible de un medicamento, leyendo de la base.
+ *
+ * Trae los lotes con sus movimientos en una sola consulta y delega el calculo en
+ * la funcion pura.
+ */
+export async function obtenerStockDeMedicamento(
+  medicamentoId: string,
+  referencia: Date = new Date(),
+): Promise<number> {
+  const lotes = await db.lote.findMany({
+    where: { medicamentoId },
+    select: {
+      fechaVencimiento: true,
+      movimientos: { select: { tipo: true, cantidad: true } },
+    },
+  });
+
+  return calcularStockDeMedicamento(lotes, referencia);
+}
