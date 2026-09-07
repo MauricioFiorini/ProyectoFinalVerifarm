@@ -73,3 +73,28 @@ export function respuestaDeValidacion(
 
   return Response.json(cuerpo, { status: 400 });
 }
+
+/**
+ * Lee el cuerpo JSON de un pedido.
+ *
+ * Devuelve el cuerpo, o una `Response` de 400 si no se pudo interpretar. El
+ * `instanceof Response` en el llamador es lo que distingue los dos casos:
+ *
+ * ```ts
+ * const cuerpo = await leerJson(request);
+ * if (cuerpo instanceof Response) return cuerpo;
+ * ```
+ *
+ * Existe porque el mismo bloque de try/catch se repetia en cada endpoint que
+ * recibe un POST, y un cuerpo mal formado tiene que responder igual en todos.
+ */
+export async function leerJson(request: Request): Promise<unknown | Response> {
+  try {
+    return await request.json();
+  } catch {
+    return Response.json(
+      { error: "El cuerpo del pedido no es JSON valido." },
+      { status: 400 },
+    );
+  }
+}
