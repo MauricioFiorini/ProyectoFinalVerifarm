@@ -321,8 +321,8 @@ decide cuando se empieza, no antes.
 | 2.07 | Primera migración: `npx prisma migrate dev --name inicial`. Verificar con Prisma Studio. | `[x]` | M | 2.02–2.06 |
 | 2.08 | `seed.ts` mínimo: 3 usuarios y 10 medicamentos. Suficiente para desarrollar. | `[x]` | M | 2.07 |
 | 2.09 | Verificar que los tres aplican la migración en su base local sin errores. | `[x]` | M | 2.07 |
-| 2.10 | **Migración: `rxcui` opcional y `Lote.fechaIngreso`.** Pasar `Medicamento.rxcui` a `String? @unique` y agregar `fechaIngreso DateTime` a `Lote`. **No se edita la migración inicial**, se agrega una nueva. **No se agrega `cantidadIngresada`**: la cantidad vive en los movimientos. Ver las decisiones `0005` y `0007`. Las dos van en la misma migración para que los tres apliquen una sola. | `[ ]` | M | 2.09 |
-| 2.11 | **Corregir el seed** según las decisiones `0006`, `0008` y `0009`, todo en el mismo archivo y la misma pasada: nombres sin dosis (`"Paracetamol"`, no `"Paracetamol 500mg"`); los diez RxCUI **verificados uno por uno contra RxNorm** y llevados a nivel de ingrediente, anotando la fecha de la consulta —el que no resuelva queda sin `rxcui`, que ahora se puede, y se anota por qué—; y **`id` explícito y fijo** para el usuario `farmacia@verifarm.com`, porque hoy el seed usa `@default(uuid())` y el id cambia en cada corrida. | `[ ]` | M | 2.10 |
+| 2.10 | **Migración: `rxcui` opcional y `Lote.fechaIngreso`.** Pasar `Medicamento.rxcui` a `String? @unique` y agregar `fechaIngreso DateTime` a `Lote`. **No se edita la migración inicial**, se agrega una nueva. **No se agrega `cantidadIngresada`**: la cantidad vive en los movimientos. Ver las decisiones `0005` y `0007`. Las dos van en la misma migración para que los tres apliquen una sola. | `[x]` | M | 2.09 |
+| 2.11 | **Corregir el seed** según las decisiones `0006`, `0008` y `0009`, todo en el mismo archivo y la misma pasada: nombres sin dosis (`"Paracetamol"`, no `"Paracetamol 500mg"`); los diez RxCUI **verificados uno por uno contra RxNorm** y llevados a nivel de ingrediente, anotando la fecha de la consulta —el que no resuelva queda sin `rxcui`, que ahora se puede, y se anota por qué—; y **`id` explícito y fijo** para el usuario `farmacia@verifarm.com`, porque hoy el seed usa `@default(uuid())` y el id cambia en cada corrida. | `[x]` | M | 2.10 |
 
 ### Verificación por integrante de la 2.09
 
@@ -362,9 +362,9 @@ capas (servicio → route handler → pantalla) que copian las fases 4 y 5.
 | # | Tarea | Estado | Tamaño | Depende |
 |---|---|---|---|---|
 | 3.01 | `src/services/medicamentos.ts`: listar, buscar por nombre, obtener por id, crear. Validar nombre de droga único. | `[x]` | M | 2.09 |
-| 3.02 | Validación de entrada (Zod) para medicamento. El `rxcui` es **opcional, y único cuando tiene valor** (decisión `0005`); el nombre es el **principio activo, sin dosis** (decisión `0006`). | `[ ]` | S | 3.01, 2.10 |
-| 3.03 | `app/api/medicamentos/route.ts`: GET (listado con filtro) y POST (alta). | `[ ]` | M | 3.02 |
-| 3.04 | Manejo de errores unificado: función que traduce error de servicio a respuesta HTTP. | `[ ]` | M | 3.03 |
+| 3.02 | Validación de entrada (Zod) para medicamento. El `rxcui` es **opcional, y único cuando tiene valor** (decisión `0005`); el nombre es el **principio activo, sin dosis** (decisión `0006`). | `[x]` | S | 3.01, 2.10 |
+| 3.03 | `app/api/medicamentos/route.ts`: GET (listado con filtro) y POST (alta). | `[x]` | M | 3.02 |
+| 3.04 | Manejo de errores unificado: función que traduce error de servicio a respuesta HTTP. | `[x]` | M | 3.03 |
 | 3.05 | Componentes base en `src/components/ui/`: `Boton`, `Campo`, `Tabla`, `Modal`. **Solo esos cuatro.** | `[ ]` | L | 1.10 |
 | 3.06 | Pantalla `/medicamentos`: tabla con nombre de droga, RxCUI, unidad y stock mínimo. Buscador arriba. Botón **"Nuevo medicamento"**. | `[ ]` | M | 3.05, 3.03 |
 | 3.07 | Modal de alta: nombre de droga, unidad de medida (select), stock mínimo, RxCUI **opcional, cargado a mano**. Botones **"Guardar"** y **"Cancelar"**. Errores por campo. El "opcional" quedó confirmado por la decisión `0005`; el nombre va sin dosis (`0006`). | `[ ]` | M | 3.06, 3.02 |
@@ -380,8 +380,8 @@ Uno de los dos argumentos centrales del proyecto.
 
 | # | Tarea | Estado | Tamaño | Depende |
 |---|---|---|---|---|
-| 4.01 | `src/services/lotes.ts`: alta de lote (número, **fecha de ingreso**, vencimiento). Unicidad de número por medicamento. **La cantidad no es campo del lote**: entra como movimiento de tipo `INGRESO` (decisión `0007`). Validar que `fechaIngreso` no sea futura y que `fechaVencimiento` sea posterior a `fechaIngreso`, no solo posterior a hoy. | `[ ]` | M | 3.04, 2.10 |
-| 4.02 | Cálculo de **cantidad disponible por lote**: suma de los movimientos de ingreso menos la de los egresos. Función pura. El `usuarioId` que exige `MovimientoStock` sale de la constante del seed (decisión `0009`). | `[ ]` | M | 4.01, 2.11 |
+| 4.01 | `src/services/lotes.ts`: alta de lote (número, **fecha de ingreso**, vencimiento). Unicidad de número por medicamento. **La cantidad no es campo del lote**: entra como movimiento de tipo `INGRESO` (decisión `0007`). Validar que `fechaIngreso` no sea futura y que `fechaVencimiento` sea posterior a `fechaIngreso`, no solo posterior a hoy. | `[x]` | M | 3.04, 2.10 |
+| 4.02 | Cálculo de **cantidad disponible por lote**: suma de los movimientos de ingreso menos la de los egresos. Función pura. El `usuarioId` que exige `MovimientoStock` sale de la constante del seed (decisión `0009`). | `[x]` | M | 4.01, 2.11 |
 | 4.03 | Cálculo de **stock disponible por medicamento**: suma de lotes no vencidos. | `[ ]` | M | 4.02 |
 | 4.04 | `src/services/movimientos.ts`: registrar ingreso y egreso **en transacción**. Un egreso nunca puede dejar el lote en negativo. | `[ ]` | L | 4.02 |
 | 4.05 | Consulta de **stock bajo**: medicamentos por debajo del mínimo. | `[ ]` | M | 4.03 |

@@ -1,5 +1,6 @@
 import { db } from "../lib/db";
 import { Medicamento, UnidadMedida } from "@prisma/client";
+import { ErrorDeNegocio } from "./errores";
 
 export async function listarMedicamentos(): Promise<Medicamento[]> {
   return db.medicamento.findMany({
@@ -29,8 +30,14 @@ export async function obtenerMedicamentoPorId(
 }
 
 export type CrearMedicamentoInput = {
+  /** Principio activo, sin dosis. Ver docs/decisiones/0006. */
   nombre: string;
-  rxcui: string;
+  /**
+   * RxCUI de ingrediente. Opcional por decision (0005): un medicamento sin
+   * codigo se carga igual y funciona para el modulo de stock; lo que no puede
+   * hacer es participar del cruce de interacciones, y eso se avisa.
+   */
+  rxcui?: string | null;
   unidad: UnidadMedida;
   stockMinimo?: number;
 };
@@ -46,24 +53,34 @@ export async function crearMedicamento(
   });
 
   if (existente) {
-    throw new Error(
+    throw new ErrorDeNegocio(
+      "DUPLICADO",
       `El medicamento con nombre "${data.nombre}" ya existe en el catalogo.`,
+      "nombre",
     );
   }
 
-  // Validar RxCUI unico, ya que el modelo lo exige (es @unique)
-  const existenteRxcui = await db.medicamento.findUnique({
-    where: { rxcui: data.rxcui },
-  });
+  // El rxcui sigue siendo @unique, pero ahora puede faltar. En PostgreSQL
+  // varios NULL conviven sin violar la unicidad, asi que solo hay algo que
+  // comprobar cuando el codigo viene.
+  if (data.rxcui) {
+    const existenteRxcui = await db.medicamento.findUnique({
+      where: { rxcui: data.rxcui },
+    });
 
-  if (existenteRxcui) {
-    throw new Error(`El RxCUI "${data.rxcui}" ya se encuentra registrado.`);
+    if (existenteRxcui) {
+      throw new ErrorDeNegocio(
+        "DUPLICADO",
+        `El RxCUI "${data.rxcui}" ya se encuentra registrado.`,
+        "rxcui",
+      );
+    }
   }
 
   return db.medicamento.create({
     data: {
       nombre: data.nombre,
-      rxcui: data.rxcui,
+      rxcui: data.rxcui ?? null,
       unidad: data.unidad,
       stockMinimo: data.stockMinimo ?? 0,
     },

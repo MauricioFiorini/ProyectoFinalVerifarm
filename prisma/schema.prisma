@@ -53,9 +53,22 @@ model Medicamento {
   /// Es la clave principal de busqueda para los usuarios.
   nombre String @unique
 
-  /// RxCUI: Codigo estandarizado de RxNorm.
-  /// Es obligatorio y unico, ya que el motor de interacciones medicamentosas se basa en el.
-  rxcui String @unique
+  /// RxCUI: codigo estandarizado de RxNorm, a nivel de INGREDIENTE.
+  ///
+  /// Es el unico puente entre este catalogo y la tabla Interaccion, que guarda
+  /// rxcui1 y rxcui2 y no tiene ninguna relacion con Medicamento. Un medicamento
+  /// sin rxcui no existe para el modulo clinico: no hay otro campo por el cual
+  /// cruzarlo.
+  ///
+  /// Es OPCIONAL a proposito, y unico cuando tiene valor. El motivo es el modo de
+  /// falla: un rxcui ausente se ve y se avisa; uno inventado no se ve y produce
+  /// un resultado falso, que en un sistema de soporte clinico es peor. Como no
+  /// hay consulta a RxNorm en vivo, obligarlo seria invitar a completarlo con
+  /// cualquier cosa. Ver docs/decisiones/0005-el-rxcui-es-opcional.md
+  ///
+  /// Que sea opcional no es permiso para dejarlo vacio: los del seed van con
+  /// codigo real y verificado.
+  rxcui String? @unique
 
   /// La unidad de medida de la presentacion, restringida por Enum para consistencia de datos.
   unidad UnidadMedida
@@ -90,7 +103,21 @@ model Lote {
   /// Identificador alfanumerico del fabricante
   numeroLote String
 
-  /// Requisito clave para FEFO (First Expired, First Out)
+  /// Cuando entro la medicacion A FARMACIA.
+  ///
+  /// No se reemplaza con createdAt: ese es cuando se cargo el lote AL SISTEMA.
+  /// Si alguien registra el lunes un lote que llego el viernes, createdAt miente
+  /// por tres dias, y este es un proyecto sobre trazabilidad.
+  ///
+  /// NOTA: no hay cantidadIngresada, aunque el modelo de dominio en UML la
+  /// tenga. La cantidad entra como MovimientoStock de tipo INGRESO y se deriva
+  /// sumando: persistirla seria una segunda fuente de verdad para un dato que ya
+  /// esta registrado. Ver docs/decisiones/0007-lote-lleva-fecha-de-ingreso.md
+  fechaIngreso DateTime
+
+  /// Requisito clave para FEFO (First Expired, First Out).
+  /// Se valida contra fechaIngreso, no solo contra hoy: un lote que vence antes
+  /// de haber entrado es un error de carga.
   fechaVencimiento DateTime
 
   movimientos MovimientoStock[]
