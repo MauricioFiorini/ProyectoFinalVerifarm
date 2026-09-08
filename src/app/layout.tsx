@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
+import { BarraLateral } from "@/components/layout/BarraLateral";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -31,7 +32,19 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       lang="es"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full">
+        {/* Estructura de toda la aplicacion (tarea 6.01): la barra a la
+            izquierda y el contenido de la pagina a la derecha. En pantalla
+            angosta se apilan.
+
+            `min-w-0` en la columna de contenido no es decorativo: sin el, una
+            tabla ancha estira el contenedor flex y empuja la barra fuera de la
+            pantalla en vez de desplazarse dentro de su propia caja. */}
+        <div className="flex min-h-screen flex-col md:flex-row">
+          <BarraLateral />
+          <div className="flex min-w-0 flex-1 flex-col">{children}</div>
+        </div>
+      </body>
     </html>
   );
 }

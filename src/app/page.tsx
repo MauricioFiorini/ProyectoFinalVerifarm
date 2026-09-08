@@ -1,69 +1,50 @@
-import Image from "next/image";
+import type { Metadata } from "next";
 
-export default function Home() {
+// Pantalla de inicio, provisoria.
+//
+// Lo que habia aca era la plantilla de `create-next-app`, con el logo de Vercel
+// y los botones de "Deploy Now" y "Documentation". Con la barra lateral de la
+// tarea 6.01 esa pantalla pasa a ser el destino del enlace "Inicio", y no se
+// puede dejar codigo de andamio como primera pantalla del sistema.
+//
+// ESTA PANTALLA NO ES LA 6.03. La de verdad lleva tarjetas con los
+// medicamentos bajo minimo, los lotes por vencer y las consultas del dia, cada
+// una enlazada a su seccion, y depende de la 4.11 y la 5.20. Mientras tanto
+// esto solo dice que hay y por donde entrar, sin consultar nada a la base.
+
+export const metadata: Metadata = {
+  title: "Verifarm",
+};
+
+export default function PaginaInicio() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white sm:items-start">
-        <Image
-          className="h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-marca-600 px-5 text-white transition-colors hover:bg-marca-700 md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <main className="mx-auto w-full max-w-5xl px-6 py-10">
+      <header className="mb-8">
+        <h1 className="text-2xl font-semibold text-texto">Verifarm</h1>
+        <p className="mt-1 text-sm text-texto-tenue">
+          Colonia Psiquiátrica &laquo;Dr. Abelardo Irigoyen Freyre&raquo;.
+        </p>
+      </header>
+
+      <div className="rounded-md border border-borde bg-superficie px-6 py-5">
+        <p className="text-sm text-texto">
+          El sistema tiene dos módulos:{" "}
+          <strong className="font-medium">
+            trazabilidad de stock por lote
+          </strong>
+          , con dispensación por vencimiento más próximo, y{" "}
+          <strong className="font-medium">soporte a la decisión clínica</strong>{" "}
+          por interacciones medicamentosas.
+        </p>
+        <p className="mt-3 text-sm text-texto-tenue">
+          Se entra por la barra de la izquierda.
+        </p>
+      </div>
+
+      <p className="mt-6 text-xs text-texto-sutil">
+        Pantalla provisoria. El tablero con medicamentos bajo mínimo, lotes por
+        vencer y consultas del día es la tarea 6.03.
+      </p>
+    </main>
   );
 }
