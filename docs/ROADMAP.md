@@ -32,6 +32,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
 | 6.01 | Mauricio Mateo Fiorini | `feat/6.01-layout-y-navegacion` | activa | — | 2026-09-08 |
+| 5.02 | Mauricio Mateo Fiorini | `feat/5.02-importar-onchigh` | activa | — | 2026-09-08 |
 | 5.01 | Mauricio Mateo Fiorini | `feat/5.01-servicio-de-pacientes` | activa | — | 2026-09-08 |
 
 ### Reserva de tareas
@@ -420,7 +421,7 @@ queda fuera del prototipo (el RxCUI se carga a mano).
 | # | Tarea | Estado | Tamaño | Depende |
 |---|---|---|---|---|
 | 5.01 | `src/services/pacientes.ts`: alta con seudónimo, listado, búsqueda. **Sin datos filiatorios.** | `[~]` | M | 3.04 |
-| 5.02 | Importar el conjunto **ONCHigh** a la tabla `Interaccion` (decisión `0010`). Tres trabajos, no uno: obtener los archivos de `dbmi-pitt/public-PDDI-analysis`, carpeta `PDDI-Datasets/ONC-High-Priority`; **mapear los identificadores de DrugBank a RxCUI**, que es lo que los archivos traen; y **redactar las descripciones de severidad** a partir de Phansalkar y colaboradores (JAMIA, 2012), porque los archivos no las incluyen. Documentar la vigencia: archivos de 2017, extracción original de 2014. | `[ ]` | L | 2.11 |
+| 5.02 | Importar el conjunto **ONCHigh** a la tabla `Interaccion` (decisión `0010`). Tres trabajos, no uno: obtener los archivos de `dbmi-pitt/public-PDDI-analysis`, carpeta `PDDI-Datasets/ONC-High-Priority`; **mapear los identificadores de DrugBank a RxCUI**, que es lo que los archivos traen; y **redactar las descripciones de severidad** a partir de Phansalkar y colaboradores (JAMIA, 2012), porque los archivos no las incluyen. Documentar la vigencia: archivos de 2017, extracción original de 2014. | `[~]` | L | 2.11 |
 | 5.03 | **Carga manual de al menos 15 pares** de psicofármacos que interactúan, con severidad y descripción, dentro del seed. **Queda como red de la 5.02**, que es de tamaño L y depende de un mapeo que puede resolver peor de lo esperado: si eso pasa, quince pares bien elegidos sostienen la demostración. Si hace falta o no se decide cuando se sepa cómo resolvió el mapeo, no antes. | `[ ]` | M | 2.11 |
 | 5.04 | `src/services/medicacion.ts`: agregar medicamento a un paciente, suspender con motivo, listar vigentes. | `[ ]` | M | 5.01 |
 | 5.05 | Cálculo del **estado derivado** de la medicación (vigente / suspendida / finalizada) a partir de fechas y motivo. | `[ ]` | S | 5.04 |
