@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| 5.12 | Mauricio Mateo Fiorini | `feat/5.12-modal-de-alta-de-paciente` | activa | — | 2026-09-08 |
+| — | — | — | — | — | — |
 
 ### Migraciones pendientes de aplicar
 
@@ -463,7 +463,7 @@ queda fuera del prototipo (el RxCUI se carga a mano).
 | 5.09 | `src/services/consultas.ts`: crear consulta, generar observaciones y persistir, todo en transacción. **Guarda también los medicamentos evaluados** (`MedicamentoEvaluado`, decisión `0014`), todos, tengan `rxcui` o no: una consulta guardada sin su lista de evaluados no se puede releer. | `[x]` | L | 5.08, 5.21 |
 | 5.10 | Route handlers de pacientes, medicación y consultas. | `[x]` | M | 5.09 |
 | 5.11 | Pantalla `/pacientes`: tabla de seudónimos con cantidad de medicamentos vigentes. Botón **"Nuevo paciente"**. | `[x]` | M | 5.10, 3.05 |
-| 5.12 | Modal de alta de paciente: solo el identificador, con nota visible explicando la seudonimización. Botón **"Crear"**. | `[~]` | S | 5.11 |
+| 5.12 | Modal de alta de paciente: solo el identificador, con nota visible explicando la seudonimización. Botón **"Crear"**. | `[x]` | S | 5.11 |
 | 5.13 | Pantalla `/pacientes/[id]`: medicación vigente con fecha de inicio y estado. Botones **"Agregar medicamento"** y **"Evaluar interacciones"**. **Marca la cobertura por fila** con `rxcuisConCobertura`: el medicamento que la fuente no cubra se muestra con **"sin datos en la fuente"**. Es la misma razón que en la 5.16 y la 5.18: una lista de medicación vigente sin esa marca parece revisada y no lo está. Decisión `0012`. | `[ ]` | M | 5.11 |
 | 5.14 | Modal de alta de medicación: selector de medicamento con buscador y fecha de inicio. Botón **"Agregar"**. | `[ ]` | M | 5.13 |
 | 5.15 | Botón **"Suspender"** por fila, con modal que pide motivo obligatorio. | `[ ]` | S | 5.14 |

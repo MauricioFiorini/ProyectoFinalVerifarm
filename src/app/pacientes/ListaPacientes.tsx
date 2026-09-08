@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Boton } from "@/components/ui/Boton";
 import { Campo } from "@/components/ui/Campo";
 import { Tabla, type Columna } from "@/components/ui/Tabla";
+import { ModalNuevoPaciente } from "./ModalNuevoPaciente";
 
 // Listado de pacientes (tarea 5.11).
 //
@@ -53,6 +54,7 @@ export function ListaPacientes() {
   const [pacientes, setPacientes] = useState<PacienteDeApi[]>([]);
   const [estado, setEstado] = useState<Estado>("cargando");
   const [buscar, setBuscar] = useState("");
+  const [modalAbierto, setModalAbierto] = useState(false);
   // Se guarda el texto con el que se trajo lo que hay en pantalla, para
   // distinguir "no hay pacientes" de "no hay resultados para esta busqueda".
   const [textoBuscado, setTextoBuscado] = useState("");
@@ -95,15 +97,7 @@ export function ListaPacientes() {
           />
         </div>
 
-        {/* El modal de alta es la tarea 5.12 y todavia no existe. El boton va
-            deshabilitado en vez de no estar: asi la pantalla ya muestra por
-            donde se da de alta, y un clic no se queda sin respuesta. Cuando
-            entre la 5.12 se le saca el `disabled` y se le pone el `onClick`. */}
-        <Boton
-          variante="primario"
-          disabled
-          title="Todavía no implementado (tarea 5.12)"
-        >
+        <Boton variante="primario" onClick={() => setModalAbierto(true)}>
           Nuevo paciente
         </Boton>
       </div>
@@ -125,6 +119,15 @@ export function ListaPacientes() {
           }
         />
       )}
+
+      {modalAbierto ? (
+        <ModalNuevoPaciente
+          alCerrar={() => setModalAbierto(false)}
+          // Se recarga con el texto que haya en el buscador, para no perder el
+          // filtro que la persona tenia puesto.
+          alCrear={() => void cargar(buscar)}
+        />
+      ) : null}
     </div>
   );
 }
