@@ -176,11 +176,37 @@ model MedicacionVigente {
   medicamentoId String
   medicamento   Medicamento @relation(fields: [medicamentoId], references: [id], onDelete: Cascade)
 
+  /// Cuando empezo a tomarla. Se pide siempre: sin fecha de inicio no se puede
+  /// decir desde cuando el paciente esta con ese esquema.
+  fechaInicio DateTime
+
+  /// Cuando dejo de tomarla. NULL significa que la sigue tomando.
+  fechaFin DateTime?
+
+  /// Por que se suspendio. Solo tiene valor si hay fechaFin, y es lo que
+  /// distingue una suspension (se corto por una razon clinica) de una
+  /// finalizacion (el tratamiento llego a su termino).
+  /// El estado se deriva de estos tres campos; ver src/services/medicacion.ts
+  motivoSuspension String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  /// Un paciente no puede tener la misma droga prescrita dos veces concurrentemente
-  @@unique([pacienteId, medicamentoId])
+  /// NO HAY @@unique([pacienteId, medicamentoId]), Y NO ES UN OLVIDO.
+  ///
+  /// Lo habia, y hacia imposible el historial: si a un paciente se le suspende
+  /// el clonazepam y tres meses despues se le reinicia, con la restriccion
+  /// puesta la segunda fila no entra. La unica salida seria pisar la primera,
+  /// y ahi se pierde el registro de que alguna vez se suspendio y por que.
+  ///
+  /// La regla real es mas fina de lo que una restriccion de base puede
+  /// expresar: un paciente no puede tener la misma droga VIGENTE dos veces.
+  /// Suspendida, cuantas veces haga falta. Eso vive en el servicio.
+  ///
+  /// Es el mismo criterio que el modulo de stock: los movimientos son un libro
+  /// mayor y nada se reescribe.
+  /// Ver docs/decisiones/0013-la-medicacion-lleva-fechas-y-motivo.md
+  @@index([pacienteId])
 }
 
 model ConsultaInteraccion {
