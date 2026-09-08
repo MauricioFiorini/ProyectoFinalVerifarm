@@ -14,111 +14,90 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-08
 **Entrega:** Mauricio Mateo Fiorini
-**Rama:** `feat/5.09-servicio-de-consultas` (**sin mergear**)
+**Rama:** `feat/5.10-route-handlers-clinicos` (**sin mergear**)
 
 ### Qué se hizo
 
-**La 5.09: `src/services/consultas.ts`.** Con esto **la lógica del módulo
-clínico está completa de punta a punta**: se elige un conjunto de medicamentos,
-se cruzan contra la fuente, se compone el texto y queda todo guardado.
+**La 5.10: los route handlers del módulo clínico.** Con esto **el backend del
+módulo está completo**: de acá en adelante la fase 5 es toda interfaz.
 
-Lo que falta del módulo son las pantallas y los route handlers, no la lógica.
+| Archivo | Qué |
+| --- | --- |
+| `src/types/clinico.ts` | Los esquemas de Zod. Nuevo |
+| `src/app/api/pacientes/route.ts` | `GET` (listar y buscar), `POST` |
+| `src/app/api/medicacion/route.ts` | `GET`, `POST`, **`PATCH`** |
+| `src/app/api/consultas/route.ts` | `GET` (por id), `POST` |
 
 ### Recordatorio: hay migraciones sin aplicar
 
-`docs/ROADMAP.md` tiene ahora una sección **"Migraciones pendientes de
-aplicar"**, arriba de todo, con una casilla por integrante. **Juan Pablo y Juan
-José tienen dos migraciones sin correr.** Sin aplicarlas, `npm run check` falla
-con errores de tipo que no mencionan a Prisma por ningún lado.
+`docs/ROADMAP.md` tiene arriba de todo la sección **"Migraciones pendientes de
+aplicar"**, con una casilla por integrante. **Juan Pablo y Juan José tienen dos
+sin correr.** Sin aplicarlas, `npm run check` falla con errores de tipo que no
+mencionan a Prisma por ningún lado.
 
-```bash
-npx prisma migrate dev
-npm run setup
-```
+### Tres decisiones que conviene conocer
 
-### Qué expone
+**`/api/medicacion` tiene `PATCH`, y `/api/movimientos` no tiene ninguno.** No
+es una inconsistencia. El historial de movimientos es un libro mayor: un asiento
+no se corrige, se compensa con otro. La medicación no es eso — una fila es un
+tramo, y suspenderla **cierra el tramo que ya estaba abierto** en vez de agregar
+un hecho nuevo. Eso es una modificación y le corresponde un `PATCH`. El
+historial no se pierde igual: la fila no se borra ni se reutiliza cuando la
+droga se reinicia.
 
-| Función | Qué hace |
-| --- | --- |
-| `crearConsulta(input)` | Valida, evalúa, compone y guarda. Devuelve el resultado completo |
-| `obtenerConsulta(id)` | Relee una consulta guardada |
+**`/api/consultas` no tiene previsualización, a diferencia de
+`/api/dispensaciones`.** La dispensación separa calcular el plan de ejecutarlo
+porque una escribe en el historial de stock y la otra no. Una consulta no tiene
+esa división: **evaluar es la operación**, y que quede registrada es parte del
+punto. Una evaluación que no se guarda no sería una consulta, sería una cuenta.
 
-`crearConsulta` acepta `medicamentoIds` y, opcionales, `pacienteId` y
-`usuarioId`. Sin paciente es la consulta suelta del médico de guardia, que el
-esquema ya contemplaba.
+**`medicamentoIds` no lleva `.min(2)` en Zod.** Es la restricción `2..*` del
+modelo, o sea una regla del dominio, y la aplica el servicio. No es una
+distinción académica: **cambia lo que ve el usuario.** Con Zod la respuesta
+sería 400 "los datos enviados no son válidos", que suena a que el programa está
+roto. Desde el servicio es **422** con *"una consulta necesita al menos 2
+medicamentos"*, que es lo que hay que leer. Comprobado.
 
-### Lo que devuelve, y por qué importa
+### Un defecto que el defecto de `GET /api/medicacion` evita
 
-Cada medicamento de la consulta vuelve con una **`evaluabilidad`**, que es la
-distinción de la decisión `0012` hecha dato:
-
-| Valor | Qué significa |
-| --- | --- |
-| `EVALUADO` | Tiene RxCUI y la fuente lo cubre: se cruzó de verdad |
-| `SIN_RXCUI` | No tiene código cargado. No hay por dónde cruzarlo |
-| `SIN_COBERTURA` | Tiene código, pero la fuente no trae ningún par con esa droga |
-
-**Las pantallas 5.16 y 5.18 no tienen que deducir nada**: el servicio ya se los
-da resuelto. Ese era el punto de toda la insistencia con `rxcuisConCobertura`.
-
-### Cuatro decisiones que conviene conocer
-
-**El texto se compone al guardar, no al mostrar.** Es lo que hace que una
-consulta vieja siga diciendo lo mismo aunque cambie la plantilla: **el registro
-clínico es lo que se leyó ese día**, no lo que el sistema diría hoy.
-
-**La cobertura, en cambio, se recalcula al releer.** No está guardada, por la
-decisión `0014`. O sea que una consulta vieja puede pasar de `SIN_COBERTURA` a
-`EVALUADO` si más adelante entra una fuente que cubra esa droga. Es deliberado y
-está escrito en la decisión.
-
-**La lectura va afuera de la transacción, a diferencia de la dispensación.** En
-stock, `dispensar` replanifica *dentro* de la transacción porque entre calcular
-el plan y ejecutarlo puede entrar otro egreso. Acá ese riesgo no existe:
-`Interaccion` es dato de referencia que se carga una vez, y los medicamentos
-elegidos no cambian mientras se los evalúa. **Es una diferencia deliberada con
-el otro módulo, no un olvido.**
-
-**No hay `$transaction` alrededor, y está bien.** Es una sola escritura anidada,
-y eso ya es una transacción: Prisma envuelve el `create` con sus anidados. Poner
-un `$transaction` alrededor de una única llamada daría a entender que hay más de
-una operación de la que preocuparse.
-
-### Un defecto que se evitó, y vale la pena que se sepa
-
-La primera versión devolvía las observaciones **asumiendo que `create` anidado
-las trae en el orden en que se las pasó**. En la práctica lo hace, pero no lo
-garantiza nada: es el orden de un `RETURNING` de Postgres y basta un plan de
-consulta distinto para que cambie.
-
-Si cambiara, la única consecuencia visible sería que las observaciones salen
-desordenadas por severidad en la pantalla de resultado. **Silencioso,
-intermitente y difícil de reproducir**, que es el peor tipo. Ahora el orden se
-impone explícitamente, usando el par de medicamentos como identidad.
+El parámetro `incluirNoVigentes` **es `false` por defecto**. El valor seguro es
+el más chico: la evaluación de interacciones corre sobre la medicación vigente,
+y si el defecto trajera el historial, olvidarse el parámetro daría un aviso por
+una droga que el paciente ya no toma. La ficha del paciente (5.13), que sí
+quiere todo, lo pide explícitamente.
 
 ### Cómo verificarlo
 
-Script descartable contra la base, **24 casos, todos dan lo esperado**.
+Script descartable contra el servidor levantado, **39 casos por HTTP real**,
+todos dan lo esperado. No compilando: pidiéndole al servidor.
 
-| Caso | Qué se probó |
+| Endpoint | Qué se probó |
 | --- | --- |
-| Con hallazgos | guarda los 4 evaluados; encuentra la interacción; **las tres `evaluabilidad` a la vez**; el texto lo compuso el redactor; nombra las drogas correctas |
-| **Sin hallazgos** | no encuentra nada pero guarda los evaluados; al releer **se reconstruye la falta de cobertura** |
-| Relectura | el texto releído es idéntico al guardado; una consulta inexistente devuelve `null` |
-| Sin paciente | se crea igual y queda atribuida al médico del seed |
-| Rechazos | un solo medicamento; el mismo dos veces; uno inexistente; paciente inexistente; **uno dado de baja** |
-| Nada a medias | una consulta rechazada **no deja fila** |
-| Determinismo | el orden de entrada no cambia el resultado |
+| `/api/pacientes` | alta 201; duplicado 409 con error por campo; **un DNI da 422 y no 400**; sin seudónimo 400; listado; búsqueda |
+| `/api/medicacion` | alta 201; misma droga vigente 409; fecha futura 422; fecha ilegible 400; vigentes con **estado calculado** y medicamento resuelto; motivo corto 422; suspensión 200; doble suspensión 422; el historial trae el motivo; sin `pacienteId` 400 |
+| `/api/consultas` | **un solo medicamento da 422 y no 400**; el mismo dos veces 422; lista mal formada 400; medicamento inexistente 404; paciente inexistente 404; consulta válida 201 con su observación y **el clonazepam marcado `SIN_COBERTURA`**; relectura 200; inexistente 404; sin id 400 |
+| Métodos | `PUT` y `DELETE` sobre consultas y pacientes dan **405** |
 
-Para probar `SIN_RXCUI` hizo falta crear un medicamento sin código: los diez del
-seed tienen todos el suyo. Se borra al terminar.
+También se comprobó que el alta de paciente **no devuelve ningún dato
+filiatorio**: la respuesta trae `id`, `seudonimo`, `activo` y las marcas de
+tiempo, nada más.
+
+El log del servidor quedó **sin errores**, y los datos de prueba se borraron: la
+base quedó con 0 pacientes, 0 consultas y las 1150 interacciones.
 
 `npm run check` da 0.
 
 ### Qué quedó sin hacer
 
 - **La rama no está mergeada.**
-- **La 5.10 en adelante**, y toda la fase 6 salvo la 6.01.
+- **No hay listado de consultas.** `GET /api/consultas` devuelve una por id. La
+  pantalla que necesita el listado es la 5.20, y el servicio no expone esa
+  función: agregarla al route handler significaría consultar la base desde ahí,
+  que es lo que la arquitectura no permite. **Le va a hacer falta una
+  `listarConsultas` en `src/services/consultas.ts`.**
+- **No hay baja de paciente.** `Paciente` tiene `activo` pero ningún endpoint lo
+  apaga. Ninguna tarea lo pide todavía.
+- **La 5.11 en adelante**, y toda la fase 6 salvo la 6.01.
 - **D8 sigue abierta.**
 
 ### Antes de mergear
@@ -127,42 +106,54 @@ seed tienen todos el suyo. Se borra al terminar.
 
 ```bash
 git fetch origin
-git diff --name-only origin/main...origin/feat/5.09-servicio-de-consultas
+git diff --name-only origin/main...origin/feat/5.10-route-handlers-clinicos
 ```
 
-Tiene que listar `src/services/consultas.ts`.
+Tiene que listar los cuatro archivos nuevos.
 
 ### Qué sigue
 
-**La 5.10: route handlers de pacientes, medicación y consultas.** Es lo único
-que separa a la lógica de las pantallas, y de ahí en adelante la fase 5 es toda
-interfaz.
+**De acá en adelante la fase 5 es interfaz.** Y hay dos caminos que no se pisan:
 
 | Tarea | Tamaño | Qué es |
 | --- | --- | --- |
-| **5.10** | M | Route handlers de pacientes, medicación y consultas |
+| **5.11** | M | Pantalla `/pacientes`: tabla de seudónimos con cantidad de medicamentos vigentes |
 | **6.02** | M | Selector de usuario simulado en la barra superior |
 | **6.04** | M | Manejo de errores global |
 
-**La 6.02 se volvió más relevante:** `crearConsulta` acepta `usuarioId` y hoy
-cae en `USUARIO_CLINICO_PROVISORIO_ID`, el médico del seed. Con el selector, ese
-parámetro pasa a tener un valor real sin tocar el servicio.
+La 5.11 abre la cadena 5.12 → 5.13 → 5.14 → 5.15, que es toda la ficha del
+paciente.
 
-**Si trabajan dos en paralelo: 5.10 con 6.02, o 5.10 con 6.04.**
+**La 6.02 se volvió más relevante:** `POST /api/consultas` ya acepta `usuarioId`
+y hoy cae en el médico del seed. Con el selector, ese campo pasa a tener un valor
+real sin tocar ni el servicio ni el endpoint.
+
+**Ojo con la 5.11:** pide "cantidad de medicamentos vigentes" por paciente.
+`GET /api/pacientes` no la trae, y pedir la medicación de cada paciente por
+separado sería una consulta por fila. Conviene resolverlo en el servicio, como se
+hizo con `obtenerDisponiblePorLote` en la 4.05 para no caer en el mismo problema.
 
 ### Antes de arrancar, tener en cuenta
 
-- **La 5.10 no repite reglas.** El servicio ya valida todo y lanza
-  `ErrorDeNegocio`; el route handler valida la **forma** con Zod y delega. Ver
-  `src/lib/respuestaHttp.ts`, que ya mapea los códigos a 409/404/422.
-- **Las interacciones se evalúan sobre la medicación VIGENTE**, no sobre el
-  historial. `listarMedicacionVigente`, no `listarMedicacionDePaciente`.
-- **La `evaluabilidad` ya viene resuelta** en el resultado de la consulta. Las
-  pantallas no la calculan.
+- **Las pantallas consumen la API, no importan el servicio.** Ver
+  `docs/ARQUITECTURA.md` sección 3.
+- **`incluirNoVigentes` es `false` por defecto.** Para evaluar interacciones no
+  se toca; para la ficha del paciente se pide en `true`.
+- **La `evaluabilidad` ya viene resuelta** en la respuesta de la consulta:
+  `EVALUADO`, `SIN_RXCUI` o `SIN_COBERTURA`. Las pantallas no la calculan, y la
+  5.13, la 5.16 y la 5.18 tienen que mostrarla.
 - **El texto de la observación ya está guardado.** No se recompone al mostrar.
+- **Las tres pantallas existentes cargan datos con `setTimeout(…, 0)` dentro de
+  un `useEffect`.** Es un parche para que el linter no rechace la llamada, está
+  documentado en `src/app/stock/TablaDeStock.tsx` y las pantallas nuevas
+  conviene que sigan el mismo patrón: tener dos formas distintas de cargar datos
+  es peor que tener una imperfecta.
+- **Los cuatro componentes de `src/components/ui/` son los únicos que hay:**
+  `Boton`, `Campo`, `Tabla`, `Modal`.
+- **Las fechas se formatean con `src/lib/fechas.ts`.**
 - **Ningún dato clínico se inventa.**
-- **Todas las interacciones tienen severidad `ALTA`.** La fuente no publica una
-  escala. La 5.18 va a mostrar un solo color y está asumido.
+- **Todas las interacciones tienen severidad `ALTA`.** La 5.18 va a mostrar un
+  solo color y está asumido.
 - **El catálogo actual cruza con una sola interacción.** Se arregla en la 6.06
   (decisión `0012`). No es un error del código.
 - **El sistema asiste, no decide.**
