@@ -501,6 +501,48 @@ Lista viva. Se agrega, no se borra.
   local. Reescribir esos commits con `rebase` o `amend` cambia los hashes de la
   rama de otro, que es la trampa de arriba. La rama descartada se borra del
   remoto para que nadie la vuelva a mergear.
+- **Un archivo nuevo se puede perder en un merge sin que `npm run check` se
+  queje.** Pasó el 2026-09-08 con la 5.06: al resolver el conflicto de la tabla
+  "En curso ahora" se mergeó el commit de reserva en lugar del que traía el
+  código, y `main` quedó sin `src/services/interacciones.ts`. **`npm run check`
+  daba 0 igual**, porque todavía no lo importaba nadie. Ese es el patrón de toda
+  la fase 5 y se va a repetir: el servicio entra en una tarea y la pantalla que
+  lo usa llega en la siguiente, así que entre una y otra hay un archivo que nada
+  referencia. **Que compile no significa que esté completo**, y ninguna
+  comprobación automática lo cubre.
+
+  **Y la lección de fondo es más grande que cualquier chequeo: el trabajo que no
+  está en `origin` no existe.** Lo que se perdió con la 5.06 no fue un merge, fue
+  un commit que vivía en una sola máquina. `src/services/interacciones.ts`
+  figura añadido en **un único commit de toda la historia del repositorio** —el
+  que lo recuperó—, así que el original nunca llegó al remoto: no hubo qué
+  rescatar. Mientras algo esté sin pushear no hay copia. Ni resolver mejor el
+  conflicto, ni los comandos de acá abajo, ni nadie del equipo lo puede traer de
+  vuelta; si no sobrevive en el disco de quien lo escribió, se reescribe a mano.
+  Por eso la reserva de tareas manda **pushear la rama aunque esté a medio camino
+  y aunque no compile**: pushear no es entregar algo terminado, es dejar la única
+  copia que existe fuera de tu disco.
+
+  Dicho eso, la variante que se pierde en el merge sí se detecta. Dos chequeos,
+  los dos antes de mergear:
+
+  ```bash
+  git fetch origin
+  # 1. La rama aporta el archivo de la tarea. Si no figura acá, el código
+  #    nunca se pusheó: no hay nada que mergear todavía.
+  git diff --name-only origin/main...origin/<rama>
+
+  # 2. Con el merge resuelto en local y antes de pushear: lista los archivos
+  #    que están en la rama y no quedaron en el resultado. Tiene que salir vacío.
+  git diff --diff-filter=D --name-only <rama> HEAD
+  ```
+
+  Si el segundo devuelve algo, mirarlo línea por línea: un archivo que `main`
+  borró a propósito también aparece ahí. Y **el commit de reserva no es el
+  trabajo**: si lo único que trae la rama es `chore: tomar la tarea X.YY`, falta
+  el código. Las ramas se borran del remoto al mergear, así que después no queda
+  de dónde recuperarlo —`origin` tiene solo `main`—: lo que no se pusheó a
+  tiempo hay que reescribirlo, que es lo que hubo que hacer con la 5.06.
 
 ---
 
