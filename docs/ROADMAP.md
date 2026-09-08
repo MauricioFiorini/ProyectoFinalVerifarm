@@ -33,6 +33,38 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 |---|---|---|---|---|---|
 | — | — | — | — | — | — |
 
+### Migraciones pendientes de aplicar
+
+**Se lee antes de tomar cualquier tarea.** Una migración sin aplicar no rompe
+`git pull`: rompe `npm run check` con errores de tipo que no mencionan a Prisma
+por ningún lado, y se pierde media hora buscando en el lugar equivocado.
+
+En cada máquina, después de traer los cambios:
+
+```bash
+npx prisma migrate dev
+npm run setup
+```
+
+**Las dos cosas.** `migrate dev` toca la base; `npm run setup` regenera el
+cliente de Prisma, que es lo que TypeScript lee. Sin lo segundo el cliente sigue
+con el modelo viejo.
+
+| Integrante | `medicacion_con_fechas_y_motivo` (5.04) | `la_consulta_guarda_lo_evaluado` (5.21) |
+|---|---|---|
+| Juan Pablo | `[ ]` | `[ ]` |
+| Mauricio | `[x]` | `[x]` |
+| Juan José | `[ ]` | `[ ]` |
+
+**Las dos solo agregan.** La de la 5.04 suma tres columnas a
+`MedicacionVigente` y le saca un `@@unique`; la de la 5.21 crea la tabla
+`MedicamentoEvaluado`. Ninguna borra datos ni debería pedir resetear: si
+`prisma migrate dev` propone un reset, **parar y avisar** — significa que alguien
+editó una migración ya mergeada (ver `docs/CONVENCIONES.md` sección 14).
+
+Cuando las tres filas de una columna estén completas, esa columna se borra de la
+tabla. Si la tabla queda sin columnas, se borra la sección entera.
+
 ### Reserva de tareas
 
 **Ninguna tarea tiene dueño fijo.** Lo único que reserva una tarea es la tabla
@@ -428,7 +460,7 @@ queda fuera del prototipo (el RxCUI se carga a mano).
 | 5.06 | **Motor de interacciones**: dada una lista de RxCUI, devolver todos los pares que interactúan. Determinístico. | `[x]` | L | **5.02** |
 | 5.07 | Validación de que una consulta requiere al menos dos medicamentos (restricción `2..*` del modelo). | `[x]` | S | 5.06 |
 | 5.08 | `src/lib/redaccion/`: composición del texto de la observación **por plantilla**, a partir del par de drogas, la severidad y la descripción. Interfaz preparada para sustituir por un modelo generativo más adelante. | `[x]` | M | 5.06 |
-| 5.09 | `src/services/consultas.ts`: crear consulta, generar observaciones y persistir, todo en transacción. **Guarda también los medicamentos evaluados** (`MedicamentoEvaluado`, decisión `0014`), todos, tengan `rxcui` o no: una consulta guardada sin su lista de evaluados no se puede releer. | `[ ]` | L | 5.08, 5.21 |
+| 5.09 | `src/services/consultas.ts`: crear consulta, generar observaciones y persistir, todo en transacción. **Guarda también los medicamentos evaluados** (`MedicamentoEvaluado`, decisión `0014`), todos, tengan `rxcui` o no: una consulta guardada sin su lista de evaluados no se puede releer. | `[x]` | L | 5.08, 5.21 |
 | 5.10 | Route handlers de pacientes, medicación y consultas. | `[ ]` | M | 5.09 |
 | 5.11 | Pantalla `/pacientes`: tabla de seudónimos con cantidad de medicamentos vigentes. Botón **"Nuevo paciente"**. | `[ ]` | M | 5.10, 3.05 |
 | 5.12 | Modal de alta de paciente: solo el identificador, con nota visible explicando la seudonimización. Botón **"Crear"**. | `[ ]` | S | 5.11 |
