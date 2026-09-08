@@ -426,7 +426,7 @@ queda fuera del prototipo (el RxCUI se carga a mano).
 | 5.05 | Cálculo del **estado derivado** de la medicación (vigente / suspendida / finalizada) a partir de fechas y motivo. | `[x]` | S | 5.04 |
 | 5.06 | **Motor de interacciones**: dada una lista de RxCUI, devolver todos los pares que interactúan. Determinístico. | `[x]` | L | **5.02** |
 | 5.07 | Validación de que una consulta requiere al menos dos medicamentos (restricción `2..*` del modelo). | `[ ]` | S | 5.06 |
-| 5.08 | `src/lib/redaccion/`: composición del texto de la observación **por plantilla**, a partir del par de drogas, la severidad y la descripción. Interfaz preparada para sustituir por un modelo generativo más adelante. | `[ ]` | M | 5.06 |
+| 5.08 | `src/lib/redaccion/`: composición del texto de la observación **por plantilla**, a partir del par de drogas, la severidad y la descripción. Interfaz preparada para sustituir por un modelo generativo más adelante. | `[x]` | M | 5.06 |
 | 5.09 | `src/services/consultas.ts`: crear consulta, generar observaciones y persistir, todo en transacción. | `[ ]` | L | 5.08 |
 | 5.10 | Route handlers de pacientes, medicación y consultas. | `[ ]` | M | 5.09 |
 | 5.11 | Pantalla `/pacientes`: tabla de seudónimos con cantidad de medicamentos vigentes. Botón **"Nuevo paciente"**. | `[ ]` | M | 5.10, 3.05 |
