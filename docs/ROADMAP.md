@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| 5.21 | Mauricio Mateo Fiorini | `feat/5.21-la-consulta-guarda-lo-evaluado` | activa | — | 2026-09-08 |
+| — | — | — | — | — | — |
 
 ### Reserva de tareas
 
@@ -91,14 +91,13 @@ casos:
 
 ### Decisiones abiertas
 
-**Dos decisiones de equipo pendientes.** **Están todas en esta tabla**: lo que no
+**Una decisión de equipo pendiente.** **Están todas en esta tabla**: lo que no
 figura acá, nadie lo cuenta como tema de reunión. **Antes de tomar una tarea,
 mirá si alguna la bloquea.**
 
 | # | Decisión | Bloquea |
 |---|---|---|
 | D8 | **Ramas y revisión:** se sostiene la regla de "código va en rama y otro le pasa el ojo" o se cambia el documento. No bloquea ninguna tarea, pero se repite. | nada |
-| D10 | **Una consulta no guarda qué medicamentos se evaluaron.** `ConsultaInteraccion` tiene paciente, usuario, fecha y observaciones, y nada más. Una consulta que no encuentra nada queda con cero observaciones: la fila dice que alguien consultó, no qué consultó. Afecta a la 5.18 —que tiene que listar los medicamentos evaluados sin cobertura— y a la 5.20, donde esas consultas aparecerían vacías. **Requiere migración**, así que se decide antes de escribir la 5.09. | 5.09, 5.18, 5.20 |
 
 ### Las que se cerraron
 
@@ -116,6 +115,7 @@ que reemplaza a la anterior.
 | D6 | Los RxCUI son de **ingrediente**, verificados contra RxNorm | `decisiones/0008-los-rxcui-son-de-ingrediente.md` |
 | D7 | **Usuario fijo del seed**, desde una constante en el servicio | `decisiones/0009-usuario-fijo-para-los-movimientos.md` |
 | D9 | **El catálogo se alinea con la fuente**, en la tarea 6.06 | `decisiones/0012-el-catalogo-se-alinea-con-la-fuente.md` |
+| D10 | **La consulta guarda los medicamentos evaluados**, no solo los hallazgos | `decisiones/0014-la-consulta-guarda-lo-que-evaluo.md` |
 
 **Decidido no es hecho.** Las seis destraban las fases 3, 4 y 5, pero tres de
 ellas necesitan trabajo antes de que esas fases arranquen de verdad. Ese trabajo
@@ -428,7 +428,7 @@ queda fuera del prototipo (el RxCUI se carga a mano).
 | 5.06 | **Motor de interacciones**: dada una lista de RxCUI, devolver todos los pares que interactúan. Determinístico. | `[x]` | L | **5.02** |
 | 5.07 | Validación de que una consulta requiere al menos dos medicamentos (restricción `2..*` del modelo). | `[x]` | S | 5.06 |
 | 5.08 | `src/lib/redaccion/`: composición del texto de la observación **por plantilla**, a partir del par de drogas, la severidad y la descripción. Interfaz preparada para sustituir por un modelo generativo más adelante. | `[x]` | M | 5.06 |
-| 5.09 | `src/services/consultas.ts`: crear consulta, generar observaciones y persistir, todo en transacción. | `[ ]` | L | 5.08 |
+| 5.09 | `src/services/consultas.ts`: crear consulta, generar observaciones y persistir, todo en transacción. **Guarda también los medicamentos evaluados** (`MedicamentoEvaluado`, decisión `0014`), todos, tengan `rxcui` o no: una consulta guardada sin su lista de evaluados no se puede releer. | `[ ]` | L | 5.08, 5.21 |
 | 5.10 | Route handlers de pacientes, medicación y consultas. | `[ ]` | M | 5.09 |
 | 5.11 | Pantalla `/pacientes`: tabla de seudónimos con cantidad de medicamentos vigentes. Botón **"Nuevo paciente"**. | `[ ]` | M | 5.10, 3.05 |
 | 5.12 | Modal de alta de paciente: solo el identificador, con nota visible explicando la seudonimización. Botón **"Crear"**. | `[ ]` | S | 5.11 |
@@ -440,7 +440,7 @@ queda fuera del prototipo (el RxCUI se carga a mano).
 | 5.18 | Pantalla de resultado: observaciones ordenadas por severidad, con color según ese valor. Estado vacío explícito: **"No se encontraron interacciones registradas entre los medicamentos evaluados"**. **Ese texto no aparece nunca solo:** al lado va la lista de los medicamentos evaluados que la fuente no cubre —de `rxcuisConCobertura`— bajo **"Sin datos en la fuente: no se pudo revisar esta droga"**, y va también cuando sí hay interacciones. **"Sin interacciones" y "sin datos" no se pueden ver igual** (decisión `0012`). | `[ ]` | L | 5.16 |
 | 5.19 | Aviso obligatorio en toda pantalla clínica: el sistema asiste, no reemplaza el criterio profesional. | `[ ]` | S | 5.18 |
 | 5.20 | Pantalla `/consultas`: lista simple de consultas por fecha, sin filtros. | `[ ]` | M | 5.10 |
-| 5.21 | **Migración: la consulta guarda los medicamentos evaluados** (decisión `0014`, cierra la D10). Hoy `ConsultaInteraccion` solo guarda las interacciones encontradas, no lo que se evaluó: una consulta sin hallazgos queda sin rastro de qué revisó. **Va antes de la 5.09.** | `[~]` | S | 5.06 |
+| 5.21 | **Migración: la consulta guarda los medicamentos evaluados** (decisión `0014`, cierra la D10). Hoy `ConsultaInteraccion` solo guarda las interacciones encontradas, no lo que se evaluó: una consulta sin hallazgos queda sin rastro de qué revisó. **Va antes de la 5.09.** | `[x]` | S | 5.06 |
 
 ---
 
