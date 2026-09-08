@@ -33,6 +33,38 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 |---|---|---|---|---|---|
 | — | — | — | — | — | — |
 
+### Migraciones pendientes de aplicar
+
+**Se lee antes de tomar cualquier tarea.** Una migración sin aplicar no rompe
+`git pull`: rompe `npm run check` con errores de tipo que no mencionan a Prisma
+por ningún lado, y se pierde media hora buscando en el lugar equivocado.
+
+En cada máquina, después de traer los cambios:
+
+```bash
+npx prisma migrate dev
+npm run setup
+```
+
+**Las dos cosas.** `migrate dev` toca la base; `npm run setup` regenera el
+cliente de Prisma, que es lo que TypeScript lee. Sin lo segundo el cliente sigue
+con el modelo viejo.
+
+| Integrante | `medicacion_con_fechas_y_motivo` (5.04) | `la_consulta_guarda_lo_evaluado` (5.21) |
+|---|---|---|
+| Juan Pablo | `[ ]` | `[ ]` |
+| Mauricio | `[x]` | `[x]` |
+| Juan José | `[ ]` | `[ ]` |
+
+**Las dos solo agregan.** La de la 5.04 suma tres columnas a
+`MedicacionVigente` y le saca un `@@unique`; la de la 5.21 crea la tabla
+`MedicamentoEvaluado`. Ninguna borra datos ni debería pedir resetear: si
+`prisma migrate dev` propone un reset, **parar y avisar** — significa que alguien
+editó una migración ya mergeada (ver `docs/CONVENCIONES.md` sección 14).
+
+Cuando las tres filas de una columna estén completas, esa columna se borra de la
+tabla. Si la tabla queda sin columnas, se borra la sección entera.
+
 ### Reserva de tareas
 
 **Ninguna tarea tiene dueño fijo.** Lo único que reserva una tarea es la tabla
