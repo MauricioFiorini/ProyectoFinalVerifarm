@@ -14,142 +14,148 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-08
 **Entrega:** Mauricio Mateo Fiorini
+**Rama:** `feat/5.06-motor-de-interacciones` (**sin mergear**)
 
-**Dos ramas apiladas, ninguna mergeada.** Se mergean en este orden:
-
-1. `feat/5.04-servicio-de-medicacion`
-2. `feat/5.05-estado-de-la-medicacion`
+**La 5.04 y la 5.05 ya están en `main`** (PR #16 y #17). Esta rama salió de
+`main` antes de esos merges y se rebasó encima, así que la tabla "En curso ahora"
+ya refleja las tres tareas terminadas.
 
 ### Qué se hizo
 
-| Tarea | Qué dejó |
+**La 5.06: el motor de interacciones**, en `src/services/interacciones.ts`. Es
+la pieza central del módulo clínico.
+
+También se corrigió en el roadmap la dependencia de la tarea: decía **5.03**, y
+esa tarea quedó sin efecto por la decisión `0012`. Los datos los pone la
+**5.02**.
+
+### Qué expone
+
+| Función | Qué hace |
 | --- | --- |
-| — | Migración de `MedicacionVigente`: fechas, motivo y afuera el `@@unique` |
-| 5.04 | `src/services/medicacion.ts`: agregar, suspender, listar |
-| 5.05 | Estado derivado, en el mismo archivo |
-| — | Decisión `0013` |
+| `combinarPares(rxcuis)` | **Pura.** Todos los pares distintos de la lista, en orden canónico |
+| `evaluarInteracciones(rxcuis)` | Las interacciones registradas entre esas drogas |
+| `rxcuisConCobertura(rxcuis)` | Cuáles de esas drogas están en la fuente |
 
-### ATENCIÓN: hay migración nueva
+### Es determinístico, y eso no es un adorno
 
-**Los tres tienen que correr `npx prisma migrate dev` y después
-`npm run setup`.** Sin lo segundo, el cliente de Prisma queda con el modelo
-viejo y `npm run check` falla con errores de tipo que no tienen nada que ver con
-lo que uno esté escribiendo.
+No consulta ninguna fuente externa, no usa un modelo de lenguaje y no depende de
+la hora ni del orden en que le pasen las drogas. La misma lista devuelve siempre
+el mismo resultado, y ese resultado se puede rastrear hasta la fila que lo
+produjo y hasta la fuente que la cargó. **En un sistema que asiste una decisión
+clínica, poder explicar por qué salió un aviso es parte del aviso.**
 
-### La migración: `20260908132808_medicacion_con_fechas_y_motivo`
+Se verificó explícitamente: tres órdenes de entrada distintos dan la misma
+salida, y dos corridas contra la base dan la misma lista.
 
-`MedicacionVigente` tenía cuatro campos y ninguno servía para lo que pedían
-cinco tareas. Ahora tiene `fechaInicio`, `fechaFin` y `motivoSuspension`, y
-**perdió el `@@unique([pacienteId, medicamentoId])`**.
+### La decisión de diseño que importa: una sola consulta, no N
 
-**Se sacó porque hacía imposible el historial.** Si a un paciente se le suspende
-el clonazepam y tres meses después se le reinicia, con la restricción puesta la
-segunda fila no entra: habría que pisar la primera, y ahí se pierde el registro
-de que alguna vez se suspendió y por qué.
+Con N drogas hay N(N-1)/2 pares. Para un paciente con diez drogas, preguntarlos
+de a uno serían 45 consultas. Se resuelve con **una**: las filas donde los dos
+RxCUI están en la lista.
 
-La regla real es más fina de lo que una restricción de base puede expresar: un
-paciente no puede tener la misma droga **vigente** dos veces; suspendida,
-cuantas veces haga falta. **Ahora vive en `agregarMedicacion`.**
+Esa forma tiene además una propiedad que la otra no tiene. **No depende de que
+la tabla esté ordenada canónicamente.** Si una fila estuviera cargada como
+(B, A), la consulta la encuentra igual, porque solo pide que los dos códigos
+pertenezcan al conjunto. Preguntando par por par —`rxcui1 = a AND rxcui2 = b`—
+esa fila se perdería **en silencio**.
 
-El porqué completo está en `docs/decisiones/0013-la-medicacion-lleva-fechas-y-motivo.md`.
+Conviene ser preciso con esto, porque el traspaso anterior lo dejó más fuerte de
+lo que corresponde: el orden canónico sigue siendo obligatorio **para que la
+misma interacción no esté cargada dos veces**, y `ordenarParRxcui` se usa igual
+para normalizar entrada y salida. Pero para *encontrar* una fila, esta consulta
+no depende de él. Quien escriba una búsqueda par por par sí va a depender, y ahí
+el riesgo vuelve.
 
-### El estado no se guarda, se calcula
+### `rxcuisConCobertura`: por qué existe
 
-Es el mismo criterio que los saldos de stock. Los tres estados salen de dos
-campos, sin ningún tercero:
+Porque **"no se encontraron interacciones" y "no hay datos de esta droga" son
+dos cosas distintas**, y mostrarlas igual sería el peor error de interfaz que
+este sistema puede cometer.
 
-| `fechaFin` | `motivoSuspension` | Estado |
-| --- | --- | --- |
-| `NULL` | — | **Vigente** |
-| con valor | con valor | **Suspendida**: se cortó por una razón |
-| con valor | `NULL` | **Finalizada**: llegó a su término |
+ONCHigh no cubre todo el catálogo. El clonazepam, que es de los psicofármacos
+más usados en la institución, **no está**. Evaluar un esquema con clonazepam y
+decir "sin interacciones" da a entender que se lo revisó y está limpio, cuando
+lo que pasó es que no había contra qué revisarlo.
 
-`calcularEstadoDeMedicacion` es una función pura y toma una `referencia`
-opcional, igual que `estaVencido` en el módulo de stock: una fecha de fin
-posterior a la referencia todavía no ocurrió, así que el tramo sigue vigente.
-
-**Los dos listados ya devuelven el estado calculado**, así que la 5.13 no tiene
-que derivarlo de nuevo.
-
-### El servicio
-
-- `listarMedicacionVigente(pacienteId)` — las que no tienen `fechaFin`.
-- `listarMedicacionDePaciente(pacienteId)` — todo, vigente y no vigente.
-- `agregarMedicacion({ pacienteId, medicamentoId, fechaInicio })`
-- `suspenderMedicacion({ medicacionId, motivo, fechaFin? })`
-- `calcularEstadoDeMedicacion(medicacion, referencia?)` — pura.
-
-**Elegir bien entre los dos listados importa más de lo que parece.** La
-evaluación de interacciones tiene que usar `listarMedicacionVigente`: una droga
-suspendida ya no la toma el paciente, y avisar por una interacción que no puede
-ocurrir es ruido que hace que se dejen de leer los avisos que sí importan. La
-ficha del paciente (5.13) usa la otra, porque una suspensión y su motivo son
-información clínica.
-
-Reglas que aplica el servicio: la fecha de inicio no puede ser futura; el motivo
-es obligatorio al suspender, con mínimo de 4 caracteres y `trim()`; la fecha de
-suspensión no puede ser futura ni anterior a la de inicio; una medicación ya
-suspendida no se vuelve a suspender; el paciente y el medicamento tienen que
-existir y estar activos.
-
-**No hay dosis, ni frecuencia, ni vía.** No faltan: están afuera por decisión de
-alcance. Con dosis el sistema pasaría a formar parte del acto médico.
+Con esta función la pantalla puede distinguir los tres casos de la decisión
+`0012`. **La 5.16 y la 5.18 tienen que usarla.**
 
 ### Cómo verificarlo
 
-Dos scripts descartables, **28 casos en total, todos dan lo esperado**.
+Script descartable, **26 casos, todos dan lo esperado**.
 
-Contra la base (20 casos):
+Sobre la función pura: lista vacía; una sola droga; dos drogas; orden canónico
+del par; cuatro drogas dan seis pares; drogas repetidas no se cruzan consigo
+mismas; y el determinismo con tres órdenes de entrada.
 
-| Bloque | Qué se probó |
+Contra la base: lista vacía; una sola droga (corta antes de consultar);
+escitalopram + haloperidol da una; invertir la entrada da lo mismo; clonazepam +
+paracetamol da cero; un RxCUI inexistente no rompe; ningún resultado involucra
+una droga fuera de la lista; todos los pares salen en orden canónico; no hay
+repetidos; y dos corridas dan la misma salida.
+
+Sobre la cobertura: escitalopram y fenelzina cubiertos; clonazepam, paracetamol
+y un código inventado no; y no devuelve drogas que no se preguntaron.
+
+**El caso que vale la pena mirar** es un esquema de cinco drogas —escitalopram,
+haloperidol, fenelzina, fluoxetina, clonazepam—, que devuelve **tres**
+interacciones:
+
+| Par | Por qué |
 | --- | --- |
-| Alta | válida; misma droga ya vigente; fecha futura; paciente y medicamento inexistentes |
-| Suspensión | motivo vacío; motivo de dos letras; fecha futura; fecha anterior al inicio; medicación inexistente; doble suspensión |
-| Listados | la suspendida sale de vigentes y queda en el historial |
-| **Reinicio** | **una droga suspendida vuelve a entrar, y el motivo anterior no se pierde** |
-| Estados | un paciente con las tres situaciones a la vez devuelve una de cada una |
+| escitalopram + haloperidol | Ambos prolongan el intervalo QT |
+| escitalopram + fenelzina | ISRS con IMAO |
+| fluoxetina + fenelzina | ISRS con IMAO |
 
-Sobre la función pura (8 casos): sin fecha de fin; sin fecha de fin con motivo
-cargado por error; fin pasado con motivo; fin pasado sin motivo; fin pasado con
-motivo vacío; **fin futuro con y sin motivo**; y fin exactamente igual a la
-referencia.
+Y el clonazepam no aporta ninguna, correctamente marcado como sin cobertura.
+**Ese es el recorrido de la demostración del módulo clínico.**
 
-`npm run check` da 0 en las dos ramas.
+`npm run check` da 0.
 
 ### Qué quedó sin hacer
 
-- **Las dos ramas sin mergear.**
-- **La 5.06 en adelante.**
+- **La rama no está mergeada.**
+- **La 5.07 en adelante.**
 - **D8 sigue abierta.**
+
+### Sobre el conflicto que hubo al mergear
+
+La 5.06 se abrió como rama desde `main` antes de que entraran la 5.04 y la 5.05,
+y las tres tocan la tabla "En curso ahora" y este archivo. Al mergear la tercera
+dio conflicto. **Se resolvió rebasando la rama sobre `origin/main`**, no
+mergeando al revés.
+
+Para la próxima, la forma de evitarlo es simple: **una tarea por vez hasta el
+merge**, o si se abren varias, rebasar cada una sobre `main` antes de pedir el
+PR. La tabla de reservas es una sola línea que todas quieren editar.
 
 ### Qué sigue
 
-1. **5.06** — el motor de interacciones. Es de tamaño L y ya tiene contra qué
-   cruzar: 1150 filas en `Interaccion`.
-2. **5.07** — la validación de que una consulta necesita al menos dos
-   medicamentos.
-3. **5.08** — la redacción de la observación por plantilla.
+1. **5.07** — validar que una consulta necesita al menos dos medicamentos. Es de
+   tamaño S, y el motor ya devuelve lista vacía con menos de dos: lo que falta es
+   que sea un error explícito y no un resultado vacío silencioso.
+2. **5.08** — la redacción de la observación por plantilla.
+3. **5.09** — crear la consulta y persistir las observaciones, en transacción.
 
 ### Antes de arrancar, tener en cuenta
 
-- **Corré la migración y después `npm run setup`.**
-- **`ordenarParRxcui` es obligatorio** en cualquier lectura o escritura de
-  `Interaccion`. Está en `src/lib/rxcui.ts`. Buscar con otro orden significa no
-  encontrar interacciones que están cargadas, y una interacción no detectada es
-  el peor error que puede cometer este sistema.
 - **Las interacciones se evalúan sobre la medicación VIGENTE**, no sobre el
-  historial.
+  historial. `listarMedicacionVigente`, no `listarMedicacionDePaciente`.
+- **`ordenarParRxcui` normaliza los pares.** Está en `src/lib/rxcui.ts`.
+- **`rxcuisConCobertura` no es opcional para las pantallas.** Sin ella, "sin
+  datos" se muestra como "sin interacciones".
 - **Ningún dato clínico se inventa.** Las descripciones cargadas dicen la clase,
   no el efecto, porque la fuente no publica el efecto (decisión `0011`).
 - **Todas las interacciones tienen severidad `ALTA`.** La fuente no publica una
-  escala. La 5.18 va a mostrar un solo color y está asumido.
+  escala. La 5.18 va a mostrar un solo color y está asumido. El motor ordena por
+  severidad igual, porque el campo existe.
 - **El catálogo actual cruza con una sola interacción.** Se arregla en la 6.06
   (decisión `0012`). No es un error del código.
-- **La 5.16 y la 5.18 tienen tres casos, no dos:** "no hay interacciones
-  registradas", "falta el `rxcui`" y **"la fuente no cubre esta droga"**.
+- **El sistema asiste, no decide.** Ninguna función del motor bloquea nada.
 - **El paciente no tiene datos identificatorios.** Solo un seudónimo.
-- **El sistema asiste, no decide.**
-- **Las fechas se formatean con `src/lib/fechas.ts`.**
+- **La migración de la 5.04 ya está en `main`.** Quien no la haya aplicado:
+  `npx prisma migrate dev` y después `npm run setup`.
 - **El puerto sigue siendo el 5433** y Docker Desktop no arranca solo.
 
 ### Bloqueos
