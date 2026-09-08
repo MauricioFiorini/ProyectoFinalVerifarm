@@ -14,17 +14,24 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-08
 **Entrega:** Mauricio Mateo Fiorini
-**Ramas:** `feat/6.01-layout-y-navegacion` y `feat/5.01-servicio-de-pacientes`
-(**ninguna mergeada**; la segunda está apilada sobre la primera y se mergean en
-ese orden)
+
+**Tres ramas apiladas, ninguna mergeada.** Se mergean en este orden:
+
+1. `feat/6.01-layout-y-navegacion`
+2. `feat/5.01-servicio-de-pacientes`
+3. `feat/5.02-importar-onchigh`
+
+Están apiladas a propósito: las tres tocan `docs/ROADMAP.md` y este archivo, y
+mergeadas en paralelo chocan en la tabla "En curso ahora".
 
 ### Qué se hizo
 
 | Tarea | Qué dejó |
 | --- | --- |
-| 6.01 | Layout general con barra lateral, y pantalla de inicio provisoria |
+| 6.01 | Barra lateral de navegación, y pantalla de inicio provisoria |
 | 5.01 | `src/services/pacientes.ts` |
-| — | **Sondeo de ONCHigh**, que no es una tarea del roadmap pero cambia el plan |
+| 5.02 | **1150 interacciones cargadas** desde ONCHigh, con su generador y su procedencia |
+| — | Decisiones `0011` y `0012`. La `0012` cierra la D9 |
 
 ### 6.01 — Layout
 
@@ -32,9 +39,9 @@ Barra a la izquierda con las cinco secciones, resaltando la abierta; en pantalla
 angosta pasa arriba en fila. Vive en `src/components/layout/`, carpeta nueva:
 los cuatro de `src/components/ui/` son primitivas y la barra no lo es.
 
-**Pacientes y Consultas figuran pero no son enlaces.** Esas pantallas son la
-5.11 y la 5.20; un enlace daría 404. Van en gris con la etiqueta **Pendiente**.
-Cuando existan, se les saca `pendiente: true` de `SECCIONES` y listo.
+**Pacientes y Consultas figuran pero no son enlaces**, porque esas pantallas son
+la 5.11 y la 5.20 y darían 404. Van en gris con la etiqueta **Pendiente**.
+Cuando existan, se les saca `pendiente: true` de `SECCIONES`.
 
 **Se borró la plantilla de `create-next-app`.** Lo que quedó **no es la 6.03**:
 no consulta la base, no tiene tarjetas, y lo aclara en pantalla.
@@ -42,116 +49,124 @@ no consulta la base, no tiene tarjetas, y lo aclara en pantalla.
 ### 5.01 — Servicio de pacientes
 
 `listarPacientes`, `buscarPacientesPorSeudonimo`, `obtenerPacientePorId` y
-`crearPaciente`. Sigue la forma de `medicamentos.ts`: el servicio no sabe que
-existe HTTP y lanza `ErrorDeNegocio` cuando la operación rompe una regla.
+`crearPaciente`, con la forma de `medicamentos.ts`.
 
-Tres reglas que conviene conocer:
+- **El seudónimo se normaliza con `trim()`** antes de comparar y de guardar. Un
+  espacio invisible al final daría dos fichas de la misma persona.
+- **El duplicado se busca sin distinguir mayúsculas.** El `@unique` del esquema
+  sí las distingue, así que `PAC-001` y `pac-001` entrarían los dos.
+- **Un seudónimo de 7 u 8 dígitos pelados se rechaza**: casi seguro es un DNI en
+  el campo equivocado. Es estrecha a propósito —`PAC-001`, `A-38123456` y `H12`
+  pasan— y si al equipo le parece de más, se borra `PARECE_DOCUMENTO`.
 
-**El seudónimo se normaliza con `trim()` antes de comparar y de guardar.** Un
-espacio invisible al final produciría dos fichas para la misma persona sin que
-nadie note la diferencia en pantalla.
+Verificado contra la base con un script descartable: 13 casos, todos dan lo
+esperado.
 
-**El duplicado se busca sin distinguir mayúsculas.** El `@unique` del esquema sí
-las distingue, así que `PAC-001` y `pac-001` entrarían los dos. La comparación
-insensible está en el servicio.
+### 5.02 — ONCHigh importado
 
-**Un seudónimo que sea 7 u 8 dígitos pelados se rechaza.** Casi seguro es un DNI
-escrito en el campo equivocado, y el paciente no lleva datos filiatorios
-(`docs/CONTEXTO.md` sección 3). La comprobación es a propósito estrecha:
-`PAC-001`, `A-38123456` y `H12` pasan; lo único que corta es el número solo.
-**Si al equipo le parece de más, se saca borrando `PARECE_DOCUMENTO`** — está
-aislada justamente para eso.
+**`prisma/datos/onchigh.json`: 1150 interacciones**, generadas por
+`prisma/datos/generar-onchigh.mjs`, que quedó versionado con las instrucciones
+para rehacerlo en su cabecera. El script **no corre en cada seed** y **no agrega
+ninguna dependencia**: necesita `xlsx`, que se instala en una carpeta aparte.
 
-Verificado contra la base con un script descartable: alta válida, normalización,
-duplicado exacto, duplicado con otra caja, seudónimo corto, DNI de 7 y de 8
-dígitos, tres seudónimos que sí tienen que pasar, orden del listado, búsqueda
-insensible, búsqueda por id inexistente y paciente inactivo. **Los trece casos
-dan lo esperado.**
+El seed carga el JSON al final, con `readFileSync` y no con `import`: son 700 KB
+y por el sistema de módulos obligaría a prender `resolveJsonModule` y a que
+TypeScript le infiera un tipo a cada fila en cada `npm run check`.
 
-### El sondeo de ONCHigh, y lo que encontró
+**El mapeo DrugBank → RxCUI resuelve 123 de 123.** Era el riesgo grande de la
+tarea y no lo fue.
 
-Se hizo para decidir entre la **5.02** y la **5.03**, que es lo que pide la
-decisión `0010`. Los archivos quedaron fuera del repo: cargarlos es la 5.02 y
-todavía no está tomada.
+**Lo que la fuente no trae es severidad ni descripción.** Confirmado por tres
+caminos: la planilla tiene cuatro columnas y ninguna es severidad; el script de
+carga del proyecto de origen lee esos mismos cuatro campos; y en el conjunto
+combinado las 4031 filas de ONC tienen `effectConcept = None`.
 
-**Lo que salió bien, y era el riesgo declarado:**
+Por eso:
 
-| | Resultado |
-| --- | --- |
-| Archivos | `ONC_High_Priority_Mapped.csv`, **1930 pares, 123 drogas** |
-| Formato | `Nombre$DrugBankID$Nombre$DrugBankID$`. La primera droga es el **objeto**, la segunda el **precipitante** |
-| **Mapeo DrugBank → RxCUI** | **123 de 123.** RxNav acepta `idtype=DRUGBANK` |
-| Nivel ingrediente | 118 dan `TTY=IN` directo; las otras 5 lo dan en el segundo código que devuelve la consulta |
+- **Todas entran con severidad `ALTA`.** ONCHigh es, por definición, una lista de
+  alta prioridad. Graduarla sería inventar la graduación. **La 5.18 va a mostrar
+  una sola severidad, y eso está asumido.**
+- **La descripción se compone con la clase**, que sí es dato publicado: la
+  planilla organiza las interacciones por pares de clases. Queda, por ejemplo:
+  _"Par de alta prioridad de la lista ONC: ISRS (fármaco afectado) con IMAO
+  (fármaco desencadenante). Entrada #8 de la lista."_ **No dice qué le pasa al
+  paciente**, porque la fuente no lo dice.
 
-**El mapeo, que era el riesgo grande de la 5.02, no es un riesgo.** Resuelve
-completo y automático.
+El detalle completo, incluidas las correcciones de mapeo una por una y las
+erratas de la fuente que **no** se corrigieron, está en la decisión `0011`.
 
-**Lo que salió mal, y no estaba previsto:**
+### Lo más importante que sale de acá: `src/lib/rxcui.ts`
 
-**ONCHigh no trae severidad ni descripción.** Verificado por tres caminos
-distintos: la planilla original tiene cuatro columnas y ninguna es severidad; el
-script de carga del proyecto original (`scripts/load-ONC-HighPriority-DDIs.py`)
-lee exactamente esos cuatro campos; y en el conjunto combinado del repositorio
-las 4031 filas de ONC tienen `effectConcept = None`.
+`Interaccion` tiene `@@unique([rxcui1, rxcui2])` y una interacción no tiene
+dirección. Si una fila entra como (A, B) y otra como (B, A), la unicidad no las
+ve duplicadas **y el motor de la 5.06 buscaría por un orden sin encontrar la
+fila cargada con el otro**. Una interacción no detectada es el peor error
+posible en este sistema.
 
-Como la lista **entera** es de alta prioridad, lo honesto es cargar todo con
-severidad `ALTA`. Eso deja la 5.18 —"ordenadas por severidad, con color según
-ese valor"— con una sola categoría.
+`ordenarParRxcui` es la única definición válida de cuál va primero. **Todo lo
+que escriba o consulte `Interaccion` tiene que pasar por ahí.**
 
-**Y el problema de verdad: el catálogo casi no se cruza con la fuente.**
+De los 1930 pares del archivo quedan 1150: la fuente trae cada par en las dos
+direcciones.
+
+### El hallazgo que cambia la 6.06 (decisión `0012`, cierra la D9)
+
+Con los datos ya en la base se midió el cruce contra el catálogo real:
 
 | | |
 | --- | --- |
-| Medicamentos del seed presentes en ONCHigh | **4 de 10** (fluoxetina, sertralina, escitalopram, haloperidol) |
-| Ausentes | paracetamol, ibuprofeno, amoxicilina, clonazepam, diazepam, risperidona |
-| **Pares con las dos drogas en el catálogo** | **1** (haloperidol + escitalopram) |
+| Medicamentos del seed con RxCUI | 10 |
+| Presentes en ONCHigh | **4** |
+| **Interacciones detectables entre ellos** | **1** |
 
-O sea: se importan 1930 pares y la demostración encuentra **una** interacción.
-La 6.06 pide "pacientes cuya medicación efectivamente dispara interacciones", y
-con este catálogo no se puede.
+Una sola: escitalopram con haloperidol.
 
-**La fuente no es el problema; el catálogo sí.** ONCHigh está lleno de
-psicofármacos: citalopram, clorpromazina, tioridazina, pimozida, los IMAO
-(fenelzina, tranilcipromina), los tricíclicos, carbamazepina, metadona. Se probó
-un catálogo de 20 drogas tomadas de la propia lista y da **47 pares distintos**.
+**El problema no es la fuente, es el catálogo.** ONCHigh está lleno de
+psicofármacos —citalopram, clorpromazina, tioridazina, pimozida, los IMAO, los
+tricíclicos, carbamazepina, metadona—; el seed se armó en la 2.08, antes de que
+hubiera fuente. Con un catálogo de 20 drogas tomadas de la propia lista da **47
+interacciones**, medido contra la base cargada.
 
-Eso es lo que abre la **D9**. Los cuatro RxCUI que coinciden son además una
-comprobación cruzada de la 2.11: los códigos que verificamos a mano coinciden
-exactamente con los que RxNav devuelve por la vía de DrugBank.
+**Se resuelve en la 6.06**, el seed definitivo, que crece de alcance. Y **la
+5.03 queda sin efecto**: existía como red por si el mapeo fallaba.
+
+De esto sale una obligación de interfaz para la 5.16 y la 5.18: hay **tres**
+casos, no dos. "No hay interacciones registradas", "falta el `rxcui`" y **"la
+fuente no cubre esta droga"**. Confundir _sin interacciones_ con _sin datos_ es
+el error que este sistema no puede cometer.
 
 ### Qué quedó sin hacer
 
-- **Las dos ramas sin mergear.** Primero la 6.01, después la 5.01.
+- **Las tres ramas sin mergear.**
 - **La migración de `MedicacionVigente`.** Ver abajo.
-- **La D9 sin decidir.**
-- **La 5.02 y la 5.03 sin tomar.**
+- **Toda la fase 5 de la 5.04 en adelante.**
 - **D8 sigue abierta.**
 
 ### Cómo verificarlo
 
-Con `docker compose up -d` y `npm run dev`:
+Con `docker compose up -d`, `npx prisma db seed` y `npm run dev`:
 
 | Qué | Resultado |
 | --- | --- |
-| `/` | Barra a la izquierda, **Inicio** resaltado, sin rastro de la plantilla de Next |
-| Clic en **Stock** y después en **Ver lotes** | En `/stock/[id]` la sección abierta sigue siendo Stock |
-| **Pacientes** y **Consultas** | En gris, no clicables |
+| Seed | Dice "Cargando 1150 interacciones" |
+| Filas en `Interaccion` | 1150 |
+| Pares canónicos distintos | 1150 — no hay duplicados invertidos |
+| Filas fuera del orden canónico | 0 |
+| Pares de una droga consigo misma | 0 |
+| Cruce con el catálogo actual | 1 interacción |
+| Cruce con el catálogo de 20 drogas de la `0012` | 47 interacciones |
+| `/` | Barra a la izquierda, **Inicio** resaltado |
+| Clic en **Stock** y después en **Ver lotes** | La sección abierta sigue siendo Stock |
 | 375 px | La barra pasa arriba; la tabla se desplaza dentro de su caja |
-| Consola | Sin errores |
 
-`npm run check` da 0 en las dos ramas.
+`npm run check` da 0 en las tres ramas.
 
 ### Qué sigue
 
-1. **Decidir la D9.** Es lo que le da sentido a la 5.02: sin catálogo alineado,
-   importar 1930 pares no cambia nada de lo que se ve.
-2. **5.02** — importar ONCHigh. El mapeo ya se sabe que resuelve.
-3. **La migración de `MedicacionVigente`**, y después **5.04** y **5.05**.
-4. **5.06**, **5.07** y **5.08** — motor, validación y redacción.
-
-La **5.03** ya no parece necesaria como red: la razón por la que existía era que
-el mapeo pudiera fallar, y no falla. Conviene cerrarla explícitamente cuando se
-resuelva la D9, no dejarla colgada.
+1. **La migración de `MedicacionVigente`**, y después **5.04** y **5.05**.
+2. **5.06** — el motor de interacciones. Ya tiene contra qué cruzar.
+3. **5.07** y **5.08** — validación de dos medicamentos, y la redacción por
+   plantilla.
 
 ### La migración que hace falta, y ya está decidida
 
@@ -173,15 +188,13 @@ stock, donde nada se reescribe.
 
 ### Antes de arrancar, tener en cuenta
 
-- **Ningún dato clínico se inventa.** **Esto alcanza también a la 5.03:** "carga
-  manual de 15 pares" no significa quince pares elegidos de memoria.
+- **`ordenarParRxcui` es obligatorio** en cualquier lectura o escritura de
+  `Interaccion`.
+- **Ningún dato clínico se inventa.** Las descripciones dicen la clase, no el
+  efecto, porque la fuente no publica el efecto.
 - **El paciente no tiene datos identificatorios.** Solo un seudónimo.
 - **Una consulta de interacciones necesita al menos dos medicamentos.**
 - **El sistema asiste, no decide.**
-- **`Interaccion` tiene `@@unique([rxcui1, rxcui2])`** y el par se ordena en
-  código antes de insertarlo. Sin eso, `(A,B)` y `(B,A)` entran las dos. En
-  ONCHigh esto importa: los pares vienen en las dos direcciones, con objeto y
-  precipitante invertidos.
 - **Las fechas se formatean con `src/lib/fechas.ts`.**
 - **Las secciones nuevas se agregan en `SECCIONES`**, en
   `src/components/layout/BarraLateral.tsx`.
@@ -190,6 +203,4 @@ stock, donde nada se reescribe.
 
 ### Bloqueos
 
-**La D9 bloquea el sentido de la 5.02**, no su ejecución: se puede importar
-igual, pero conviene saber antes qué catálogo va a cruzarse contra esos datos.
-D8 sigue abierta y no bloquea nada.
+**Ninguno.** D8 sigue abierta y no bloquea ninguna tarea.

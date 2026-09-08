@@ -1,7 +1,15 @@
 import "dotenv/config";
-import { PrismaClient, TipoUsuario, UnidadMedida } from "@prisma/client";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import {
+  PrismaClient,
+  Severidad,
+  TipoUsuario,
+  UnidadMedida,
+} from "@prisma/client";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { ordenarParRxcui } from "../src/lib/rxcui";
 import {
   USUARIO_ADMIN_ID,
   USUARIO_FARMACEUTICO_ID,
@@ -123,6 +131,70 @@ const MEDICAMENTOS: MedicamentoSemilla[] = [
   },
 ];
 
+// --- Interacciones medicamentosas (tarea 5.02) ------------------------------
+//
+// Los pares NO se escriben a mano en este archivo: se leen de
+// `prisma/datos/onchigh.json`, que es la salida de `generar-onchigh.mjs`.
+// Ese script se corrio una vez, el 2026-09-08, y esta versionado con su
+// procedencia. Ver docs/decisiones/0011-como-se-importa-onchigh.md
+//
+// El archivo se lee con `readFileSync` y no con `import`: son 1150 filas y
+// unos 700 KB, y meterlo por el sistema de modulos obligaria a prender
+// `resolveJsonModule` y a que TypeScript le infiera un tipo a cada fila en
+// cada `npm run check`.
+
+type InteraccionSemilla = {
+  rxcui1: string;
+  rxcui2: string;
+  severidad: keyof typeof Severidad;
+  descripcion: string;
+  fuente: string;
+};
+
+type ArchivoDeInteracciones = {
+  generado: string;
+  fuente: string;
+  vigencia: string;
+  paresUnicos: number;
+  interacciones: InteraccionSemilla[];
+};
+
+async function cargarInteracciones() {
+  const ruta = join(import.meta.dirname, "datos", "onchigh.json");
+  const archivo = JSON.parse(
+    readFileSync(ruta, "utf8"),
+  ) as ArchivoDeInteracciones;
+
+  // El par se reordena aca aunque el generador ya lo haya ordenado. No es
+  // desconfianza del archivo: es que la unica definicion valida de "cual va
+  // primero" tiene que ser la funcion, no la costumbre de quien genero el
+  // dato. Si algun dia el archivo llega desordenado, la tabla igual queda
+  // consistente con lo que despues va a consultar el motor.
+  const filas = archivo.interacciones.map((i) => {
+    const [rxcui1, rxcui2] = ordenarParRxcui(i.rxcui1, i.rxcui2);
+    return {
+      rxcui1,
+      rxcui2,
+      severidad: Severidad[i.severidad],
+      descripcion: i.descripcion,
+      fuente: i.fuente,
+    };
+  });
+
+  console.log(
+    `Cargando ${filas.length} interacciones (${archivo.fuente}, generado el ${archivo.generado})...`,
+  );
+  await prisma.interaccion.createMany({ data: filas });
+
+  // TODAS entran con severidad ALTA, y no es una simplificacion: ONCHigh es una
+  // lista de interacciones de alta prioridad y no publica una escala. Ponerle
+  // grados seria inventarlos. Queda dicho para que nadie lo lea como un dato
+  // perdido en el camino.
+  console.log(
+    `  todas con severidad ALTA: la fuente no publica una escala de gravedad.`,
+  );
+}
+
 async function main() {
   console.log("🌱 Iniciando seed de la base de datos...");
 
@@ -131,6 +203,7 @@ async function main() {
   console.log("Limpiando datos anteriores...");
   await prisma.medicamento.deleteMany();
   await prisma.usuario.deleteMany();
+  await prisma.interaccion.deleteMany();
 
   // Los `id` van escritos, no generados. Sin esto cambian en cada corrida y
   // cualquier constante que los referencie se rompe.
@@ -168,6 +241,8 @@ async function main() {
       stockMinimo,
     })),
   });
+
+  await cargarInteracciones();
 
   console.log("✅ Seed completado con éxito.");
 }

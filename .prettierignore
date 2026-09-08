@@ -13,3 +13,8 @@ docs/MD_VERIFARM.drawio
 # Prettier reflowaria las tablas y los parrafos, generando diffs enormes
 # en archivos que escribio el equipo. El formateo automatico es para codigo.
 *.md
+
+# Datos generados por prisma/datos/generar-onchigh.mjs. El formato lo decide
+# ese script, no Prettier: si se reformatea, el archivo deja de coincidir con
+# lo que produce el generador y el diff de una regeneracion es ilegible.
+prisma/datos/onchigh.json
