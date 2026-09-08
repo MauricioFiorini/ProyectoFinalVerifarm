@@ -39,3 +39,18 @@ export const USUARIO_MEDICO_ID = "373517e7-b057-4e05-887b-0f93f4134bec";
  * autenticacion.
  */
 export const USUARIO_PROVISORIO_ID = USUARIO_FARMACEUTICO_ID;
+
+/**
+ * Usuario al que se le atribuyen las consultas de interacciones mientras no
+ * haya autenticacion. Es el medico, que es quien consulta en el dominio real.
+ *
+ * Es una constante aparte y no `USUARIO_PROVISORIO_ID` porque no es el mismo
+ * rol: los movimientos de stock los registra el farmaceutico y las consultas
+ * las hace el medico. Que en el prototipo las dos sean fijas no las vuelve la
+ * misma cosa.
+ *
+ * PROVISORIO: se reemplaza por el usuario de la sesion cuando entre la
+ * autenticacion, o por el selector simulado de la tarea 6.02, lo que llegue
+ * primero.
+ */
+export const USUARIO_CLINICO_PROVISORIO_ID = USUARIO_MEDICO_ID;

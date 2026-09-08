@@ -14,142 +14,152 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-08
 **Entrega:** Mauricio Mateo Fiorini
-**Rama:** `feat/5.21-la-consulta-guarda-lo-evaluado` (**sin mergear**)
+**Rama:** `feat/5.09-servicio-de-consultas` (**sin mergear**)
 
 ### Qué se hizo
 
-**La 5.21, que es una tarea nueva**, y cierra la decisión D10.
+**La 5.09: `src/services/consultas.ts`.** Con esto **la lógica del módulo
+clínico está completa de punta a punta**: se elige un conjunto de medicamentos,
+se cruzan contra la fuente, se compone el texto y queda todo guardado.
 
-Se agregó al roadmap siguiendo el precedente del propio archivo: cuando una
-decisión exige trabajo, se crea una tarea al final de la fase. Así nacieron la
-2.10 y la 2.11.
+Lo que falta del módulo son las pantallas y los route handlers, no la lógica.
 
-### ATENCIÓN: hay migración nueva
+### Recordatorio: hay migraciones sin aplicar
 
-**Los tres tienen que correr `npx prisma migrate dev` y después
-`npm run setup`.** Sin lo segundo el cliente de Prisma queda con el modelo viejo
-y `npm run check` falla con errores de tipo que no tienen nada que ver con lo
-que uno esté escribiendo.
+`docs/ROADMAP.md` tiene ahora una sección **"Migraciones pendientes de
+aplicar"**, arriba de todo, con una casilla por integrante. **Juan Pablo y Juan
+José tienen dos migraciones sin correr.** Sin aplicarlas, `npm run check` falla
+con errores de tipo que no mencionan a Prisma por ningún lado.
 
-**La migración solo crea una tabla.** No toca ninguna existente, así que no hay
-riesgo de perder datos ni de que pida resetear.
+```bash
+npx prisma migrate dev
+npm run setup
+```
 
-### El problema que resuelve
+### Qué expone
 
-`ConsultaInteraccion` guardaba paciente, usuario, fecha y las observaciones.
-**Nada sobre los medicamentos que se evaluaron.** O sea que de una consulta solo
-sobrevivía lo que dio positivo.
+| Función | Qué hace |
+| --- | --- |
+| `crearConsulta(input)` | Valida, evalúa, compone y guarda. Devuelve el resultado completo |
+| `obtenerConsulta(id)` | Relee una consulta guardada |
 
-Dos consecuencias:
+`crearConsulta` acepta `medicamentoIds` y, opcionales, `pacienteId` y
+`usuarioId`. Sin paciente es la consulta suelta del médico de guardia, que el
+esquema ya contemplaba.
 
-**Una consulta sin hallazgos quedaba vacía.** Se evalúan clonazepam y
-paracetamol, ninguno está en ONCHigh, el resultado es cero interacciones y la
-fila guardada dice: usuario, fecha, y nada. En `/consultas` (5.20) eso se lee
-como "consulta del 08/09 — sin observaciones", sin poder saber de qué.
+### Lo que devuelve, y por qué importa
 
-**Y rompía la distinción que el sistema no puede perder.** Todo el módulo
-clínico está construido alrededor de que *"no hay interacciones"* y *"no tengo
-datos de esta droga"* son cosas distintas. En la pantalla el aviso salía bien
-—la lista está en memoria—, pero al reabrir la consulta guardada no había de
-dónde sacarla, así que el registro histórico diría "no se encontraron
-interacciones" a secas. Eso convierte *"no había contra qué revisar"* en
-*"revisado y limpio"*.
+Cada medicamento de la consulta vuelve con una **`evaluabilidad`**, que es la
+distinción de la decisión `0012` hecha dato:
 
-### Qué se agregó
+| Valor | Qué significa |
+| --- | --- |
+| `EVALUADO` | Tiene RxCUI y la fuente lo cubre: se cruzó de verdad |
+| `SIN_RXCUI` | No tiene código cargado. No hay por dónde cruzarlo |
+| `SIN_COBERTURA` | Tiene código, pero la fuente no trae ningún par con esa droga |
 
-`MedicamentoEvaluado`, tabla de unión entre `ConsultaInteraccion` y
-`Medicamento`, con `@@unique([consultaId, medicamentoId])`.
+**Las pantallas 5.16 y 5.18 no tienen que deducir nada**: el servicio ya se los
+da resuelto. Ese era el punto de toda la insistencia con `rxcuisConCobertura`.
 
-**Explícita y no implícita**, aunque Prisma sepa crear la tabla sola. Dos
-razones: una tabla que Prisma genera por su cuenta **no aparece en
-`schema.prisma`**, y el modelo de datos es lo que se defiende; y el `@@unique`
-deja escrito que el mismo medicamento no se evalúa dos veces en la misma
-consulta, regla que el servicio ya garantiza (5.07) pero de la que la base no
-tiene por qué depender.
+### Cuatro decisiones que conviene conocer
 
-**Lo que no se agregó, a propósito:** no se guarda si el medicamento tenía
-cobertura al momento de la consulta, ni su RxCUI de entonces. Ninguna tarea lo
-pide y los datos de `Interaccion` se cargan una sola vez. La cobertura se
-recalcula con `rxcuisConCobertura`. Si alguna vez hiciera falta congelarla, la
-tabla ya existe y sumar la columna es una migración chica.
+**El texto se compone al guardar, no al mostrar.** Es lo que hace que una
+consulta vieja siga diciendo lo mismo aunque cambie la plantilla: **el registro
+clínico es lo que se leyó ese día**, no lo que el sistema diría hoy.
 
-El detalle completo está en
-`docs/decisiones/0014-la-consulta-guarda-lo-que-evaluo.md`.
+**La cobertura, en cambio, se recalcula al releer.** No está guardada, por la
+decisión `0014`. O sea que una consulta vieja puede pasar de `SIN_COBERTURA` a
+`EVALUADO` si más adelante entra una fuente que cubra esa droga. Es deliberado y
+está escrito en la decisión.
+
+**La lectura va afuera de la transacción, a diferencia de la dispensación.** En
+stock, `dispensar` replanifica *dentro* de la transacción porque entre calcular
+el plan y ejecutarlo puede entrar otro egreso. Acá ese riesgo no existe:
+`Interaccion` es dato de referencia que se carga una vez, y los medicamentos
+elegidos no cambian mientras se los evalúa. **Es una diferencia deliberada con
+el otro módulo, no un olvido.**
+
+**No hay `$transaction` alrededor, y está bien.** Es una sola escritura anidada,
+y eso ya es una transacción: Prisma envuelve el `create` con sus anidados. Poner
+un `$transaction` alrededor de una única llamada daría a entender que hay más de
+una operación de la que preocuparse.
+
+### Un defecto que se evitó, y vale la pena que se sepa
+
+La primera versión devolvía las observaciones **asumiendo que `create` anidado
+las trae en el orden en que se las pasó**. En la práctica lo hace, pero no lo
+garantiza nada: es el orden de un `RETURNING` de Postgres y basta un plan de
+consulta distinto para que cambie.
+
+Si cambiara, la única consecuencia visible sería que las observaciones salen
+desordenadas por severidad en la pantalla de resultado. **Silencioso,
+intermitente y difícil de reproducir**, que es el peor tipo. Ahora el orden se
+impone explícitamente, usando el par de medicamentos como identidad.
 
 ### Cómo verificarlo
 
-Script descartable contra la base, **10 casos, todos dan lo esperado**. Arma las
-consultas con Prisma directo, porque el servicio que las crea es la 5.09 y
-todavía no existe.
+Script descartable contra la base, **24 casos, todos dan lo esperado**.
 
 | Caso | Qué se probó |
 | --- | --- |
-| Con hallazgos | guarda los 3 evaluados; **quedan los que NO dieron interacción** |
-| **Sin hallazgos** | sigue sin observaciones, **pero ahora se sabe qué evaluó** |
-| **Sin hallazgos** | **se reconstruye el aviso de falta de cobertura** al reabrirla, sin nada en memoria |
-| Reglas | el mismo medicamento dos veces en la misma consulta se rechaza; en consultas distintas sí entra; borrar la consulta se lleva sus filas |
+| Con hallazgos | guarda los 4 evaluados; encuentra la interacción; **las tres `evaluabilidad` a la vez**; el texto lo compuso el redactor; nombra las drogas correctas |
+| **Sin hallazgos** | no encuentra nada pero guarda los evaluados; al releer **se reconstruye la falta de cobertura** |
+| Relectura | el texto releído es idéntico al guardado; una consulta inexistente devuelve `null` |
+| Sin paciente | se crea igual y queda atribuida al médico del seed |
+| Rechazos | un solo medicamento; el mismo dos veces; uno inexistente; paciente inexistente; **uno dado de baja** |
+| Nada a medias | una consulta rechazada **no deja fila** |
+| Determinismo | el orden de entrada no cambia el resultado |
 
-El tercero es el que motivó la tarea: la consulta guardada de clonazepam +
-paracetamol se reabre y vuelve a decir que de esas dos drogas la fuente no tiene
-datos.
+Para probar `SIN_RXCUI` hizo falta crear un medicamento sin código: los diez del
+seed tienen todos el suyo. Se borra al terminar.
 
 `npm run check` da 0.
 
 ### Qué quedó sin hacer
 
 - **La rama no está mergeada.**
-- **La 5.09 en adelante**, y toda la fase 6 salvo la 6.01.
+- **La 5.10 en adelante**, y toda la fase 6 salvo la 6.01.
 - **D8 sigue abierta.**
 
 ### Antes de mergear
 
-`docs/CONVENCIONES.md` sección 14. Acá la rama tiene que aportar el esquema, la
-migración y la decisión:
+`docs/CONVENCIONES.md` sección 14:
 
 ```bash
 git fetch origin
-git diff --name-only origin/main...origin/feat/5.21-la-consulta-guarda-lo-evaluado
+git diff --name-only origin/main...origin/feat/5.09-servicio-de-consultas
 ```
+
+Tiene que listar `src/services/consultas.ts`.
 
 ### Qué sigue
 
-**La 5.09 se destraba, y es la que abre todo lo demás.**
+**La 5.10: route handlers de pacientes, medicación y consultas.** Es lo único
+que separa a la lógica de las pantallas, y de ahí en adelante la fase 5 es toda
+interfaz.
 
 | Tarea | Tamaño | Qué es |
 | --- | --- | --- |
-| **5.09** | L | `src/services/consultas.ts`: crear consulta, observaciones y **medicamentos evaluados**, en una transacción |
+| **5.10** | M | Route handlers de pacientes, medicación y consultas |
 | **6.02** | M | Selector de usuario simulado en la barra superior |
 | **6.04** | M | Manejo de errores global |
 
-De la 5.09 cuelgan los route handlers, las pantallas de paciente y de consulta, y
-la **6.06**, que es el seed de la demostración.
+**La 6.02 se volvió más relevante:** `crearConsulta` acepta `usuarioId` y hoy
+cae en `USUARIO_CLINICO_PROVISORIO_ID`, el médico del seed. Con el selector, ese
+parámetro pasa a tener un valor real sin tocar el servicio.
 
-**Si trabajan dos en paralelo: 5.09 con 6.02, o 5.09 con 6.04.** Van por
-carpetas distintas. **La 5.03 no se toma:** quedó sin efecto por la decisión
-`0012`.
-
-### Lo que la 5.09 tiene que hacer sí o sí
-
-Está en su fila del roadmap, pero conviene repetirlo:
-
-1. **Crear la consulta, las observaciones y las filas de `MedicamentoEvaluado`
-   en una sola transacción.** Una consulta guardada sin su lista de evaluados es
-   el problema de la D10 otra vez.
-2. **Guardar TODOS los medicamentos evaluados, tengan `rxcui` o no.** Uno sin
-   código también se evaluó; lo que no se pudo es cruzarlo, y eso es información
-   que la pantalla tiene que dar (decisión `0005`).
-3. **Validar con `validarMedicamentosDeConsulta`** antes de evaluar nada.
-4. **Componer el texto con `redactarObservacion`**, de `src/lib/redaccion`.
+**Si trabajan dos en paralelo: 5.10 con 6.02, o 5.10 con 6.04.**
 
 ### Antes de arrancar, tener en cuenta
 
-- **Corré la migración y después `npm run setup`.**
+- **La 5.10 no repite reglas.** El servicio ya valida todo y lanza
+  `ErrorDeNegocio`; el route handler valida la **forma** con Zod y delega. Ver
+  `src/lib/respuestaHttp.ts`, que ya mapea los códigos a 409/404/422.
 - **Las interacciones se evalúan sobre la medicación VIGENTE**, no sobre el
   historial. `listarMedicacionVigente`, no `listarMedicacionDePaciente`.
-- **`ordenarParRxcui` normaliza los pares.** Está en `src/lib/rxcui.ts`.
-- **`rxcuisConCobertura` no es opcional para las pantallas.** Sin ella, "sin
-  datos" se muestra como "sin interacciones". Las tareas 5.13, 5.16 y 5.18 ya lo
-  dicen en el roadmap, con el texto que tiene que ver el usuario en cada caso.
+- **La `evaluabilidad` ya viene resuelta** en el resultado de la consulta. Las
+  pantallas no la calculan.
+- **El texto de la observación ya está guardado.** No se recompone al mostrar.
 - **Ningún dato clínico se inventa.**
 - **Todas las interacciones tienen severidad `ALTA`.** La fuente no publica una
   escala. La 5.18 va a mostrar un solo color y está asumido.
