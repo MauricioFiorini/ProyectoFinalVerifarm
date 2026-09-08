@@ -14,124 +14,123 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-08
 **Entrega:** Mauricio Mateo Fiorini
-**Rama:** `feat/5.08-redaccion-de-la-observacion` (**sin mergear**)
+**Rama:** `feat/5.07-minimo-dos-medicamentos` (**sin mergear**)
 
 ### Qué se hizo
 
-**La 5.08: el texto de la observación**, en `src/lib/redaccion/`. Es lo que lee
-el médico cuando el sistema detecta una interacción, y lo que la 5.09 va a
-guardar en `ObservacionInteraccion.descripcion`.
+**La 5.07**, y **se abrió la decisión D10**, que hay que resolver antes de la
+5.09.
 
-| Archivo | Qué |
-| --- | --- |
-| `tipos.ts` | `DatosDeObservacion` y el tipo `Redactor` |
-| `plantilla.ts` | La implementación vigente |
-| `index.ts` | **El punto de cambio.** Todo el sistema importa de acá |
+### 5.07 — Una consulta necesita al menos dos medicamentos
 
-### La forma del texto: tres líneas, y solo una es nuestra
+`validarMedicamentosDeConsulta` y la constante `MINIMO_DE_MEDICAMENTOS`, al
+final de `src/services/interacciones.ts`. Es la restricción `2..*` del modelo,
+que hasta ahora vivía solo en el diagrama.
 
-```
-Escitalopram + Haloperidol: interaccion de severidad alta.     <- la plantilla
-Ambos farmacos prolongan el intervalo QT. Par de alta          <- la fuente
-prioridad de la lista ONC; las drogas provienen de la lista
-de riesgo conocido de torsades de pointes de CredibleMeds.
-Fuente: ONC High Priority List (Phansalkar et al., JAMIA       <- la fuente
-2012), via dbmi-pitt/public-PDDI-analysis.
-```
+**Por qué no está adentro del motor.** `evaluarInteracciones` con una sola droga
+devuelve lista vacía, y está bien que así sea: la pregunta que responde es
+"cuáles de estas interactúan", y con una sola la respuesta honesta es "ninguna".
 
-**Solo la primera línea es texto escrito por nosotros.** Las otras dos se copian
-tal como vinieron. Esa separación no es estética: es la que permite decir en la
-defensa que el sistema **no interpreta** información clínica, la transporta.
+Lo que no puede pasar es que **eso** llegue a la pantalla como "no se
+encontraron interacciones". Con una sola droga no se encontró nada porque no
+había nada que buscar, y mostrarlo igual que un esquema de cinco drogas revisado
+y limpio es dar por revisado lo que nunca se revisó. Así que la regla se cumple
+un escalón más arriba: la consulta se rechaza **antes** de evaluar nada.
 
-Lo que la plantilla no hace, y no es que falte: no dice qué hacer, no sugiere
-suspender ni ajustar nada, y no explica ningún mecanismo que la fuente no
-explique. Con ONCHigh eso significa que muchas observaciones nombran clases de
-fármacos y no consecuencias — limitación de la fuente, declarada en la decisión
-`0011`. Taparla escribiendo la consecuencia de memoria sería inventar.
+**Se cuentan medicamentos, no RxCUI.** Un medicamento sin `rxcui` igual cuenta.
+No se puede cruzar contra la tabla (decisión `0005`), pero la consulta con esos
+dos medicamentos es legítima: se hizo, y el sistema tiene que decir que de uno
+de los dos no tiene datos. Filtrar por `rxcui` acá convertiría "no tengo el
+código de esta droga" en "elegiste mal", que son cosas distintas.
 
-### Por qué es una interfaz y no una función suelta
+**El mismo medicamento dos veces no son dos medicamentos**, y el mensaje lo
+dice con esas palabras. Puede pasar de verdad: la pantalla de consulta (5.16)
+precarga la medicación del paciente (5.17) y después se agrega a mano una droga
+que ya estaba.
 
-`docs/CONTEXTO.md` sección 3 dice que el texto **no lo genera un modelo de
-lenguaje**. El motivo no es que un modelo no sirva: es que no puede haber una
-clave de API que falle el día de la defensa, y no hay presupuesto para una.
-
-Así que la puerta queda abierta sin pagar nada por adelantado. Quien quiera
-enchufar un modelo escribe otro `Redactor` y **cambia una línea en `index.ts`**.
-El resto del sistema solo conoce el tipo.
-
-`Redactor` es sincrónico a propósito. Si algún día entra una implementación que
-consulta un modelo, ese cambio de forma tiene que ser visible y discutido, no
-colarse detrás de un `await` que ya estaba.
-
-### Dos detalles chicos que están decididos
-
-**Las dos drogas se ordenan alfabéticamente.** Podrían salir en el orden en que
-vienen —que es el del RxCUI, porque así está guardado el par—, pero ese orden es
-un número interno y en pantalla se leería como arbitrario. Alfabético es igual
-de determinista y además se entiende. Verificado con acentos.
-
-**La puntuación se normaliza.** Las descripciones de la fuente vienen redactadas
-por personas distintas: algunas cierran con punto y otras no. Sin normalizar, el
-texto final queda despareja según de qué fila venga.
+**Devuelve la lista sin repetidos** en vez de solo validar, para que quien la
+llama no rehaga el mismo `Set`. Si se dedujera dos veces y una de las dos
+cambiara, la validación y lo que se evalúa dejarían de coincidir.
 
 ### Cómo verificarlo
 
-Script descartable, **21 casos, todos dan lo esperado**.
+Script descartable, **15 casos, todos dan lo esperado**. No toca la base: la
+validación es pura.
 
 | Bloque | Qué se probó |
 | --- | --- |
-| Forma | tres líneas; nombra las dos drogas; dice la severidad; copia la descripción; cita la fuente |
-| Orden | invertir la entrada da el mismo texto; alfabético; **con acentos** (Á antes que B) |
-| Puntuación | no duplica el punto; colapsa espacios; respeta `?` y `!` |
-| Casos borde | descripción vacía y fuente vacía **no dejan líneas colgadas**; las tres severidades; nombre largo |
-| **Datos reales** | los tres pares que devuelve el motor para un esquema de cinco drogas |
-
-Ese último bloque es el que importa: el texto se generó sobre las filas que ya
-están cargadas en `Interaccion`, no sobre datos inventados para la prueba.
+| Rechazos | lista vacía; un solo medicamento; el mismo dos veces; el mismo tres veces |
+| Aceptados | dos distintos; tres distintos; tres con uno repetido; cinco con dos repetidos |
+| Lo que devuelve | sin repetidos; conserva el orden de la primera aparición |
+| Mensajes | "elegiste uno solo" y "elegiste dos veces el mismo" dan textos distintos |
 
 `npm run check` da 0.
+
+### D10 — Una consulta no guarda qué medicamentos se evaluaron
+
+**Esto se encontró leyendo el modelo para escribir la 5.07, y hay que resolverlo
+antes de la 5.09.**
+
+`ConsultaInteraccion` tiene: paciente (opcional), usuario (opcional), fecha y
+las observaciones. **Nada más.** No hay ninguna relación con los medicamentos
+que se evaluaron.
+
+Tres consecuencias, y ninguna es teórica:
+
+1. **Una consulta que no encuentra nada queda con cero observaciones.** La fila
+   dice que alguien consultó; no dice qué consultó. En `/consultas` (5.20) esa
+   consulta aparece vacía y no se puede distinguir de un error.
+2. **La 5.18 no puede reconstruirse.** Esa tarea pide mostrar, junto al estado
+   vacío, los medicamentos evaluados que la fuente no cubre. En el momento de la
+   pantalla esa lista está en memoria; si después se vuelve a abrir la consulta
+   guardada, no hay de dónde sacarla.
+3. **Para la defensa es débil.** Un sistema de apoyo clínico que no puede decir
+   qué revisó es difícil de sostener, y es justo el tipo de pregunta que el
+   jurado hace.
+
+**Requiere migración**, así que no se decide sobre la marcha: está en la tabla
+de decisiones abiertas del roadmap. La forma más chica sería una tabla de unión
+entre `ConsultaInteraccion` y `Medicamento`, pero **la forma la decide el
+equipo, no esta tarea.**
 
 ### Qué quedó sin hacer
 
 - **La rama no está mergeada.**
+- **La D10**, que bloquea la 5.09, la 5.18 y la 5.20.
 - **La 5.09 en adelante**, y toda la fase 6 salvo la 6.01.
 - **D8 sigue abierta.**
 
 ### Antes de mergear
 
-`docs/CONVENCIONES.md` sección 14 pide comprobar que la rama aporta el archivo
-de la tarea. Acá tiene que listar los tres de `src/lib/redaccion/`:
+`docs/CONVENCIONES.md` sección 14. Acá la rama tiene que aportar
+`src/services/interacciones.ts` modificado:
 
 ```bash
 git fetch origin
-git diff --name-only origin/main...origin/feat/5.08-redaccion-de-la-observacion
+git diff --name-only origin/main...origin/feat/5.07-minimo-dos-medicamentos
 ```
-
-Es el mismo chequeo que habría evitado perder el motor de la 5.06.
 
 ### Qué sigue
 
-**La 5.09 se destraba con esto, y es la que abre todo lo demás.**
+**Primero la D10.** Es lo único que traba el camino principal.
+
+Mientras tanto, dos tareas libres que no dependen de ella:
 
 | Tarea | Tamaño | Qué es |
 | --- | --- | --- |
-| **5.09** | L | `src/services/consultas.ts`: crear consulta, generar observaciones y persistir, **en transacción** |
-| **5.07** | S | Que una consulta con menos de dos medicamentos sea un error explícito |
 | **6.02** | M | Selector de usuario simulado en la barra superior |
-| **6.04** | M | Manejo de errores global |
+| **6.04** | M | Manejo de errores global: página de error y componente por sección |
 
-De la 5.09 cuelgan los route handlers, las pantallas de paciente y de consulta, y
-la **6.06**, que es el seed con el que se hace la demostración.
+Resuelta la D10, sigue la **5.09** (`src/services/consultas.ts`), de la que
+cuelgan los route handlers, las pantallas de paciente y de consulta, y la
+**6.06**, que es el seed de la demostración.
 
-**La 5.07 conviene hacerla antes que la 5.09**, aunque no la bloquee: la 5.09 va
-a necesitar esa validación al crear la consulta, y si no existe la va a escribir
-igual, en el lugar equivocado.
-
-**Si trabajan dos en paralelo: 5.09 con 6.02, o 5.09 con 6.04.** Van por carpetas
-distintas. **La 5.03 no se toma:** quedó sin efecto por la decisión `0012`.
+**La 5.03 no se toma:** quedó sin efecto por la decisión `0012`.
 
 ### Antes de arrancar, tener en cuenta
 
+- **La consulta se valida con `validarMedicamentosDeConsulta`** antes de evaluar
+  nada. No repetir la cuenta a mano en el route handler ni en la pantalla.
 - **El texto de la observación se compone con `redactarObservacion`**, importado
   de `src/lib/redaccion`. Nunca desde `plantilla.ts` directo.
 - **Las interacciones se evalúan sobre la medicación VIGENTE**, no sobre el
@@ -153,4 +152,5 @@ distintas. **La 5.03 no se toma:** quedó sin efecto por la decisión `0012`.
 
 ### Bloqueos
 
-**Ninguno.** D8 sigue abierta y no bloquea ninguna tarea.
+**La D10 bloquea la 5.09, la 5.18 y la 5.20.** Es lo primero que hay que
+resolver. D8 sigue abierta y no bloquea nada.

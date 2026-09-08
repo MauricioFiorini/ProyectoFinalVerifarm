@@ -1,6 +1,7 @@
 import { db } from "../lib/db";
 import { Severidad } from "@prisma/client";
 import { ordenarParRxcui } from "../lib/rxcui";
+import { ErrorDeNegocio } from "./errores";
 
 // Motor de interacciones (tarea 5.06).
 //
@@ -170,4 +171,63 @@ export async function rxcuisConCobertura(rxcuis: string[]): Promise<string[]> {
   // Se devuelven solo los preguntados: las filas traen ademas la otra droga del
   // par, que no viene al caso.
   return unicos.filter((r) => enLaFuente.has(r)).sort();
+}
+
+// --- Que una consulta necesita al menos dos medicamentos (tarea 5.07) --------
+//
+// POR QUE ESTO NO ESTA ADENTRO DEL MOTOR
+//
+// `evaluarInteracciones` con una sola droga devuelve lista vacia, y esta bien
+// que asi sea: la pregunta que responde es "cuales de estas interactuan", y con
+// una sola droga la respuesta honesta es "ninguna". Es una consulta, y una
+// consulta no tiene por que fallar.
+//
+// Lo que no puede pasar es que ESO llegue a la pantalla como "no se encontraron
+// interacciones". Con una sola droga no se encontro nada porque no habia nada
+// que buscar, y mostrarlo igual que un esquema de cinco drogas revisado y limpio
+// es dar por revisado lo que nunca se reviso.
+//
+// Asi que la regla se cumple un escalon mas arriba: la consulta se rechaza antes
+// de evaluar nada. Es la restriccion `2..*` del modelo, que hasta ahora vivia
+// solo en el diagrama.
+//
+// SE CUENTAN MEDICAMENTOS, NO RxCUI
+//
+// Un medicamento sin `rxcui` igual cuenta. No se puede cruzar contra la tabla de
+// interacciones (decision 0005), pero la consulta con esos dos medicamentos es
+// legitima: se hizo, y el sistema tiene que decir que de uno de los dos no tiene
+// datos. Filtrar por `rxcui` aca convertiria "no tengo el codigo de esta droga"
+// en "elegiste mal", que son cosas distintas.
+
+/** Restriccion `2..*` del modelo: una interaccion es entre dos cosas. */
+export const MINIMO_DE_MEDICAMENTOS = 2;
+
+/**
+ * Valida los medicamentos de una consulta y devuelve la lista sin repetidos.
+ *
+ * Devuelve la lista deduplicada en vez de solo validar, para que quien la llama
+ * no tenga que volver a hacer el mismo `Set`. Si se dedujera dos veces y una de
+ * las dos cambiara, la validacion y lo que se evalua dejarian de coincidir.
+ *
+ * @throws ErrorDeNegocio si hay menos de dos medicamentos distintos.
+ */
+export function validarMedicamentosDeConsulta(
+  medicamentoIds: string[],
+): string[] {
+  // El mismo medicamento elegido dos veces no son dos medicamentos. Puede pasar
+  // en la pantalla de consulta (5.16) al precargar la medicacion del paciente
+  // (5.17) y agregar a mano una droga que ya estaba.
+  const unicos = [...new Set(medicamentoIds)];
+
+  if (unicos.length < MINIMO_DE_MEDICAMENTOS) {
+    throw new ErrorDeNegocio(
+      "REGLA_DE_NEGOCIO",
+      unicos.length === medicamentoIds.length
+        ? `Una consulta de interacciones necesita al menos ${MINIMO_DE_MEDICAMENTOS} medicamentos. Se recibieron ${unicos.length}.`
+        : `Una consulta de interacciones necesita al menos ${MINIMO_DE_MEDICAMENTOS} medicamentos DISTINTOS. Se recibieron ${medicamentoIds.length}, pero son ${unicos.length}.`,
+      "medicamentos",
+    );
+  }
+
+  return unicos;
 }

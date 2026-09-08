@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| 5.07 | Mauricio Mateo Fiorini | `feat/5.07-minimo-dos-medicamentos` | activa | — | 2026-09-08 |
+| — | — | — | — | — | — |
 
 ### Reserva de tareas
 
@@ -91,13 +91,14 @@ casos:
 
 ### Decisiones abiertas
 
-**Una decisión de equipo pendiente.** **Están todas en esta tabla**: lo que no
+**Dos decisiones de equipo pendientes.** **Están todas en esta tabla**: lo que no
 figura acá, nadie lo cuenta como tema de reunión. **Antes de tomar una tarea,
 mirá si alguna la bloquea.**
 
 | # | Decisión | Bloquea |
 |---|---|---|
 | D8 | **Ramas y revisión:** se sostiene la regla de "código va en rama y otro le pasa el ojo" o se cambia el documento. No bloquea ninguna tarea, pero se repite. | nada |
+| D10 | **Una consulta no guarda qué medicamentos se evaluaron.** `ConsultaInteraccion` tiene paciente, usuario, fecha y observaciones, y nada más. Una consulta que no encuentra nada queda con cero observaciones: la fila dice que alguien consultó, no qué consultó. Afecta a la 5.18 —que tiene que listar los medicamentos evaluados sin cobertura— y a la 5.20, donde esas consultas aparecerían vacías. **Requiere migración**, así que se decide antes de escribir la 5.09. | 5.09, 5.18, 5.20 |
 
 ### Las que se cerraron
 
@@ -425,7 +426,7 @@ queda fuera del prototipo (el RxCUI se carga a mano).
 | 5.04 | `src/services/medicacion.ts`: agregar medicamento a un paciente, suspender con motivo, listar vigentes. | `[x]` | M | 5.01 |
 | 5.05 | Cálculo del **estado derivado** de la medicación (vigente / suspendida / finalizada) a partir de fechas y motivo. | `[x]` | S | 5.04 |
 | 5.06 | **Motor de interacciones**: dada una lista de RxCUI, devolver todos los pares que interactúan. Determinístico. | `[x]` | L | **5.02** |
-| 5.07 | Validación de que una consulta requiere al menos dos medicamentos (restricción `2..*` del modelo). | `[~]` | S | 5.06 |
+| 5.07 | Validación de que una consulta requiere al menos dos medicamentos (restricción `2..*` del modelo). | `[x]` | S | 5.06 |
 | 5.08 | `src/lib/redaccion/`: composición del texto de la observación **por plantilla**, a partir del par de drogas, la severidad y la descripción. Interfaz preparada para sustituir por un modelo generativo más adelante. | `[x]` | M | 5.06 |
 | 5.09 | `src/services/consultas.ts`: crear consulta, generar observaciones y persistir, todo en transacción. | `[ ]` | L | 5.08 |
 | 5.10 | Route handlers de pacientes, medicación y consultas. | `[ ]` | M | 5.09 |
