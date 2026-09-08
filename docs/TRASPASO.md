@@ -14,9 +14,7 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-08
 **Entrega:** Mauricio Mateo Fiorini
-**Rama:** `fix/5.06-recuperar-el-motor` (**sin mergear**)
-
-**La 5.04 y la 5.05 ya están en `main`** (PR #16 y #17).
+**Todo mergeado a `main`.** PR #13 a #19. No queda nada sin integrar.
 
 ### Qué se hizo
 
@@ -113,8 +111,7 @@ Y el clonazepam no aporta ninguna, correctamente marcado como sin cobertura.
 
 ### Qué quedó sin hacer
 
-- **La rama no está mergeada.**
-- **La 5.07 en adelante.**
+- **La 5.07 en adelante**, y toda la fase 6 salvo la 6.01.
 - **D8 sigue abierta.**
 
 ### Lo que pasó al mergear, porque conviene que quede escrito
