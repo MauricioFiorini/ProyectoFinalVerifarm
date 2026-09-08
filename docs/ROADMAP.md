@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| 5.02 | Mauricio Mateo Fiorini | `feat/5.02-importar-onchigh` | activa | — | 2026-09-08 |
+| — | — | — | — | — | — |
 
 ### Reserva de tareas
 
@@ -91,18 +91,17 @@ casos:
 
 ### Decisiones abiertas
 
-**Dos decisiones de equipo pendientes.** **Están todas en esta tabla**: lo que no
+**Una decisión de equipo pendiente.** **Están todas en esta tabla**: lo que no
 figura acá, nadie lo cuenta como tema de reunión. **Antes de tomar una tarea,
 mirá si alguna la bloquea.**
 
 | # | Decisión | Bloquea |
 |---|---|---|
 | D8 | **Ramas y revisión:** se sostiene la regla de "código va en rama y otro le pasa el ojo" o se cambia el documento. No bloquea ninguna tarea, pero se repite. | nada |
-| D9 | **El catálogo del seed casi no se cruza con ONCHigh.** El sondeo del 2026-09-08 mostró que solo 4 de los 10 medicamentos del seed están en la fuente, y que hay **un solo par** con las dos drogas en el catálogo. Importar ONCHigh sin tocar el catálogo deja una demostración con una interacción. Hay que decidir qué medicamentos lleva el catálogo definitivo. El detalle del sondeo está en `docs/TRASPASO.md`. | 6.06, y el valor de 5.02 y 5.03 |
 
 ### Las que se cerraron
 
-**Seis decisiones se resolvieron en la reunión del 2026-09-01.** Están escritas
+**Seis decisiones se resolvieron en la reunión del 2026-09-01, y dos más el 2026-09-08.** Están escritas
 en `docs/decisiones/`, que es donde viven las tomadas, con su contexto y sus
 consecuencias. **No se reabren**: si alguna cambia, se escribe una decisión nueva
 que reemplaza a la anterior.
@@ -115,6 +114,7 @@ que reemplaza a la anterior.
 | D5 | `Lote` lleva **`fechaIngreso`**; la cantidad vive en los movimientos | `decisiones/0007-lote-lleva-fecha-de-ingreso.md` |
 | D6 | Los RxCUI son de **ingrediente**, verificados contra RxNorm | `decisiones/0008-los-rxcui-son-de-ingrediente.md` |
 | D7 | **Usuario fijo del seed**, desde una constante en el servicio | `decisiones/0009-usuario-fijo-para-los-movimientos.md` |
+| D9 | **El catálogo se alinea con la fuente**, en la tarea 6.06 | `decisiones/0012-el-catalogo-se-alinea-con-la-fuente.md` |
 
 **Decidido no es hecho.** Las seis destraban las fases 3, 4 y 5, pero tres de
 ellas necesitan trabajo antes de que esas fases arranquen de verdad. Ese trabajo
@@ -420,8 +420,8 @@ queda fuera del prototipo (el RxCUI se carga a mano).
 | # | Tarea | Estado | Tamaño | Depende |
 |---|---|---|---|---|
 | 5.01 | `src/services/pacientes.ts`: alta con seudónimo, listado, búsqueda. **Sin datos filiatorios.** | `[x]` | M | 3.04 |
-| 5.02 | Importar el conjunto **ONCHigh** a la tabla `Interaccion` (decisión `0010`). Tres trabajos, no uno: obtener los archivos de `dbmi-pitt/public-PDDI-analysis`, carpeta `PDDI-Datasets/ONC-High-Priority`; **mapear los identificadores de DrugBank a RxCUI**, que es lo que los archivos traen; y **redactar las descripciones de severidad** a partir de Phansalkar y colaboradores (JAMIA, 2012), porque los archivos no las incluyen. Documentar la vigencia: archivos de 2017, extracción original de 2014. | `[~]` | L | 2.11 |
-| 5.03 | **Carga manual de al menos 15 pares** de psicofármacos que interactúan, con severidad y descripción, dentro del seed. **Queda como red de la 5.02**, que es de tamaño L y depende de un mapeo que puede resolver peor de lo esperado: si eso pasa, quince pares bien elegidos sostienen la demostración. Si hace falta o no se decide cuando se sepa cómo resolvió el mapeo, no antes. | `[ ]` | M | 2.11 |
+| 5.02 | Importar el conjunto **ONCHigh** a la tabla `Interaccion` (decisión `0010`). Tres trabajos, no uno: obtener los archivos de `dbmi-pitt/public-PDDI-analysis`, carpeta `PDDI-Datasets/ONC-High-Priority`; **mapear los identificadores de DrugBank a RxCUI**, que es lo que los archivos traen; y **redactar las descripciones de severidad** a partir de Phansalkar y colaboradores (JAMIA, 2012), porque los archivos no las incluyen. Documentar la vigencia: archivos de 2017, extracción original de 2014. | `[x]` | L | 2.11 |
+| 5.03 | **Sin efecto por la decisión `0012`.** Existía como red por si el mapeo de DrugBank a RxCUI resolvía mal, y resolvió completo: 123 de 123. No se toma. Se deja descrita por si alguna vez hace falta cargar pares de otra fuente. | `[ ]` | M | 2.11 |
 | 5.04 | `src/services/medicacion.ts`: agregar medicamento a un paciente, suspender con motivo, listar vigentes. | `[ ]` | M | 5.01 |
 | 5.05 | Cálculo del **estado derivado** de la medicación (vigente / suspendida / finalizada) a partir de fechas y motivo. | `[ ]` | S | 5.04 |
 | 5.06 | **Motor de interacciones**: dada una lista de RxCUI, devolver todos los pares que interactúan. Determinístico. | `[ ]` | L | 5.03 |
