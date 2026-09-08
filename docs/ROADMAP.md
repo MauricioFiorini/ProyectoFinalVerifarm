@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| — | — | — | — | — | — |
+| 5.07 | Mauricio Mateo Fiorini | `feat/5.07-minimo-dos-medicamentos` | activa | — | 2026-09-08 |
 
 ### Reserva de tareas
 
@@ -425,7 +425,7 @@ queda fuera del prototipo (el RxCUI se carga a mano).
 | 5.04 | `src/services/medicacion.ts`: agregar medicamento a un paciente, suspender con motivo, listar vigentes. | `[x]` | M | 5.01 |
 | 5.05 | Cálculo del **estado derivado** de la medicación (vigente / suspendida / finalizada) a partir de fechas y motivo. | `[x]` | S | 5.04 |
 | 5.06 | **Motor de interacciones**: dada una lista de RxCUI, devolver todos los pares que interactúan. Determinístico. | `[x]` | L | **5.02** |
-| 5.07 | Validación de que una consulta requiere al menos dos medicamentos (restricción `2..*` del modelo). | `[ ]` | S | 5.06 |
+| 5.07 | Validación de que una consulta requiere al menos dos medicamentos (restricción `2..*` del modelo). | `[~]` | S | 5.06 |
 | 5.08 | `src/lib/redaccion/`: composición del texto de la observación **por plantilla**, a partir del par de drogas, la severidad y la descripción. Interfaz preparada para sustituir por un modelo generativo más adelante. | `[x]` | M | 5.06 |
 | 5.09 | `src/services/consultas.ts`: crear consulta, generar observaciones y persistir, todo en transacción. | `[ ]` | L | 5.08 |
 | 5.10 | Route handlers de pacientes, medicación y consultas. | `[ ]` | M | 5.09 |
