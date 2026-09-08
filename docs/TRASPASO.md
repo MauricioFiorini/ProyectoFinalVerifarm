@@ -75,7 +75,8 @@ decir "sin interacciones" da a entender que se lo revisó y está limpio, cuando
 lo que pasó es que no había contra qué revisarlo.
 
 Con esta función la pantalla puede distinguir los tres casos de la decisión
-`0012`. **La 5.16 y la 5.18 tienen que usarla.**
+`0012`. **La 5.13, la 5.16 y la 5.18 tienen que usarla**, y sus filas del
+roadmap ya lo dicen.
 
 ### Cómo verificarlo
 
@@ -134,13 +135,46 @@ Para la próxima, la forma de evitarlo es simple: **una tarea por vez hasta el
 merge**, o si se abren varias, rebasar cada una sobre `main` antes de pedir el
 PR. La tabla de reservas es una sola línea que todas quieren editar.
 
+**Esto ya no vive solo acá.** Este archivo se sobrescribe en cada traspaso, así
+que la lección se pasó a las **trampas conocidas de `docs/CONVENCIONES.md`,
+sección 14**, que es lista viva y se lee antes de tomar cualquier tarea. Ahí
+están los dos comandos que detectan el archivo perdido antes de mergear, y la
+regla de fondo, que es más grande que el chequeo: **el trabajo que no está en
+`origin` no existe.** El motor de la 5.06 nunca llegó al remoto —aparece añadido
+en un único commit de toda la historia, el que lo recuperó— y por eso hubo que
+reescribirlo en vez de rescatarlo. Se pushea la rama aunque esté a medio camino
+y aunque no compile.
+
 ### Qué sigue
 
-1. **5.07** — validar que una consulta necesita al menos dos medicamentos. Es de
-   tamaño S, y el motor ya devuelve lista vacía con menos de dos: lo que falta es
-   que sea un error explícito y no un resultado vacío silencioso.
-2. **5.08** — la redacción de la observación por plantilla.
-3. **5.09** — crear la consulta y persistir las observaciones, en transacción.
+**Cuatro tareas libres**, todas con sus dependencias en `[x]`:
+
+| Tarea | Tamaño | Qué es |
+| --- | --- | --- |
+| **5.08** | M | `src/lib/redaccion/`: el texto de la observación, por plantilla |
+| **5.07** | S | Que una consulta con menos de dos medicamentos sea un error explícito |
+| **6.02** | M | Selector de usuario simulado en la barra superior |
+| **6.04** | M | Manejo de errores global |
+
+**La de mayor palanca es la 5.08.** De ella cuelga la 5.09, y de la 5.09 cuelga
+**todo el resto de la fase 5** —route handlers, pantallas de paciente y de
+consulta— más la **6.06**, que es el seed definitivo con el que se hace la
+demostración. Mientras la 5.08 no esté, la fase 5 no avanza.
+
+La 5.07 es chica y tapa un hueco real: el motor ya devuelve lista vacía con
+menos de dos drogas, falta que eso sea un error explícito y no un resultado
+vacío silencioso.
+
+**Si trabajan dos en paralelo: 5.08 con 6.02, o 5.08 con 6.04.** Van por
+carpetas distintas y el único archivo que comparten es la tabla de reservas, que
+es el conflicto barato.
+
+**5.07 y 5.08 juntas no.** Dependen las dos de la 5.06, salen del mismo punto de
+`main` y las dos entran por `src/`: es la forma exacta en que se perdió el motor
+la vez pasada. Si aun así se toman juntas, cada rama se mergea con `main` antes
+de pedir el PR.
+
+**La 5.03 no se toma:** quedó sin efecto por la decisión `0012`.
 
 ### Antes de arrancar, tener en cuenta
 
@@ -148,7 +182,9 @@ PR. La tabla de reservas es una sola línea que todas quieren editar.
   historial. `listarMedicacionVigente`, no `listarMedicacionDePaciente`.
 - **`ordenarParRxcui` normaliza los pares.** Está en `src/lib/rxcui.ts`.
 - **`rxcuisConCobertura` no es opcional para las pantallas.** Sin ella, "sin
-  datos" se muestra como "sin interacciones".
+  datos" se muestra como "sin interacciones". **Las tareas 5.13, 5.16 y 5.18 ya
+  lo dicen en el roadmap**, con el texto que tiene que ver el usuario en cada
+  caso: no hay que deducirlo de la decisión `0012`.
 - **Ningún dato clínico se inventa.** Las descripciones cargadas dicen la clase,
   no el efecto, porque la fuente no publica el efecto (decisión `0011`).
 - **Todas las interacciones tienen severidad `ALTA`.** La fuente no publica una
