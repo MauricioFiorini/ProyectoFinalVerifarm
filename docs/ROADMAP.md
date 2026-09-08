@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| — | — | — | — | — | — |
+| 5.04 | Mauricio Mateo Fiorini | `feat/5.04-servicio-de-medicacion` | activa | — | 2026-09-08 |
 
 ### Reserva de tareas
 
@@ -422,7 +422,7 @@ queda fuera del prototipo (el RxCUI se carga a mano).
 | 5.01 | `src/services/pacientes.ts`: alta con seudónimo, listado, búsqueda. **Sin datos filiatorios.** | `[x]` | M | 3.04 |
 | 5.02 | Importar el conjunto **ONCHigh** a la tabla `Interaccion` (decisión `0010`). Tres trabajos, no uno: obtener los archivos de `dbmi-pitt/public-PDDI-analysis`, carpeta `PDDI-Datasets/ONC-High-Priority`; **mapear los identificadores de DrugBank a RxCUI**, que es lo que los archivos traen; y **redactar las descripciones de severidad** a partir de Phansalkar y colaboradores (JAMIA, 2012), porque los archivos no las incluyen. Documentar la vigencia: archivos de 2017, extracción original de 2014. | `[x]` | L | 2.11 |
 | 5.03 | **Sin efecto por la decisión `0012`.** Existía como red por si el mapeo de DrugBank a RxCUI resolvía mal, y resolvió completo: 123 de 123. No se toma. Se deja descrita por si alguna vez hace falta cargar pares de otra fuente. | `[ ]` | M | 2.11 |
-| 5.04 | `src/services/medicacion.ts`: agregar medicamento a un paciente, suspender con motivo, listar vigentes. | `[ ]` | M | 5.01 |
+| 5.04 | `src/services/medicacion.ts`: agregar medicamento a un paciente, suspender con motivo, listar vigentes. | `[~]` | M | 5.01 |
 | 5.05 | Cálculo del **estado derivado** de la medicación (vigente / suspendida / finalizada) a partir de fechas y motivo. | `[ ]` | S | 5.04 |
 | 5.06 | **Motor de interacciones**: dada una lista de RxCUI, devolver todos los pares que interactúan. Determinístico. | `[ ]` | L | 5.03 |
 | 5.07 | Validación de que una consulta requiere al menos dos medicamentos (restricción `2..*` del modelo). | `[ ]` | S | 5.06 |
