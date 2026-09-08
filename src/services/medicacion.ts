@@ -38,6 +38,72 @@ const CON_MEDICAMENTO = {
   medicamento: { select: { id: true, nombre: true, rxcui: true } },
 } as const;
 
+// --- Estado derivado de la medicacion (tarea 5.05) --------------------------
+//
+// EL ESTADO NO SE GUARDA, SE CALCULA.
+//
+// Es el mismo criterio que los saldos de stock. Una columna `estado` en la
+// tabla seria una segunda fuente de verdad, y se desincroniza de las fechas la
+// primera vez que alguien actualiza una y se olvida de la otra. Con esta
+// funcion no hay dos versiones posibles del estado: hay una.
+//
+// Las tres situaciones salen de dos campos, sin ningun tercero:
+//
+//   fechaFin  motivoSuspension   estado
+//   --------  ----------------   ------------
+//   NULL      —                  VIGENTE
+//   con valor con valor          SUSPENDIDA   (se corto por una razon)
+//   con valor NULL               FINALIZADA   (llego a su termino)
+//
+// Ver docs/decisiones/0013-la-medicacion-lleva-fechas-y-motivo.md
+
+export type EstadoDeMedicacion = "VIGENTE" | "SUSPENDIDA" | "FINALIZADA";
+
+/** Lo minimo que hace falta para decidir el estado. */
+export type MedicacionParaEstado = {
+  fechaFin: Date | null;
+  motivoSuspension: string | null;
+};
+
+/**
+ * Estado de un tramo de medicacion.
+ *
+ * `referencia` existe por la misma razon que en `estaVencido`: permite
+ * calcularlo a una fecha dada en vez de a "ahora". Una fecha de fin posterior a
+ * la referencia todavia no ocurrio, asi que el tramo sigue vigente.
+ *
+ * Funcion pura: no toca la base y se puede probar con datos escritos a mano,
+ * que es como se verifica en este proyecto mientras no haya pruebas
+ * automatizadas.
+ */
+export function calcularEstadoDeMedicacion(
+  medicacion: MedicacionParaEstado,
+  referencia: Date = new Date(),
+): EstadoDeMedicacion {
+  if (medicacion.fechaFin === null) return "VIGENTE";
+  if (medicacion.fechaFin > referencia) return "VIGENTE";
+
+  // El motivo es lo unico que separa las dos formas de terminar. El servicio lo
+  // exige al suspender, asi que una fila con fecha de fin y sin motivo solo
+  // puede venir de una carga que la dio por terminada, no por cortada.
+  return medicacion.motivoSuspension ? "SUSPENDIDA" : "FINALIZADA";
+}
+
+/** La fila mas su estado, que es como la piden las pantallas (5.13, 5.15). */
+export type MedicacionConEstado = MedicacionConMedicamento & {
+  estado: EstadoDeMedicacion;
+};
+
+export function conEstado(
+  medicacion: MedicacionConMedicamento,
+  referencia: Date = new Date(),
+): MedicacionConEstado {
+  return {
+    ...medicacion,
+    estado: calcularEstadoDeMedicacion(medicacion, referencia),
+  };
+}
+
 /**
  * La medicacion que el paciente esta tomando hoy: las filas sin fecha de fin.
  *
@@ -47,12 +113,13 @@ const CON_MEDICAMENTO = {
  */
 export async function listarMedicacionVigente(
   pacienteId: string,
-): Promise<MedicacionConMedicamento[]> {
-  return db.medicacionVigente.findMany({
+): Promise<MedicacionConEstado[]> {
+  const filas = await db.medicacionVigente.findMany({
     where: { pacienteId, fechaFin: null },
     include: CON_MEDICAMENTO,
     orderBy: { fechaInicio: "asc" },
   });
+  return filas.map((f) => conEstado(f));
 }
 
 /**
@@ -62,12 +129,13 @@ export async function listarMedicacionVigente(
  */
 export async function listarMedicacionDePaciente(
   pacienteId: string,
-): Promise<MedicacionConMedicamento[]> {
-  return db.medicacionVigente.findMany({
+): Promise<MedicacionConEstado[]> {
+  const filas = await db.medicacionVigente.findMany({
     where: { pacienteId },
     include: CON_MEDICAMENTO,
     orderBy: [{ fechaFin: "asc" }, { fechaInicio: "desc" }],
   });
+  return filas.map((f) => conEstado(f));
 }
 
 export type AgregarMedicacionInput = {
