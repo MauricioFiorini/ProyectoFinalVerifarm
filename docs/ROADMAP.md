@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| — | — | — | — | — | — |
+| 5.09 | Mauricio Mateo Fiorini | `feat/5.09-servicio-de-consultas` | activa | — | 2026-09-08 |
 
 ### Migraciones pendientes de aplicar
 
@@ -460,7 +460,7 @@ queda fuera del prototipo (el RxCUI se carga a mano).
 | 5.06 | **Motor de interacciones**: dada una lista de RxCUI, devolver todos los pares que interactúan. Determinístico. | `[x]` | L | **5.02** |
 | 5.07 | Validación de que una consulta requiere al menos dos medicamentos (restricción `2..*` del modelo). | `[x]` | S | 5.06 |
 | 5.08 | `src/lib/redaccion/`: composición del texto de la observación **por plantilla**, a partir del par de drogas, la severidad y la descripción. Interfaz preparada para sustituir por un modelo generativo más adelante. | `[x]` | M | 5.06 |
-| 5.09 | `src/services/consultas.ts`: crear consulta, generar observaciones y persistir, todo en transacción. **Guarda también los medicamentos evaluados** (`MedicamentoEvaluado`, decisión `0014`), todos, tengan `rxcui` o no: una consulta guardada sin su lista de evaluados no se puede releer. | `[ ]` | L | 5.08, 5.21 |
+| 5.09 | `src/services/consultas.ts`: crear consulta, generar observaciones y persistir, todo en transacción. **Guarda también los medicamentos evaluados** (`MedicamentoEvaluado`, decisión `0014`), todos, tengan `rxcui` o no: una consulta guardada sin su lista de evaluados no se puede releer. | `[~]` | L | 5.08, 5.21 |
 | 5.10 | Route handlers de pacientes, medicación y consultas. | `[ ]` | M | 5.09 |
 | 5.11 | Pantalla `/pacientes`: tabla de seudónimos con cantidad de medicamentos vigentes. Botón **"Nuevo paciente"**. | `[ ]` | M | 5.10, 3.05 |
 | 5.12 | Modal de alta de paciente: solo el identificador, con nota visible explicando la seudonimización. Botón **"Crear"**. | `[ ]` | S | 5.11 |
