@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| — | — | — | — | — | — |
+| 5.10 | Mauricio Mateo Fiorini | `feat/5.10-route-handlers-clinicos` | activa | — | 2026-09-08 |
 
 ### Migraciones pendientes de aplicar
 
@@ -461,7 +461,7 @@ queda fuera del prototipo (el RxCUI se carga a mano).
 | 5.07 | Validación de que una consulta requiere al menos dos medicamentos (restricción `2..*` del modelo). | `[x]` | S | 5.06 |
 | 5.08 | `src/lib/redaccion/`: composición del texto de la observación **por plantilla**, a partir del par de drogas, la severidad y la descripción. Interfaz preparada para sustituir por un modelo generativo más adelante. | `[x]` | M | 5.06 |
 | 5.09 | `src/services/consultas.ts`: crear consulta, generar observaciones y persistir, todo en transacción. **Guarda también los medicamentos evaluados** (`MedicamentoEvaluado`, decisión `0014`), todos, tengan `rxcui` o no: una consulta guardada sin su lista de evaluados no se puede releer. | `[x]` | L | 5.08, 5.21 |
-| 5.10 | Route handlers de pacientes, medicación y consultas. | `[ ]` | M | 5.09 |
+| 5.10 | Route handlers de pacientes, medicación y consultas. | `[~]` | M | 5.09 |
 | 5.11 | Pantalla `/pacientes`: tabla de seudónimos con cantidad de medicamentos vigentes. Botón **"Nuevo paciente"**. | `[ ]` | M | 5.10, 3.05 |
 | 5.12 | Modal de alta de paciente: solo el identificador, con nota visible explicando la seudonimización. Botón **"Crear"**. | `[ ]` | S | 5.11 |
 | 5.13 | Pantalla `/pacientes/[id]`: medicación vigente con fecha de inicio y estado. Botones **"Agregar medicamento"** y **"Evaluar interacciones"**. **Marca la cobertura por fila** con `rxcuisConCobertura`: el medicamento que la fuente no cubra se muestra con **"sin datos en la fuente"**. Es la misma razón que en la 5.16 y la 5.18: una lista de medicación vigente sin esa marca parece revisada y no lo está. Decisión `0012`. | `[ ]` | M | 5.11 |
