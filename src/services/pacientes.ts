@@ -33,23 +33,53 @@ const LARGO_MINIMO = 3;
  */
 const PARECE_DOCUMENTO = /^\d{7,8}$/;
 
-export async function listarPacientes(): Promise<Paciente[]> {
-  return db.paciente.findMany({
+/**
+ * Un paciente con la cantidad de drogas que esta tomando hoy.
+ *
+ * El numero viene con el paciente y no en una consulta aparte: es lo que pide
+ * la pantalla de la tarea 5.11, y pedirlo por separado seria una consulta por
+ * fila. Con veinte pacientes son veintiun viajes a la base para dibujar una
+ * tabla. Mismo problema que resolvio `obtenerDisponiblePorLote` en el modulo de
+ * stock, y misma salida.
+ */
+export type PacienteConMedicacion = Paciente & {
+  /** Filas de `MedicacionVigente` sin fecha de fin. */
+  medicacionVigente: number;
+};
+
+/** El `_count` filtrado de Prisma resuelve el conteo en la misma consulta. */
+const CON_CUENTA_DE_VIGENTES = {
+  _count: { select: { medicacion: { where: { fechaFin: null } } } },
+} as const;
+
+function conCuenta(
+  fila: Paciente & { _count: { medicacion: number } },
+): PacienteConMedicacion {
+  const { _count, ...paciente } = fila;
+  return { ...paciente, medicacionVigente: _count.medicacion };
+}
+
+export async function listarPacientes(): Promise<PacienteConMedicacion[]> {
+  const filas = await db.paciente.findMany({
     where: { activo: true },
     orderBy: { seudonimo: "asc" },
+    include: CON_CUENTA_DE_VIGENTES,
   });
+  return filas.map(conCuenta);
 }
 
 export async function buscarPacientesPorSeudonimo(
   texto: string,
-): Promise<Paciente[]> {
-  return db.paciente.findMany({
+): Promise<PacienteConMedicacion[]> {
+  const filas = await db.paciente.findMany({
     where: {
       activo: true,
       seudonimo: { contains: texto, mode: "insensitive" },
     },
     orderBy: { seudonimo: "asc" },
+    include: CON_CUENTA_DE_VIGENTES,
   });
+  return filas.map(conCuenta);
 }
 
 export async function obtenerPacientePorId(
