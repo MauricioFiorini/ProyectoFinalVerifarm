@@ -14,125 +14,136 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-08
 **Entrega:** Mauricio Mateo Fiorini
-**Rama:** `feat/5.07-minimo-dos-medicamentos` (**sin mergear**)
+**Rama:** `feat/5.21-la-consulta-guarda-lo-evaluado` (**sin mergear**)
 
 ### Qué se hizo
 
-**La 5.07**, y **se abrió la decisión D10**, que hay que resolver antes de la
-5.09.
+**La 5.21, que es una tarea nueva**, y cierra la decisión D10.
 
-### 5.07 — Una consulta necesita al menos dos medicamentos
+Se agregó al roadmap siguiendo el precedente del propio archivo: cuando una
+decisión exige trabajo, se crea una tarea al final de la fase. Así nacieron la
+2.10 y la 2.11.
 
-`validarMedicamentosDeConsulta` y la constante `MINIMO_DE_MEDICAMENTOS`, al
-final de `src/services/interacciones.ts`. Es la restricción `2..*` del modelo,
-que hasta ahora vivía solo en el diagrama.
+### ATENCIÓN: hay migración nueva
 
-**Por qué no está adentro del motor.** `evaluarInteracciones` con una sola droga
-devuelve lista vacía, y está bien que así sea: la pregunta que responde es
-"cuáles de estas interactúan", y con una sola la respuesta honesta es "ninguna".
+**Los tres tienen que correr `npx prisma migrate dev` y después
+`npm run setup`.** Sin lo segundo el cliente de Prisma queda con el modelo viejo
+y `npm run check` falla con errores de tipo que no tienen nada que ver con lo
+que uno esté escribiendo.
 
-Lo que no puede pasar es que **eso** llegue a la pantalla como "no se
-encontraron interacciones". Con una sola droga no se encontró nada porque no
-había nada que buscar, y mostrarlo igual que un esquema de cinco drogas revisado
-y limpio es dar por revisado lo que nunca se revisó. Así que la regla se cumple
-un escalón más arriba: la consulta se rechaza **antes** de evaluar nada.
+**La migración solo crea una tabla.** No toca ninguna existente, así que no hay
+riesgo de perder datos ni de que pida resetear.
 
-**Se cuentan medicamentos, no RxCUI.** Un medicamento sin `rxcui` igual cuenta.
-No se puede cruzar contra la tabla (decisión `0005`), pero la consulta con esos
-dos medicamentos es legítima: se hizo, y el sistema tiene que decir que de uno
-de los dos no tiene datos. Filtrar por `rxcui` acá convertiría "no tengo el
-código de esta droga" en "elegiste mal", que son cosas distintas.
+### El problema que resuelve
 
-**El mismo medicamento dos veces no son dos medicamentos**, y el mensaje lo
-dice con esas palabras. Puede pasar de verdad: la pantalla de consulta (5.16)
-precarga la medicación del paciente (5.17) y después se agrega a mano una droga
-que ya estaba.
+`ConsultaInteraccion` guardaba paciente, usuario, fecha y las observaciones.
+**Nada sobre los medicamentos que se evaluaron.** O sea que de una consulta solo
+sobrevivía lo que dio positivo.
 
-**Devuelve la lista sin repetidos** en vez de solo validar, para que quien la
-llama no rehaga el mismo `Set`. Si se dedujera dos veces y una de las dos
-cambiara, la validación y lo que se evalúa dejarían de coincidir.
+Dos consecuencias:
+
+**Una consulta sin hallazgos quedaba vacía.** Se evalúan clonazepam y
+paracetamol, ninguno está en ONCHigh, el resultado es cero interacciones y la
+fila guardada dice: usuario, fecha, y nada. En `/consultas` (5.20) eso se lee
+como "consulta del 08/09 — sin observaciones", sin poder saber de qué.
+
+**Y rompía la distinción que el sistema no puede perder.** Todo el módulo
+clínico está construido alrededor de que *"no hay interacciones"* y *"no tengo
+datos de esta droga"* son cosas distintas. En la pantalla el aviso salía bien
+—la lista está en memoria—, pero al reabrir la consulta guardada no había de
+dónde sacarla, así que el registro histórico diría "no se encontraron
+interacciones" a secas. Eso convierte *"no había contra qué revisar"* en
+*"revisado y limpio"*.
+
+### Qué se agregó
+
+`MedicamentoEvaluado`, tabla de unión entre `ConsultaInteraccion` y
+`Medicamento`, con `@@unique([consultaId, medicamentoId])`.
+
+**Explícita y no implícita**, aunque Prisma sepa crear la tabla sola. Dos
+razones: una tabla que Prisma genera por su cuenta **no aparece en
+`schema.prisma`**, y el modelo de datos es lo que se defiende; y el `@@unique`
+deja escrito que el mismo medicamento no se evalúa dos veces en la misma
+consulta, regla que el servicio ya garantiza (5.07) pero de la que la base no
+tiene por qué depender.
+
+**Lo que no se agregó, a propósito:** no se guarda si el medicamento tenía
+cobertura al momento de la consulta, ni su RxCUI de entonces. Ninguna tarea lo
+pide y los datos de `Interaccion` se cargan una sola vez. La cobertura se
+recalcula con `rxcuisConCobertura`. Si alguna vez hiciera falta congelarla, la
+tabla ya existe y sumar la columna es una migración chica.
+
+El detalle completo está en
+`docs/decisiones/0014-la-consulta-guarda-lo-que-evaluo.md`.
 
 ### Cómo verificarlo
 
-Script descartable, **15 casos, todos dan lo esperado**. No toca la base: la
-validación es pura.
+Script descartable contra la base, **10 casos, todos dan lo esperado**. Arma las
+consultas con Prisma directo, porque el servicio que las crea es la 5.09 y
+todavía no existe.
 
-| Bloque | Qué se probó |
+| Caso | Qué se probó |
 | --- | --- |
-| Rechazos | lista vacía; un solo medicamento; el mismo dos veces; el mismo tres veces |
-| Aceptados | dos distintos; tres distintos; tres con uno repetido; cinco con dos repetidos |
-| Lo que devuelve | sin repetidos; conserva el orden de la primera aparición |
-| Mensajes | "elegiste uno solo" y "elegiste dos veces el mismo" dan textos distintos |
+| Con hallazgos | guarda los 3 evaluados; **quedan los que NO dieron interacción** |
+| **Sin hallazgos** | sigue sin observaciones, **pero ahora se sabe qué evaluó** |
+| **Sin hallazgos** | **se reconstruye el aviso de falta de cobertura** al reabrirla, sin nada en memoria |
+| Reglas | el mismo medicamento dos veces en la misma consulta se rechaza; en consultas distintas sí entra; borrar la consulta se lleva sus filas |
+
+El tercero es el que motivó la tarea: la consulta guardada de clonazepam +
+paracetamol se reabre y vuelve a decir que de esas dos drogas la fuente no tiene
+datos.
 
 `npm run check` da 0.
-
-### D10 — Una consulta no guarda qué medicamentos se evaluaron
-
-**Esto se encontró leyendo el modelo para escribir la 5.07, y hay que resolverlo
-antes de la 5.09.**
-
-`ConsultaInteraccion` tiene: paciente (opcional), usuario (opcional), fecha y
-las observaciones. **Nada más.** No hay ninguna relación con los medicamentos
-que se evaluaron.
-
-Tres consecuencias, y ninguna es teórica:
-
-1. **Una consulta que no encuentra nada queda con cero observaciones.** La fila
-   dice que alguien consultó; no dice qué consultó. En `/consultas` (5.20) esa
-   consulta aparece vacía y no se puede distinguir de un error.
-2. **La 5.18 no puede reconstruirse.** Esa tarea pide mostrar, junto al estado
-   vacío, los medicamentos evaluados que la fuente no cubre. En el momento de la
-   pantalla esa lista está en memoria; si después se vuelve a abrir la consulta
-   guardada, no hay de dónde sacarla.
-3. **Para la defensa es débil.** Un sistema de apoyo clínico que no puede decir
-   qué revisó es difícil de sostener, y es justo el tipo de pregunta que el
-   jurado hace.
-
-**Requiere migración**, así que no se decide sobre la marcha: está en la tabla
-de decisiones abiertas del roadmap. La forma más chica sería una tabla de unión
-entre `ConsultaInteraccion` y `Medicamento`, pero **la forma la decide el
-equipo, no esta tarea.**
 
 ### Qué quedó sin hacer
 
 - **La rama no está mergeada.**
-- **La D10**, que bloquea la 5.09, la 5.18 y la 5.20.
 - **La 5.09 en adelante**, y toda la fase 6 salvo la 6.01.
 - **D8 sigue abierta.**
 
 ### Antes de mergear
 
-`docs/CONVENCIONES.md` sección 14. Acá la rama tiene que aportar
-`src/services/interacciones.ts` modificado:
+`docs/CONVENCIONES.md` sección 14. Acá la rama tiene que aportar el esquema, la
+migración y la decisión:
 
 ```bash
 git fetch origin
-git diff --name-only origin/main...origin/feat/5.07-minimo-dos-medicamentos
+git diff --name-only origin/main...origin/feat/5.21-la-consulta-guarda-lo-evaluado
 ```
 
 ### Qué sigue
 
-**Primero la D10.** Es lo único que traba el camino principal.
-
-Mientras tanto, dos tareas libres que no dependen de ella:
+**La 5.09 se destraba, y es la que abre todo lo demás.**
 
 | Tarea | Tamaño | Qué es |
 | --- | --- | --- |
+| **5.09** | L | `src/services/consultas.ts`: crear consulta, observaciones y **medicamentos evaluados**, en una transacción |
 | **6.02** | M | Selector de usuario simulado en la barra superior |
-| **6.04** | M | Manejo de errores global: página de error y componente por sección |
+| **6.04** | M | Manejo de errores global |
 
-Resuelta la D10, sigue la **5.09** (`src/services/consultas.ts`), de la que
-cuelgan los route handlers, las pantallas de paciente y de consulta, y la
-**6.06**, que es el seed de la demostración.
+De la 5.09 cuelgan los route handlers, las pantallas de paciente y de consulta, y
+la **6.06**, que es el seed de la demostración.
 
-**La 5.03 no se toma:** quedó sin efecto por la decisión `0012`.
+**Si trabajan dos en paralelo: 5.09 con 6.02, o 5.09 con 6.04.** Van por
+carpetas distintas. **La 5.03 no se toma:** quedó sin efecto por la decisión
+`0012`.
+
+### Lo que la 5.09 tiene que hacer sí o sí
+
+Está en su fila del roadmap, pero conviene repetirlo:
+
+1. **Crear la consulta, las observaciones y las filas de `MedicamentoEvaluado`
+   en una sola transacción.** Una consulta guardada sin su lista de evaluados es
+   el problema de la D10 otra vez.
+2. **Guardar TODOS los medicamentos evaluados, tengan `rxcui` o no.** Uno sin
+   código también se evaluó; lo que no se pudo es cruzarlo, y eso es información
+   que la pantalla tiene que dar (decisión `0005`).
+3. **Validar con `validarMedicamentosDeConsulta`** antes de evaluar nada.
+4. **Componer el texto con `redactarObservacion`**, de `src/lib/redaccion`.
 
 ### Antes de arrancar, tener en cuenta
 
-- **La consulta se valida con `validarMedicamentosDeConsulta`** antes de evaluar
-  nada. No repetir la cuenta a mano en el route handler ni en la pantalla.
-- **El texto de la observación se compone con `redactarObservacion`**, importado
-  de `src/lib/redaccion`. Nunca desde `plantilla.ts` directo.
+- **Corré la migración y después `npm run setup`.**
 - **Las interacciones se evalúan sobre la medicación VIGENTE**, no sobre el
   historial. `listarMedicacionVigente`, no `listarMedicacionDePaciente`.
 - **`ordenarParRxcui` normaliza los pares.** Está en `src/lib/rxcui.ts`.
@@ -147,10 +158,7 @@ cuelgan los route handlers, las pantallas de paciente y de consulta, y la
 - **El sistema asiste, no decide.**
 - **El paciente no tiene datos identificatorios.** Solo un seudónimo.
 - **El puerto sigue siendo el 5433** y Docker Desktop no arranca solo.
-- **Si falta aplicar la migración de la 5.04:** `npx prisma migrate dev` y
-  después `npm run setup`.
 
 ### Bloqueos
 
-**La D10 bloquea la 5.09, la 5.18 y la 5.20.** Es lo primero que hay que
-resolver. D8 sigue abierta y no bloquea nada.
+**Ninguno.** D8 sigue abierta y no bloquea ninguna tarea.

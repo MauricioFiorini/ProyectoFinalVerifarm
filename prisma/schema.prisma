@@ -88,6 +88,10 @@ model Medicamento {
   observacionesMed1 ObservacionInteraccion[] @relation("ObservacionMed1")
   observacionesMed2 ObservacionInteraccion[] @relation("ObservacionMed2")
 
+  /// Las consultas en las que este medicamento entro a evaluarse, haya dado
+  /// interaccion o no. Ver MedicamentoEvaluado.
+  evaluacionesEnConsultas MedicamentoEvaluado[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -222,7 +226,42 @@ model ConsultaInteraccion {
 
   observaciones ObservacionInteraccion[]
 
+  /// QUE MEDICAMENTOS SE EVALUARON, no solo cuales dieron interaccion.
+  ///
+  /// Sin esto, una consulta que no encuentra nada queda con cero observaciones:
+  /// la fila dice que alguien consulto, no que consulto. Y la pantalla de
+  /// resultado (5.18) no puede reconstruir el aviso de "esta droga no la cubre
+  /// la fuente", que es justo la distincion que el sistema no puede perder.
+  /// Ver docs/decisiones/0014-la-consulta-guarda-lo-que-evaluo.md
+  medicamentosEvaluados MedicamentoEvaluado[]
+
   createdAt DateTime @default(now())
+}
+
+/// Un medicamento que entro en una consulta, haya dado interaccion o no.
+///
+/// Es una tabla de union y podria ser implicita —Prisma sabe crearla sola con
+/// una relacion muchos-a-muchos—, pero se escribe a mano por dos razones: una
+/// tabla que Prisma genera por su cuenta no aparece en este archivo y no se
+/// puede explicar en la defensa, y aca hay una regla que conviene que este
+/// declarada, no supuesta.
+model MedicamentoEvaluado {
+  id String @id @default(uuid())
+
+  consultaId String
+  consulta   ConsultaInteraccion @relation(fields: [consultaId], references: [id], onDelete: Cascade)
+
+  medicamentoId String
+  medicamento   Medicamento @relation(fields: [medicamentoId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  /// El mismo medicamento no se evalua dos veces en la misma consulta. La regla
+  /// tambien la aplica el servicio (`validarMedicamentosDeConsulta`, tarea
+  /// 5.07); aca esta para que la base no dependa de que nadie se saltee esa
+  /// funcion.
+  @@unique([consultaId, medicamentoId])
+  @@index([medicamentoId])
 }
 
 model ObservacionInteraccion {
