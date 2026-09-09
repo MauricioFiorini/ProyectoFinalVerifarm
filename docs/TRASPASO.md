@@ -12,15 +12,16 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-09
 **Entrega:** Juan José Pastorino
-**Rama:** `feat/6.07-readme` lista para merge a `main`.
+**Rama:** `feat/6.08-guion-demostracion` lista para merge a `main`.
 
-## La tarea 6.07 está completa (`README.md`)
+## La tarea 6.08 está completa (Guion de demostración)
 
-Se redactó y publicó el `README.md` oficial en la raíz del proyecto, concebido como punto de entrada integral tanto para la evaluación académica como para el despliegue técnico:
-- **Qué resuelve:** describe el contexto de la Colonia Psiquiátrica «Dr. Abelardo Irigoyen Freyre», la pérdida económica por vencimientos resuelta mediante trazabilidad de lote y FEFO (*First Expired, First Out*), y el riesgo clínico por polimedicación resuelto mediante detección determinística de interacciones fármaco-fármaco con RxNorm/RxCUI, unificados en la entidad `Medicamento`.
-- **Cómo se levanta:** guía exhaustiva con requisitos (Node 20+, Docker), configuración de `.env`, comandos para levantar PostgreSQL (`docker compose up -d`), ejecutar migraciones y seed (`npm run setup`), iniciar desarrollo (`npm run dev`) y verificar calidad (`npm run check`).
-- **Decisiones de arquitectura y diseño:** justificación del stack (Next.js App Router, TypeScript, PostgreSQL, Prisma, Tailwind sin librerías externas), flujo unidireccional en tres capas (UI → API Zod → Servicios → Prisma), saldos calculados, base propia de 1150 interacciones ONCHigh (justificando la baja de la API de RxNav en 2024), plantillas determinísticas para observaciones, seudonimización (Ley 25.326), principio "asiste, no decide" y diseño responsive.
-- **Punteros y mapa documental:** enlaces directos a la documentación de `docs/`.
+Se redactó y verificó el guion oficial en [`docs/GUION_DEMOSTRACION.md`](GUION_DEMOSTRACION.md), estructurado paso a paso en 4 actos cronometrados para una defensa de 5 minutos:
+- **Acto 1 (00:00 - 01:00) — Apertura y Diagnóstico de Farmacia:** Contexto institucional (Colonia Psiquiátrica «Dr. Abelardo Irigoyen Freyre»), simulación de perfiles con el selector de usuario en la barra superior (Farm. Ana Clara Benítez) y lectura ejecutiva de las 3 tarjetas de alarma en `/` (stock bajo mínimo, lote por vencer a 15 días y consultas del día).
+- **Acto 2 (01:00 - 02:45) — Trazabilidad y Dispensación FEFO:** Recorrido a `/stock`, apertura del detalle de `Haloperidol` (120 ampollas distribuidas en Lote `HAL-2026-L1` que vence el 15/11/2026 con 40 unidades y Lote `HAL-2027-L2` que vence el 15/09/2027 con 80 unidades), registro de un egreso de 50 ampollas y comprobación en vivo del reparto automático por FEFO (agota 40 del lote próximo y toma 10 del siguiente).
+- **Acto 3 (02:45 - 04:15) — Módulo Clínico y Soporte a la Decisión:** Cambio de rol al Dr. Gregory House, apertura de `PAC-101` (Sertralina + Tranilcipromina), evaluación precargada de interacciones, alerta visual `<AvisoClinico />` y generación de observación médica de riesgo severo (Síndrome Serotoninérgico e hipertensión). Contraste con `PAC-103` (Clonazepam + Risperidona) para exhibir la distinción clínica de la Decisión 0012 ("sin datos en la fuente" vs. "sin interacciones").
+- **Acto 4 (04:15 - 05:00) — Síntesis de Arquitectura y Cierre:** Justificación de las 3 capas desacopladas, saldos computados en tiempo real, base local determinística de 1150 interacciones ONCHigh (justificando la discontinuación de la API de RxNav) y el principio rector "el sistema asiste, no decide".
+- **Plan de contingencia:** respuestas preparadas ante preguntas frecuentes y comandos de reset rápido (`npm run setup`).
 
 ### Lo que se hizo en este bloque
 
@@ -32,6 +33,7 @@ Se redactó y publicó el `README.md` oficial en la raíz del proyecto, concebid
 | 6.04 | Manejo de errores global: página de error `error.tsx`, `not-found.tsx`, `global-error.tsx` y componente `ErrorSeccion.tsx` integrado en todas las pantallas. |
 | 6.05 | Revisión responsive: tablas con desplazamiento horizontal garantizado (`anchoMinimo`), cabeceras con `flex-wrap` y usabilidad verificada en notebook (1366×768) y móvil (375 px). |
 | 6.07 | `README.md`: qué resuelve, cómo se levanta paso a paso, decisiones de arquitectura, principios clínicos y mapa documental. |
+| 6.08 | `docs/GUION_DEMOSTRACION.md`: guion cronometrado de 5 minutos, acciones y diálogos exactos con FEFO y detección clínica. |
 
 ### El recorrido que ya funciona
 
@@ -78,18 +80,17 @@ Fase 2 — modelo de datos ...  11 de 11   ✅
 Fase 3 — catálogo ..........   8 de  8   ✅
 Fase 4 — stock y FEFO ......  17 de 17   ✅
 Fase 5 — módulo clínico ....  20 de 21   ✅ (la 5.03 quedó sin efecto)
-Fase 6 — cierre ............   7 de 10   (6.01, 6.02, 6.03, 6.04, 6.05, 6.06 y 6.07 completas)
+Fase 6 — cierre ............   8 de 10   (6.01, 6.02, 6.03, 6.04, 6.05, 6.06, 6.07 y 6.08 completas)
 ```
 
 ### Qué sigue: la fase 6
 
-**Tres tareas pendientes.** En orden de conveniencia:
+**Dos tareas pendientes.** En orden de conveniencia:
 
 | Tarea | Tamaño | Qué es |
 | --- | --- | --- |
-| **6.08** | M | **Guion de demostración:** recorrido de cinco minutos con trazabilidad de lote, un egreso FEFO que reparte entre dos lotes y una detección de interacción. |
-| **6.09** | M | Ensayo en la máquina de la defensa |
-| **6.10** | M | Respuestas a las preguntas previsibles |
+| **6.09** | M | **Ensayo de la demostración en la máquina de la defensa**, con la base cargada desde cero. |
+| **6.10** | M | Respuestas a las preguntas previsibles del jurado |
 
 ### Tres cosas que el equipo debería mirar
 
