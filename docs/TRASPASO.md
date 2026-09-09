@@ -14,91 +14,94 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-09
 **Entrega:** Mauricio Mateo Fiorini
-**Rama:** `feat/5.14-modal-de-alta-de-medicacion` (**sin mergear**)
+**Rama:** `feat/5.15-suspender-medicacion` (**sin mergear**)
 
 ### Qué se hizo
 
-**La 5.14: el modal para agregar medicación a un paciente.** Habilita el primer
-botón de la ficha.
+**La 5.15: suspender una medicación desde la ficha.** Con esto **la ficha del
+paciente queda completa**: se puede ver, agregar y suspender.
 
 | Archivo | Qué |
 | --- | --- |
-| `src/app/pacientes/[id]/ModalAgregarMedicacion.tsx` | El modal. Nuevo |
-| `src/app/pacientes/[id]/MedicacionDelPaciente.tsx` | **Modificado**: el botón abre el modal |
+| `src/app/pacientes/[id]/ModalSuspender.tsx` | El modal. Nuevo |
+| `src/app/pacientes/[id]/MedicacionDelPaciente.tsx` | **Modificado**: columna de acciones |
 
 ### Recordatorio: hay migraciones sin aplicar
 
 `docs/ROADMAP.md`, sección **"Migraciones pendientes de aplicar"**, arriba de
 todo. **Juan Pablo y Juan José tienen dos sin correr.**
 
-### El selector con buscador se escribió acá, no en `ui/`
+### El botón solo va en las filas vigentes
 
-`CampoSelector` es un `<select>`, y con un catálogo que va a crecer un `<select>`
-sin buscador se vuelve inutilizable. Hacía falta un buscador con lista de
-resultados.
+Una medicación ya suspendida no se vuelve a suspender: el servicio lo rechaza
+con un 422. **Un botón que siempre falla es peor que no tenerlo**, así que en
+esas filas la celda queda vacía.
 
-**No se hizo un componente compartido**, y es la regla que quedó escrita al mudar
-`Chip` en la 5.13: algo sube a `src/components/ui/` cuando **dos** rutas
-distintas lo necesitan. Hoy lo necesita una sola.
+### El motivo es obligatorio, y no es burocracia
 
-La 5.16 también elige medicamentos, pero elige **varios a la vez**, que es otro
-widget. Si al escribirla resulta ser el mismo, ahí sube. Mudarlo después cuesta
-menos que mantener una abstracción que sirve para un solo caso.
+Es lo único que distingue una **suspensión** de una **finalización**. El estado
+no se guarda, se deriva de que haya fecha de fin y de que haya motivo (decisión
+`0013`). Sin motivo, el sistema no puede decir si la droga se cortó por una
+razón clínica o si el tratamiento llegó a su término.
 
-### Detalles que importan
+El largo mínimo lo comprueba el servicio, no el formulario.
 
-**El buscador muestra el RxCUI de cada resultado**, y un chip "Sin RxCUI" cuando
-no lo tiene. **Al elegir uno sin código aparece una nota**: *"Se puede agregar
-igual, pero no va a participar de la evaluación de interacciones."*
+### El modal dice qué va a pasar, antes de que pase
 
-No lo bloquea. Es la misma línea que todo el módulo: el sistema informa, no
-decide. Un paciente puede estar tomando una droga que el sistema no sabe cruzar,
-y esconderla sería peor que cargarla con la advertencia.
+Lleva una nota visible: la medicación **no se borra**, queda en el historial con
+su motivo, y **deja de participar de la evaluación de interacciones**. Eso
+último es lo que más importa y lo que menos se deduce: suspender cambia qué
+evalúa el sistema.
 
-**El botón "Agregar" está deshabilitado hasta elegir una droga.** Es lo único
-que el cliente decide por su cuenta, y no es una regla del dominio: es que el
-formulario está incompleto.
-
-**La fecha viene con hoy puesto**, que es lo que va a ser casi siempre. Mismo
-criterio que el modal de ingreso de lote (4.13).
-
-**Con una droga ya elegida el buscador deja de pedir.** La lista está oculta:
-seguir consultando serían viajes por un resultado que nadie va a ver.
+El botón es de variante **crítica**, no primaria. No es la acción corriente de
+la pantalla.
 
 ### Cómo verificarlo
 
-Con `docker compose up -d` y `npm run dev`, en la ficha de un paciente:
+Con `docker compose up -d` y `npm run dev`, en la ficha de un paciente con tres
+drogas vigentes:
 
 | Qué | Resultado |
 | --- | --- |
-| Escribir "clona" | Lista **Clonazepam** con su RxCUI 2598 |
-| Elegirlo | Queda fijado, con botón "Cambiar", y "Agregar" se habilita |
-| Agregar | Cierra el modal y **la ficha se refresca**: "2 drogas vigentes" |
-| El agregado | Aparece marcado **"Sin datos en la fuente"** |
-| Agregar la misma otra vez | **409** debajo del campo: "El paciente ya tiene Clonazepam en su medicacion vigente." |
-| Fecha 01/01/2099 | **422** debajo de la fecha: "La fecha de inicio no puede ser futura." |
-| Buscar una droga sin RxCUI | Chip "Sin RxCUI" en la lista, y la nota al elegirla |
-| Buscar algo que no existe | "No hay medicamentos que coincidan con «…»" |
+| El botón | Aparece en las tres filas vigentes |
+| Motivo "no" | **422** debajo del campo: "…tiene que tener al menos 4 caracteres." |
+| Motivo válido | Cierra, y la ficha pasa a "2 drogas vigentes · 1 en el historial" |
+| La suspendida | Baja al final, con su motivo y la fecha, y **sin botón** |
+| **Volver a agregar la misma droga** | **Entra como tramo nuevo** |
 
-Los 409 y 422 aparecen en la consola del navegador como "Failed to load
-resource": es el navegador registrando respuestas que no son 2xx, no un error de
-la aplicación.
+Ese último es el que vale la pena mirar. Después de suspender Haloperidol y
+volver a agregarlo, la ficha muestra:
+
+```
+Haloperidol   09/09/2026   Vigente      Se evalúa              [Suspender]
+Clonazepam    20/08/2026   Vigente      Sin datos en la fuente [Suspender]
+Escitalopram  01/08/2026   Vigente      Se evalúa              [Suspender]
+Haloperidol   10/08/2026   Suspendida   Se evalúa
+              Prolongacion del QT junto con escitalopram · 09/09/2026
+```
+
+**Dos filas de la misma droga, y el motivo de la suspensión anterior intacto.**
+Eso es lo que destrabó sacar el `@@unique([pacienteId, medicamentoId])` en la
+5.04, ahora funcionando de punta a punta desde la interfaz.
 
 Los datos de prueba **se borraron**: 0 pacientes, los 10 medicamentos del seed y
-las 1150 interacciones.
-
-`npm run check` da 0.
+las 1150 interacciones. `npm run check` da 0.
 
 ### Qué quedó sin hacer
 
 - **La rama no está mergeada.**
-- **No hay botón "Suspender" por fila**: es la 5.15, tamaño S, y cierra la ficha.
+- **No se puede elegir la fecha de suspensión.** El servicio la acepta —y
+  valida que no sea futura ni anterior al inicio—, pero el modal no la ofrece: la
+  tarea pide el motivo. Se carga con el momento de la suspensión. Si hiciera
+  falta registrar una suspensión de la semana pasada, es un `Campo` más.
 - **"Evaluar interacciones" sigue deshabilitado**: es la 5.16.
-- **El selector no navega con flechas.** Los resultados son botones y se llega
-  con Tab, que alcanza; una lista con `aria-activedescendant` y manejo de teclas
-  es más de lo que esta pantalla necesita hoy. Si en la 5.16 aparece el mismo
-  widget con más peso, conviene mirarlo ahí.
-- **La 5.15 en adelante**, y toda la fase 6 salvo la 6.01.
+- **En 375 px la tabla de la ficha ya necesita bastante desplazamiento
+  horizontal**, y con la columna de acciones quedan fuera de vista tanto
+  "Interacciones" como "Suspender". Es la **6.05**, pero conviene mirarlo ahí en
+  serio: en esta pantalla esas dos columnas son lo importante.
+- **No hay listado de consultas.** `GET /api/consultas` devuelve una por id. La
+  5.20 va a necesitar una `listarConsultas` en `src/services/consultas.ts`.
+- **La 5.16 en adelante**, y toda la fase 6 salvo la 6.01.
 - **D8 sigue abierta.**
 
 ### Antes de mergear
@@ -107,32 +110,46 @@ las 1150 interacciones.
 
 ```bash
 git fetch origin
-git diff --name-only origin/main...origin/feat/5.14-modal-de-alta-de-medicacion
+git diff --name-only origin/main...origin/feat/5.15-suspender-medicacion
 ```
 
 ### Qué sigue
 
+**La 5.16: la pantalla de consulta**, `/consultas/nueva`. Es de tamaño **L** y
+abre el último tramo del módulo: 5.17, 5.18, 5.19 y 5.20 cuelgan de ella.
+
 | Tarea | Tamaño | Qué es |
 | --- | --- | --- |
-| **5.15** | S | Botón "Suspender" por fila, con modal que pide motivo obligatorio |
+| **5.16** | L | `/consultas/nueva`: paciente opcional y medicamentos a evaluar |
 | **6.02** | M | Selector de usuario simulado en la barra superior |
 | **6.04** | M | Manejo de errores global |
 
-**La 5.15 cierra la ficha del paciente.** Después sigue la **5.16**, la pantalla
-de consulta, que es de tamaño L y abre el último tramo del módulo.
+**Lo que la 5.16 tiene que resolver:**
 
-**Para la 5.15:** el endpoint ya existe y está probado —`PATCH /api/medicacion`
-con `medicacionId` y `motivo`—, devuelve 422 si el motivo tiene menos de 4
-caracteres y 422 si la medicación ya está suspendida. El botón solo va en las
-filas **vigentes**: una suspendida no se vuelve a suspender.
+1. **El botón "Evaluar interacciones" deshabilitado con menos de dos.** El
+   servicio también lo rechaza (422), pero el botón no debería llegar a
+   mandarlo.
+2. **Usa `rxcuisConCobertura`** sobre los elegidos: al armar la lista ya se
+   avisa cuál no se va a poder cruzar. La respuesta de `POST /api/consultas` trae
+   la `evaluabilidad` de cada uno resuelta.
+3. **El paciente es opcional**: sin paciente es la consulta suelta del médico de
+   guardia, y el endpoint ya lo soporta.
+4. **El selector de medicamentos elige varios.** El de la 5.14 elige uno solo y
+   está dentro de `ModalAgregarMedicacion.tsx`. Si al escribir este resulta ser
+   el mismo widget, **ahí sube a `src/components/ui/`**; si no, se escribe
+   aparte. La regla es que sube cuando dos rutas lo necesitan.
+
+Desde la ficha, ese botón tendría que llevar a `/consultas/nueva` con el
+paciente ya elegido, que es la **5.17**.
 
 ### Antes de arrancar, tener en cuenta
 
 - **Las pantallas consumen la API, no importan el servicio.**
 - **Las pantallas no revalidan reglas del dominio.** Mandan y pintan la
   respuesta. Lo único que decide el cliente es si el formulario está completo.
-- **`incluirNoVigentes` es `false` por defecto** en `GET /api/medicacion`. La
-  ficha lo pide en `true`.
+- **`incluirNoVigentes` es `false` por defecto** en `GET /api/medicacion`. Para
+  precargar la medicación de un paciente en una consulta **no se toca**: una
+  droga suspendida ya no la toma.
 - **La `evaluabilidad` viene resuelta del servidor.** Las pantallas no la
   calculan.
 - **`src/components/ui/` tiene cinco componentes**: Boton, Campo, Tabla, Modal
@@ -142,6 +159,8 @@ filas **vigentes**: una suspendida no se vuelve a suspender.
   `src/app/stock/TablaDeStock.tsx`.
 - **Las fechas se formatean con `src/lib/fechas.ts`.**
 - **Ningún dato clínico se inventa.**
+- **Todas las interacciones tienen severidad `ALTA`.** La 5.18 va a mostrar un
+  solo color y está asumido.
 - **El catálogo actual cruza con una sola interacción.** Se arregla en la 6.06
   (decisión `0012`). No es un error del código.
 - **El sistema asiste, no decide.**
