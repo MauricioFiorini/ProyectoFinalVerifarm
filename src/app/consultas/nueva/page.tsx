@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { NuevaConsulta } from "./NuevaConsulta";
 
 // Pantalla de consulta de interacciones (tarea 5.16).
@@ -19,7 +20,17 @@ export default function PaginaNuevaConsulta() {
         </p>
       </header>
 
-      <NuevaConsulta />
+      {/* El <Suspense> es obligatorio: <NuevaConsulta /> usa `useSearchParams`
+          para leer `?pacienteId=`, y sin este limite Next no puede prerenderizar
+          la pagina. El respaldo es una linea porque la espera es de milisegundos
+          y un esqueleto completo parpadearia mas de lo que ayuda. */}
+      <Suspense
+        fallback={
+          <p className="text-sm text-texto-tenue">Cargando el formulario…</p>
+        }
+      >
+        <NuevaConsulta />
+      </Suspense>
     </main>
   );
 }

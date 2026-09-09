@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Boton } from "@/components/ui/Boton";
 import { Campo } from "@/components/ui/Campo";
 import { Chip } from "@/components/ui/Chip";
@@ -18,6 +18,21 @@ import type { Evaluabilidad } from "@/services/interacciones";
 //
 // Los tres casos vienen resueltos del servidor, en `evaluabilidad`, pidiendo
 // `?conCobertura=true`. La pantalla no los calcula. Decision 0012.
+//
+// LA PRECARGA (tarea 5.17)
+//
+// Al elegir un paciente —o al entrar desde su ficha con `?pacienteId=`— se
+// cargan sus medicamentos VIGENTES. No el historial: una droga suspendida ya no
+// la toma, y evaluarla daria un aviso por una interaccion que no puede ocurrir.
+// Por eso se pide sin `incluirNoVigentes`, que es el defecto del endpoint.
+//
+// **Elegir un paciente REEMPLAZA la seleccion, no la suma.** Si se agregara
+// encima, pasar de un paciente a otro dejaria mezcladas las drogas de los dos, y
+// nadie lo notaria hasta leer el resultado. Se avisa en pantalla cuando pasa.
+//
+// Quitar el paciente, en cambio, NO borra los medicamentos: quedan como lista
+// suelta. Es lo que hace el medico de guardia que arranca de un esquema y lo
+// modifica.
 //
 // POR QUE ESTE BUSCADOR NO ES EL MISMO COMPONENTE QUE EL DE LA 5.14
 //
@@ -51,6 +66,8 @@ const MAXIMO_DE_RESULTADOS = 6;
 
 export function NuevaConsulta() {
   const router = useRouter();
+  const parametros = useSearchParams();
+  const pacienteDeLaUrl = parametros.get("pacienteId");
 
   const [paciente, setPaciente] = useState<PacienteDeApi | null>(null);
   const [buscarPaciente, setBuscarPaciente] = useState("");
@@ -63,6 +80,8 @@ export function NuevaConsulta() {
 
   const [error, setError] = useState<string | null>(null);
   const [evaluando, setEvaluando] = useState(false);
+  /** Qué se precargó, para poder decirlo en pantalla. */
+  const [precarga, setPrecarga] = useState<string | null>(null);
 
   // --- Buscadores ----------------------------------------------------------
 
@@ -104,6 +123,67 @@ export function NuevaConsulta() {
     }
   }, []);
 
+  /**
+   * Elige un paciente y carga su medicacion vigente (tarea 5.17).
+   *
+   * Se pide SIN `incluirNoVigentes`: el defecto del endpoint trae solo lo
+   * vigente, que es justo lo que hay que evaluar.
+   */
+  const elegirPaciente = useCallback(async (id: string) => {
+    try {
+      const r = await fetch(
+        `/api/medicacion?pacienteId=${encodeURIComponent(id)}`,
+      );
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+
+      const cuerpo = (await r.json()) as {
+        paciente: PacienteDeApi;
+        medicacion: {
+          medicamento: { id: string; nombre: string; rxcui: string | null };
+          evaluabilidad: Evaluabilidad;
+        }[];
+      };
+
+      setPaciente(cuerpo.paciente);
+      setBuscarPaciente("");
+      setPacientes([]);
+
+      // Reemplaza, no suma. Ver la nota de arriba.
+      setElegidos(
+        cuerpo.medicacion.map((m) => ({
+          ...m.medicamento,
+          evaluabilidad: m.evaluabilidad,
+        })),
+      );
+      // Los tres casos por separado. "Se cargaron los 1 medicamentos vigentes"
+      // se lee como un mensaje armado sin mirar, y esta pantalla ya pide
+      // bastante confianza.
+      const cuantos = cuerpo.medicacion.length;
+      setPrecarga(
+        cuantos === 0
+          ? `${cuerpo.paciente.seudonimo} no tiene medicación vigente cargada.`
+          : cuantos === 1
+            ? `Se cargó el único medicamento vigente de ${cuerpo.paciente.seudonimo}.`
+            : `Se cargaron los ${cuantos} medicamentos vigentes de ${cuerpo.paciente.seudonimo}.`,
+      );
+      setError(null);
+    } catch {
+      setError("No se pudo cargar la medicación del paciente.");
+    }
+  }, []);
+
+  // Al entrar desde la ficha de un paciente, con `?pacienteId=`.
+  //
+  // Va dentro de un `setTimeout` por lo mismo que el resto de las pantallas:
+  // `react-hooks/set-state-in-effect` rechaza la llamada directa. Ver la nota de
+  // `src/app/stock/TablaDeStock.tsx`, que explica que el timeout esconde el
+  // problema del linter en vez de arreglarlo.
+  useEffect(() => {
+    if (!pacienteDeLaUrl) return;
+    const t = setTimeout(() => void elegirPaciente(pacienteDeLaUrl), 0);
+    return () => clearTimeout(t);
+  }, [pacienteDeLaUrl, elegirPaciente]);
+
   useEffect(() => {
     if (paciente) return;
     const t = setTimeout(() => void pedirPacientes(buscarPaciente), 250);
@@ -125,11 +205,14 @@ export function NuevaConsulta() {
     setBuscarMed("");
     setResultados([]);
     setError(null);
+    // El cartel decia "se cargaron los N de PAC-001", y ya no es cierto.
+    setPrecarga(null);
   }
 
   function quitar(id: string) {
     setElegidos((previos) => previos.filter((m) => m.id !== id));
     setError(null);
+    setPrecarga(null);
   }
 
   async function evaluar() {
@@ -189,6 +272,9 @@ export function NuevaConsulta() {
               onClick={() => {
                 setPaciente(null);
                 setBuscarPaciente("");
+                // Los medicamentos se conservan: la consulta pasa a ser suelta,
+                // con la misma lista. Borrarlos obligaria a rearmarla.
+                setPrecarga(null);
               }}
             >
               Quitar
@@ -213,7 +299,7 @@ export function NuevaConsulta() {
                   >
                     <button
                       type="button"
-                      onClick={() => setPaciente(p)}
+                      onClick={() => void elegirPaciente(p.id)}
                       className="w-full px-3 py-2.5 text-left font-mono text-sm transition-colors hover:bg-superficie-tenue focus-visible:bg-superficie-tenue focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-marca-600"
                     >
                       {p.seudonimo}
@@ -313,6 +399,16 @@ export function NuevaConsulta() {
           })}
         </ul>
 
+        {precarga ? (
+          <p
+            role="status"
+            aria-live="polite"
+            className="mt-4 rounded-md border border-info-borde bg-info-fondo px-4 py-3 text-sm text-texto"
+          >
+            {precarga} Se pueden quitar o agregar otros.
+          </p>
+        ) : null}
+
         {elegidos.length === 0 ? (
           <p className="mt-4 rounded-md border border-dashed border-borde px-4 py-6 text-center text-sm text-texto-sutil">
             Todavía no elegiste ningún medicamento.
@@ -330,9 +426,12 @@ export function NuevaConsulta() {
                 : `${sinDatos.length} de los medicamentos elegidos no se van a poder cruzar`}
               .
             </strong>{" "}
-            El resultado no va a decir nada sobre{" "}
-            {sinDatos.length === 1 ? "esa droga" : "esas drogas"}, ni siquiera
-            que estén bien.
+            {/* La frase concuerda en numero de punta a punta. Decia "esa
+                droga... ni siquiera que esten bien", singular y plural
+                mezclados, en la advertencia que mas importa que se entienda. */}
+            {sinDatos.length === 1
+              ? "El resultado no va a decir nada sobre esa droga, ni siquiera que esté bien."
+              : "El resultado no va a decir nada sobre esas drogas, ni siquiera que estén bien."}
           </p>
         ) : null}
 
