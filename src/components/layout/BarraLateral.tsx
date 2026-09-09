@@ -33,7 +33,7 @@ const SECCIONES: Seccion[] = [
   { href: "/medicamentos", etiqueta: "Medicamentos" },
   { href: "/stock", etiqueta: "Stock" },
   { href: "/pacientes", etiqueta: "Pacientes" },
-  { href: "/consultas", etiqueta: "Consultas", pendiente: true, tarea: "5.20" },
+  { href: "/consultas", etiqueta: "Consultas" },
 ];
 
 /**

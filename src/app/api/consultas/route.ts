@@ -1,4 +1,8 @@
-import { crearConsulta, obtenerConsulta } from "@/services/consultas";
+import {
+  crearConsulta,
+  listarConsultas,
+  obtenerConsulta,
+} from "@/services/consultas";
 import { esquemaCrearConsulta, esquemaObtenerConsulta } from "@/types/clinico";
 import {
   leerJson,
@@ -27,21 +31,27 @@ import {
 // estuvo mal planteada, se hace otra.
 
 /**
- * GET /api/consultas?id=…
+ * GET /api/consultas          -> el listado, por fecha descendente
+ * GET /api/consultas?id=…     -> una consulta, con todo su detalle
  *
- * Relee una consulta guardada, con los medicamentos que se evaluaron y las
- * observaciones que se registraron.
- *
- * **No hay listado todavia.** La pantalla que lo necesita es la 5.20 y el
- * servicio no expone la funcion: agregarla aca significaria consultar la base
- * desde el route handler, que es lo que la arquitectura no permite.
+ * Los dos casos conviven en el mismo endpoint porque son la misma cosa mirada
+ * con distinto detalle. Sin `id` devuelve las filas del listado (tarea 5.20);
+ * con `id`, la consulta completa con sus medicamentos evaluados y sus
+ * observaciones.
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
 
-  const entrada = esquemaObtenerConsulta.safeParse({
-    id: searchParams.get("id") ?? "",
-  });
+  if (id === null) {
+    try {
+      return Response.json(await listarConsultas());
+    } catch (error) {
+      return respuestaDeError(error, "GET /api/consultas");
+    }
+  }
+
+  const entrada = esquemaObtenerConsulta.safeParse({ id });
 
   if (!entrada.success) {
     return respuestaDeValidacion(entrada.error.issues);

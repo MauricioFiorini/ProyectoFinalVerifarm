@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| 5.20 | Mauricio Mateo Fiorini | `feat/5.20-listado-de-consultas` | activa | — | 2026-09-09 |
+| — | — | — | — | — | — |
 
 ### Migraciones pendientes de aplicar
 
@@ -471,7 +471,7 @@ queda fuera del prototipo (el RxCUI se carga a mano).
 | 5.17 | Precarga: al elegir un paciente, sus medicamentos vigentes vienen seleccionados y se pueden agregar otros. | `[ ]` | M | 5.16 |
 | 5.18 | Pantalla de resultado: observaciones ordenadas por severidad, con color según ese valor. Estado vacío explícito: **"No se encontraron interacciones registradas entre los medicamentos evaluados"**. **Ese texto no aparece nunca solo:** al lado va la lista de los medicamentos evaluados que la fuente no cubre —de `rxcuisConCobertura`— bajo **"Sin datos en la fuente: no se pudo revisar esta droga"**, y va también cuando sí hay interacciones. **"Sin interacciones" y "sin datos" no se pueden ver igual** (decisión `0012`). | `[x]` | L | 5.16 |
 | 5.19 | Aviso obligatorio en toda pantalla clínica: el sistema asiste, no reemplaza el criterio profesional. | `[ ]` | S | 5.18 |
-| 5.20 | Pantalla `/consultas`: lista simple de consultas por fecha, sin filtros. | `[~]` | M | 5.10 |
+| 5.20 | Pantalla `/consultas`: lista simple de consultas por fecha, sin filtros. | `[x]` | M | 5.10 |
 | 5.21 | **Migración: la consulta guarda los medicamentos evaluados** (decisión `0014`, cierra la D10). Hoy `ConsultaInteraccion` solo guarda las interacciones encontradas, no lo que se evaluó: una consulta sin hallazgos queda sin rastro de qué revisó. **Va antes de la 5.09.** | `[x]` | S | 5.06 |
 
 ---
