@@ -361,6 +361,15 @@ export async function listarConsultas(): Promise<ConsultaEnLista[]> {
  *
  * Considera las consultas desde el inicio del día (00:00:00) hasta la fecha de
  * referencia. Ordenadas de la más reciente a la más antigua.
+ *
+ * ESTE `setHours` LOCAL ES CORRECTO Y NO HAY QUE PASARLO A UTC. Es el único que
+ * quedó después de la tarea 4.18, que movió a UTC todos los cortes de día del
+ * módulo de stock, así que va a llamar la atención del próximo que busque
+ * `setHours`. La diferencia es el dato, no el criterio: acá se filtra por
+ * `createdAt`, que es un INSTANTE real —el momento en que se registró la
+ * consulta—, y "las consultas de hoy" son las del día de quien mira la pantalla.
+ * Lo que la 4.18 arregló son las fechas SIN hora, que se guardan como medianoche
+ * UTC. Pasar esto a UTC haría que a las 21 apareciera una consulta de mañana.
  */
 export async function obtenerConsultasDelDia(
   referencia: Date = new Date(),

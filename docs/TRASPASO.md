@@ -71,6 +71,27 @@ El arreglo de fondo es del esquema y quedó anotado como **P.8.08** en
 `docs/ROADMAP_PRODUCTO.md`: con esas columnas en `date` en vez de `timestamp`, el
 problema no podría volver.
 
+### Lo que se verificó de la 4.18
+
+A mano, sin pruebas automatizadas. El borde del vencimiento, con un lote que
+vence el 24/09 y la fecha de referencia movida:
+
+```
+23/09 10:00   vencido: false   POR_VENCER   dias: 1
+24/09 00:30   vencido: false   POR_VENCER   dias: 0
+24/09 23:30   vencido: false   POR_VENCER   dias: 0
+25/09 00:30   vencido: true    VENCIDO      dias: -1
+```
+
+El día del vencimiento da **0 y no `-0`**. La ventana de 30 días sigue inclusiva:
+a 30 días avisa, a 31 no. La fecha de ingreso de hoy con hora completa se acepta y
+la de mañana se rechaza.
+
+**Las nueve situaciones de FEFO** se volvieron a correr. Ocho dan igual que antes;
+la novena es la que se quería cambiar, el lote que vence hoy ahora se usa primero.
+Y contra la base real se confirmó que Prisma devuelve las fechas como medianoche
+UTC exacta, que es el supuesto sobre el que se apoya todo el arreglo.
+
 ## La 6.11 — el seed envejecía
 
 Las fechas eran absolutas. El lote de Clonazepam vencía el 24/09/2026, así que

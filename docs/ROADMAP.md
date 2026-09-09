@@ -31,7 +31,6 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| 4.18 | Juan Pablo | `fix/4.18-corte-de-vencimiento-en-utc` | activa | — | 2026-09-09 |
 | 6.11 | Juan Pablo | `fix/6.11-fechas-del-seed-relativas` | activa | Seed hecho. Alineando el guion | 2026-09-09 |
 
 
@@ -413,7 +412,21 @@ Uno de los dos argumentos centrales del proyecto.
 | 4.15 | Aviso de existencia insuficiente: mensaje con el disponible real y botón de confirmar deshabilitado. | `[x]` | S | 4.14 |
 | 4.16 | Historial de movimientos por lote: fecha, tipo, cantidad, usuario. **Sin botones de editar ni borrar** (es un libro mayor). | `[x]` | M | 4.12 |
 | 4.17 | Indicadores visuales de vencimiento: vencido, vence en menos de 30 días, vigente. **Es lo que hace visible al lote ya vencido**, que la alerta de la 4.06 no devuelve a propósito. | `[x]` | S | 4.12 |
-| 4.18 | **El corte del día se calcula en UTC, no en hora local.** Las fechas sin hora —vencimiento e ingreso— se guardan como medianoche UTC, pero `src/services/stock.ts` arma el día con `setHours` local. En UTC-3 eso corre el corte tres horas hacia atrás y **un lote figura vencido durante todo el día en que vence**, que contradice el criterio escrito en el comentario de `estaVencido`. Afecta la exclusión de FEFO (4.07), el indicador de la 4.17 y `diasHastaVencimiento`, que devuelve `-0` el día del vencimiento. **Incluye la cara opuesta del mismo error**, en `src/services/lotes.ts`: la validación de "fecha de ingreso no futura" acepta la de mañana. Se comparte la convención de fecha, no la regla: las primitivas van a `src/lib/fechas.ts`, que ya es su dueño, y la decisión de si un lote está vencido se queda en el servicio. **No se toca `consultas.ts`**, cuyo `setHours` local es correcto: ahí el dato es un instante real. | `[~]` | M | 4.17 |
+
+### Correcciones posteriores al cierre de la fase
+
+**Estas tareas entraron después de que la fase quedara en `[x]`.** No son alcance
+nuevo: son defectos del trabajo ya hecho, encontrados al verificar el sistema
+contra su propia documentación. Van acá, y no en las tablas de arriba, para que
+se vea de un vistazo qué se cerró en su momento y qué hubo que corregir después.
+
+**Los identificadores no se reciclan ni se renumeran**, así que la corrección se
+cuelga de la fase a la que pertenece y sigue la numeración: la 4.18 va después de
+la 4.17 aunque se haya escrito mucho más tarde.
+
+| # | Tarea | Estado | Tamaño | Depende |
+|---|---|---|---|---|
+| 4.18 | **El corte del día se calcula en UTC, no en hora local.** Las fechas sin hora —vencimiento e ingreso— se guardan como medianoche UTC, pero `src/services/stock.ts` arma el día con `setHours` local. En UTC-3 eso corre el corte tres horas hacia atrás y **un lote figura vencido durante todo el día en que vence**, que contradice el criterio escrito en el comentario de `estaVencido`. Afecta la exclusión de FEFO (4.07), el indicador de la 4.17 y `diasHastaVencimiento`, que devuelve `-0` el día del vencimiento. **Incluye la cara opuesta del mismo error**, en `src/services/lotes.ts`: la validación de "fecha de ingreso no futura" acepta la de mañana. Se comparte la convención de fecha, no la regla: las primitivas van a `src/lib/fechas.ts`, que ya es su dueño, y la decisión de si un lote está vencido se queda en el servicio. **No se toca `consultas.ts`**, cuyo `setHours` local es correcto: ahí el dato es un instante real. | `[x]` | M | 4.17 |
 
 ---
 
