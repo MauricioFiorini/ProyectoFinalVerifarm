@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| 6.07 | Juan José | feat/6.07-readme | activa | — | 2026-09-09 |
+| — | — | — | — | — | — |
 
 
 ### Reserva de tareas
@@ -456,7 +456,7 @@ queda fuera del prototipo (el RxCUI se carga a mano).
 | 6.04 | Manejo de errores global: página de error y componente de error por sección. | `[x]` | M | 6.01 |
 | 6.05 | Revisión responsive: usable en la notebook con la que se hace la defensa. | `[x]` | M | 6.03 |
 | 6.06 | `seed.ts` **definitivo**: psicofármacos reales con RxCUI, **un medicamento con dos lotes de distinto vencimiento** (para poder mostrar FEFO repartiendo) y pacientes cuya medicación **efectivamente dispara interacciones**. | `[x]` | L | 5.09 |
-| 6.07 | `README.md`: qué resuelve, cómo se levanta, decisiones de arquitectura. | `[~]` | M | 6.05 |
+| 6.07 | `README.md`: qué resuelve, cómo se levanta, decisiones de arquitectura. | `[x]` | M | 6.05 |
 | 6.08 | Guion de demostración: recorrido de cinco minutos con trazabilidad de lote, un egreso FEFO que reparte entre dos lotes y una detección de interacción. | `[ ]` | M | 6.06 |
 | 6.09 | Ensayo de la demostración en la máquina de la defensa, con la base cargada desde cero. | `[ ]` | M | 6.08 |
 | 6.10 | Preparar respuestas a las preguntas previsibles: por qué no hay receta, por qué no hay proveedor, por qué las interacciones no vienen de una API en vivo, por qué no hay auditoría implementada, por qué no hay validación médica registrada. | `[ ]` | M | 6.08 |

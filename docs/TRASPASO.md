@@ -12,15 +12,15 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-09
 **Entrega:** Juan José Pastorino
-**Rama:** `feat/6.05-revision-responsive` lista para merge a `main`.
+**Rama:** `feat/6.07-readme` lista para merge a `main`.
 
-## La tarea 6.05 está completa (Revisión responsive)
+## La tarea 6.07 está completa (`README.md`)
 
-Se verificó y aseguró la usabilidad de todo el sistema tanto en la notebook de la defensa (1366×768 y 1280×800) como en pantallas reducidas (375 px):
-- **Tablas con scroll horizontal contenido y ancho mínimo garantizado (`src/components/ui/Tabla.tsx`):** se añadió la prop `anchoMinimo` (con valor por defecto `min-w-[600px]`) manteniendo el contenedor `overflow-x-auto`. Esto evita que las columnas se compriman ilegiblemente o que se desborde el ancho global del viewport.
-- **Ficha del paciente optimizada (`src/app/pacientes/[id]/MedicacionDelPaciente.tsx`):** se definió `anchoMinimo="min-w-[700px]"` para que las columnas críticas "Interacciones" y "Suspender" mantengan su espaciado, chips legibles y botones operativos mediante desplazamiento horizontal limpio.
-- **Acciones y cabeceras elásticas (`src/app/stock/[medicamentoId]/LotesDelMedicamento.tsx`):** se aplicó `flex-wrap gap-2 sm:gap-3` en los grupos de botones de acción para que se reordenen fluidamente sin desbordar ni solaparse.
-- **Comprobación visual y funcional:** verificado en notebook (1366×768) y móvil (375×667), comprobando navegación lateral, modales, alertas y lectura de interacciones.
+Se redactó y publicó el `README.md` oficial en la raíz del proyecto, concebido como punto de entrada integral tanto para la evaluación académica como para el despliegue técnico:
+- **Qué resuelve:** describe el contexto de la Colonia Psiquiátrica «Dr. Abelardo Irigoyen Freyre», la pérdida económica por vencimientos resuelta mediante trazabilidad de lote y FEFO (*First Expired, First Out*), y el riesgo clínico por polimedicación resuelto mediante detección determinística de interacciones fármaco-fármaco con RxNorm/RxCUI, unificados en la entidad `Medicamento`.
+- **Cómo se levanta:** guía exhaustiva con requisitos (Node 20+, Docker), configuración de `.env`, comandos para levantar PostgreSQL (`docker compose up -d`), ejecutar migraciones y seed (`npm run setup`), iniciar desarrollo (`npm run dev`) y verificar calidad (`npm run check`).
+- **Decisiones de arquitectura y diseño:** justificación del stack (Next.js App Router, TypeScript, PostgreSQL, Prisma, Tailwind sin librerías externas), flujo unidireccional en tres capas (UI → API Zod → Servicios → Prisma), saldos calculados, base propia de 1150 interacciones ONCHigh (justificando la baja de la API de RxNav en 2024), plantillas determinísticas para observaciones, seudonimización (Ley 25.326), principio "asiste, no decide" y diseño responsive.
+- **Punteros y mapa documental:** enlaces directos a la documentación de `docs/`.
 
 ### Lo que se hizo en este bloque
 
@@ -31,6 +31,7 @@ Se verificó y aseguró la usabilidad de todo el sistema tanto en la notebook de
 | 6.03 | Tablero de inicio con tarjetas de stock bajo mínimo, lotes por vencer y consultas del día (`TableroInicio.tsx`, `page.tsx`, `api/inicio`). |
 | 6.04 | Manejo de errores global: página de error `error.tsx`, `not-found.tsx`, `global-error.tsx` y componente `ErrorSeccion.tsx` integrado en todas las pantallas. |
 | 6.05 | Revisión responsive: tablas con desplazamiento horizontal garantizado (`anchoMinimo`), cabeceras con `flex-wrap` y usabilidad verificada en notebook (1366×768) y móvil (375 px). |
+| 6.07 | `README.md`: qué resuelve, cómo se levanta paso a paso, decisiones de arquitectura, principios clínicos y mapa documental. |
 
 ### El recorrido que ya funciona
 
@@ -77,17 +78,16 @@ Fase 2 — modelo de datos ...  11 de 11   ✅
 Fase 3 — catálogo ..........   8 de  8   ✅
 Fase 4 — stock y FEFO ......  17 de 17   ✅
 Fase 5 — módulo clínico ....  20 de 21   ✅ (la 5.03 quedó sin efecto)
-Fase 6 — cierre ............   6 de 10   (6.01, 6.02, 6.03, 6.04, 6.05 y 6.06 completas)
+Fase 6 — cierre ............   7 de 10   (6.01, 6.02, 6.03, 6.04, 6.05, 6.06 y 6.07 completas)
 ```
 
 ### Qué sigue: la fase 6
 
-**Cuatro tareas pendientes.** En orden de conveniencia:
+**Tres tareas pendientes.** En orden de conveniencia:
 
 | Tarea | Tamaño | Qué es |
 | --- | --- | --- |
-| **6.07** | M | `README.md`: qué resuelve, cómo se levanta, decisiones de arquitectura. |
-| **6.08** | M | Guion de demostración |
+| **6.08** | M | **Guion de demostración:** recorrido de cinco minutos con trazabilidad de lote, un egreso FEFO que reparte entre dos lotes y una detección de interacción. |
 | **6.09** | M | Ensayo en la máquina de la defensa |
 | **6.10** | M | Respuestas a las preguntas previsibles |
 
