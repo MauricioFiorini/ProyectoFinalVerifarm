@@ -14,79 +14,84 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-09
 **Entrega:** Mauricio Mateo Fiorini
-**Rama:** `feat/5.17-precarga-del-paciente` (**sin mergear**)
+**Rama:** `feat/5.19-aviso-clinico` (**sin mergear**)
+
+## La fase 5 está cerrada
+
+**20 de 21, y la que falta —la 5.03— quedó sin efecto por la decisión `0012`.**
+
+Con esto **los dos módulos del proyecto están completos**: el de stock desde la
+fase 4 y el clínico desde ahora. El recorrido de la defensa se puede hacer
+entero, de punta a punta, en las dos mitades.
+
+Lo que queda es la **fase 6**: interfaz transversal, seed definitivo y cierre.
 
 ### Qué se hizo
 
-**La 5.17: la precarga del paciente.** Desde la ficha, "Evaluar interacciones"
-ahora abre la consulta con la medicación vigente ya cargada.
+**La 5.19: el aviso clínico obligatorio.**
 
 | Archivo | Qué |
 | --- | --- |
-| `src/app/consultas/nueva/NuevaConsulta.tsx` | La precarga |
-| `src/app/consultas/nueva/page.tsx` | El `<Suspense>` que pide `useSearchParams` |
-| `src/app/pacientes/[id]/MedicacionDelPaciente.tsx` | El enlace pasa `?pacienteId=` |
+| `src/components/ui/AvisoClinico.tsx` | El componente. Nuevo |
+| Las cinco pantallas clínicas | Lo usan; se borraron las tres copias sueltas |
 
 ### Recordatorio: hay migraciones sin aplicar
 
 `docs/ROADMAP.md`, sección **"Migraciones pendientes de aplicar"**, arriba de
 todo. **Juan Pablo y Juan José tienen dos sin correr.**
 
-### Tres reglas de la precarga
+### Por qué era un componente y no un párrafo más
 
-**Se cargan las vigentes, no el historial.** Una droga suspendida ya no la toma
-el paciente, y evaluarla daría un aviso por una interacción que no puede
-ocurrir. Se pide sin `incluirNoVigentes`, que es el defecto del endpoint.
-Comprobado: un paciente con tres vigentes y una suspendida precarga tres.
+El texto estaba escrito a mano en tres pantallas, **con tres redacciones
+distintas**, y faltaba en dos. Tres copias de un aviso que tiene que decir lo
+mismo en todos lados es la forma segura de que un día digan cosas distintas, y
+de que la próxima pantalla se olvide de ponerlo.
 
-**Elegir un paciente REEMPLAZA la selección, no la suma.** Si se agregara
-encima, pasar de un paciente a otro dejaría mezcladas las drogas de los dos y
-nadie lo notaría hasta leer el resultado. Comprobado cambiando de PAC-001 a
-PAC-002: quedan solo las de PAC-002.
+Ahora hay **una sola copia del texto en todo el código**, comprobado con
+`grep`.
 
-**Quitar el paciente NO borra los medicamentos.** Quedan como lista suelta. Es
-lo que hace el médico de guardia que arranca de un esquema y lo modifica;
-borrarlos lo obligaría a rearmar todo.
+> **`src/components/ui/` pasó de cinco archivos a seis.** Los otros son Boton,
+> Campo, Tabla, Modal y Chip. La regla que se viene sosteniendo —algo sube
+> cuando **dos o más rutas** necesitan lo mismo— acá se cumple de sobra: son
+> cinco.
 
-En los tres casos la pantalla dice qué pasó, y el cartel desaparece apenas se
-agrega o se quita algo a mano: dejarlo diciendo "se cargaron los 3 de PAC-001"
-cuando ya no es cierto sería peor que no decir nada.
+### Por qué no es un cartel de color
 
-### El `<Suspense>` no es decorativo
+Va en todas las pantallas clínicas, y un recuadro rojo repetido cinco veces deja
+de leerse a la tercera: se vuelve parte del fondo. Además competiría por
+atención con los avisos que **sí** dicen algo de este paciente —la falta de
+cobertura de una droga, una interacción encontrada—, que son los que hay que
+mirar.
 
-`NuevaConsulta` usa `useSearchParams` para leer `?pacienteId=`, y sin un límite
-de suspenso Next no puede prerenderizar la página. El respaldo es una línea
-porque la espera es de milisegundos y un esqueleto completo parpadearía más de
-lo que ayuda.
+Una línea separadora, texto legible y la frase clave en negrita alcanzan para
+que esté presente sin tapar lo que importa.
 
-### Tres errores de concordancia que se corrigieron
+### El componente acepta texto propio de la pantalla
 
-Los tres se vieron **leyendo la pantalla**, no compilando, y los tres estaban en
-frases donde más importa que se entienda:
+La ficha del paciente necesita aclarar que la evaluación corre sobre la
+medicación vigente. Eso es información **de esa pantalla**, no del aviso, así
+que entra como contenido de afuera y no como una variante más del componente:
 
-| Decía | Dónde |
-| --- | --- |
-| "esa droga… ni siquiera que **estén** bien" | El aviso de la 5.16 |
-| "esta droga: no que **estén** bien… no se **revisaron**" | El resultado de la 5.18 (corregido ayer) |
-| "Se cargaron **los 1 medicamentos** vigentes" | El cartel de precarga, nuevo |
-
-Singular y plural mezclados. Un texto así se lee como armado sin mirar, y esta
-pantalla ya pide bastante confianza. Los tres casos ahora están escritos por
-separado.
+```tsx
+<AvisoClinico>
+  La evaluación de interacciones se hace solo sobre la medicación vigente.
+</AvisoClinico>
+```
 
 ### Cómo verificarlo
 
-Con `docker compose up -d` y `npm run dev`:
+Con `docker compose up -d` y `npm run dev`, el aviso aparece en las cinco:
 
-| Qué | Resultado |
+| Pantalla | Estado |
 | --- | --- |
-| Entrar con `?pacienteId=` de un paciente con 3 vigentes y 1 suspendida | Precarga **3**, no 4 |
-| El cartel | "Se cargaron los 3 medicamentos vigentes de PAC-001. Se pueden quitar o agregar otros." |
-| Con un paciente de una sola droga | "Se cargó **el único** medicamento vigente de PAC-002." |
-| Las marcas de cobertura | Vienen con la precarga: la droga sin RxCUI ya sale marcada |
-| Quitar el paciente | Los medicamentos **quedan**; el cartel desaparece |
-| Elegir otro paciente | **Reemplaza** la lista |
-| Consola | Solo los 404 disparados a propósito |
+| `/pacientes` | Aparece — **antes no estaba** |
+| `/pacientes/[id]` | Aparece, con su aclaración propia adelante |
+| `/consultas` | Aparece — **antes no estaba** |
+| `/consultas/nueva` | Aparece |
+| `/consultas/[id]` | Aparece |
+
+Y `grep -rn "criterio profesional" src/` devuelve **un solo archivo**:
+`AvisoClinico.tsx`.
 
 Los datos de prueba **se borraron**: 0 pacientes, 0 consultas, los 10
 medicamentos del seed y las 1150 interacciones. `npm run check` da 0.
@@ -94,8 +99,8 @@ medicamentos del seed y las 1150 interacciones. `npm run check` da 0.
 ### Qué quedó sin hacer
 
 - **La rama no está mergeada.**
-- **El aviso clínico está como texto chico al pie**, repetido en varias
-  pantallas. Formalizarlo es la **5.19**, la última de la fase.
+- **El aviso no está en las pantallas de stock**, y es a propósito: no son
+  pantallas clínicas. La 5.19 pide "toda pantalla clínica".
 - **D8 sigue abierta.**
 
 ### Antes de mergear
@@ -104,52 +109,66 @@ medicamentos del seed y las 1150 interacciones. `npm run check` da 0.
 
 ```bash
 git fetch origin
-git diff --name-only origin/main...origin/feat/5.17-precarga-del-paciente
+git diff --name-only origin/main...origin/feat/5.19-aviso-clinico
 ```
 
 ### Dónde está el proyecto
 
 ```
-Fase 5 — módulo clínico ....  19 de 21   (la 5.03 quedó sin efecto)
+Fase 5 — módulo clínico ....  20 de 21   (la 5.03 quedó sin efecto)
 Fase 6 — cierre ...........    1 de 10
 ```
 
-**Falta una sola tarea de la fase 5.**
+### Qué sigue: la fase 6
 
-### Qué sigue
+**Nueve tareas.** Están en orden de dependencia, no de importancia:
 
-**La 5.19**, tamaño S, y con eso la fase 5 queda cerrada.
+| Tarea | Tamaño | Qué es |
+| --- | --- | --- |
+| **6.06** | L | **Seed definitivo.** Lo más importante que queda |
+| **6.02** | M | Selector de usuario simulado en la barra superior |
+| **6.03** | L | Pantalla de inicio con tarjetas. Reemplaza la provisoria de la 6.01 |
+| **6.04** | M | Manejo de errores global |
+| **6.05** | M | Revisión responsive |
+| **6.07** | M | `README.md` |
+| **6.08** | M | Guion de demostración |
+| **6.09** | M | Ensayo en la máquina de la defensa |
+| **6.10** | M | Respuestas a las preguntas previsibles |
 
-El texto ya existe, repetido al pie de las pantallas clínicas: *"El sistema
-informa lo que hay registrado en su fuente. No reemplaza el criterio
-profesional."* Lo que falta es que sea **un componente y no cuatro copias**, y
-que esté en todas las pantallas clínicas: `/pacientes`, `/pacientes/[id]`,
-`/consultas`, `/consultas/nueva` y `/consultas/[id]`.
+**La 6.06 es la que no se puede recortar, y conviene hacerla pronto.** Hoy el
+catálogo del seed cruza con **una sola** interacción —escitalopram con
+haloperidol—, así que cualquier demostración del módulo clínico muestra un único
+hallazgo. La decisión `0012` ya fijó qué hay que hacer: elegir el catálogo de
+manera que se cruce con la fuente, sin dejar de ser verosímil para una colonia
+psiquiátrica. Se midió que **20 drogas tomadas de ONCHigh dan 47 pares**.
 
-**Es candidata a un sexto componente en `src/components/ui/`**, y esta vez la
-regla se cumple sola: lo necesitan cinco rutas distintas.
+La 6.06 además pide un medicamento con **dos lotes de distinto vencimiento**
+—para mostrar FEFO repartiendo— y pacientes cuya medicación **efectivamente**
+dispare interacciones.
 
-Después queda **la fase 6 entera menos la 6.01**. De esas, la que no se puede
-recortar es la **6.06**, el seed definitivo: hoy el catálogo cruza con **una
-sola** interacción (decisión `0012`), y sin datos que disparen hallazgos no hay
-demostración.
+**La 6.03 conviene después de la 6.06**, porque las tarjetas de inicio se ven
+vacías sin datos.
+
+**Si trabajan dos en paralelo: 6.06 con 6.02, o 6.06 con 6.04.** Van por
+archivos distintos.
 
 ### Antes de arrancar, tener en cuenta
 
+- **El aviso clínico va en toda pantalla clínica nueva**, con
+  `<AvisoClinico />`. No se copia el texto.
 - **Las pantallas consumen la API, no importan el servicio.**
-- **"Sin interacciones" y "sin datos" no se pueden ver igual.** Es la regla que
-  atraviesa todo el módulo (decisión `0012`).
+- **"Sin interacciones" y "sin datos" no se pueden ver igual** (decisión
+  `0012`).
 - **Las interacciones se evalúan sobre la medicación VIGENTE.**
-- **La `evaluabilidad` viene resuelta del servidor.**
-- **El texto de la observación viene guardado**, no se recompone al mostrar. La
-  cobertura sí se recalcula al releer (decisión `0014`).
-- **`src/components/ui/` tiene cinco componentes**: Boton, Campo, Tabla, Modal
-  y Chip.
+- **`src/components/ui/` tiene seis componentes**: Boton, Campo, Tabla, Modal,
+  Chip y AvisoClinico.
 - **Las pantallas cargan datos con `setTimeout(…, 0)` dentro de un
   `useEffect`.** Es un parche para el linter, documentado en
-  `src/app/stock/TablaDeStock.tsx`.
+  `src/app/stock/TablaDeStock.tsx`. **Sigue siendo una decisión de equipo
+  pendiente**, y con la fase 5 cerrada es un buen momento para mirarla.
 - **Las fechas se formatean con `src/lib/fechas.ts`.**
-- **Ningún dato clínico se inventa.**
+- **Ningún dato clínico se inventa.** Vale también para el seed de la 6.06: los
+  RxCUI se verifican, no se escriben de memoria (decisión `0008`).
 - **El sistema asiste, no decide.**
 - **El paciente no tiene datos identificatorios.** Solo un seudónimo.
 - **El puerto sigue siendo el 5433** y Docker Desktop no arranca solo.

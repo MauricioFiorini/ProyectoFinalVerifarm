@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Severidad } from "@prisma/client";
 import { Boton } from "@/components/ui/Boton";
+import { AvisoClinico } from "@/components/ui/AvisoClinico";
 import { Chip } from "@/components/ui/Chip";
 import { formatearFechaHora } from "@/lib/fechas";
 import type { Evaluabilidad } from "@/services/interacciones";
@@ -298,10 +299,7 @@ export function ResultadoDeConsulta({ consultaId }: { consultaId: string }) {
         </p>
       </section>
 
-      <p className="text-xs text-texto-sutil">
-        El sistema informa lo que hay registrado en su fuente. No reemplaza el
-        criterio profesional.
-      </p>
+      <AvisoClinico />
     </div>
   );
 }

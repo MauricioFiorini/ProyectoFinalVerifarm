@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Boton } from "@/components/ui/Boton";
+import { AvisoClinico } from "@/components/ui/AvisoClinico";
 import { Campo } from "@/components/ui/Campo";
 import { Chip } from "@/components/ui/Chip";
 import type { Evaluabilidad } from "@/services/interacciones";
@@ -462,10 +463,7 @@ export function NuevaConsulta() {
           ) : null}
         </div>
 
-        <p className="text-xs text-texto-sutil">
-          El sistema informa lo que hay registrado en su fuente. No reemplaza el
-          criterio profesional.
-        </p>
+        <AvisoClinico />
       </section>
     </div>
   );
