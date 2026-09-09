@@ -205,7 +205,7 @@ export async function agregarMedicacion(
   if (!paciente) {
     throw new ErrorDeNegocio(
       "NO_ENCONTRADO",
-      "El paciente no existe o esta dado de baja.",
+      "El paciente no existe o está dado de baja.",
       "pacienteId",
     );
   }
@@ -216,7 +216,7 @@ export async function agregarMedicacion(
   if (!medicamento) {
     throw new ErrorDeNegocio(
       "NO_ENCONTRADO",
-      "El medicamento no existe o esta dado de baja.",
+      "El medicamento no existe o está dado de baja.",
       "medicamentoId",
     );
   }
@@ -243,7 +243,7 @@ export async function agregarMedicacion(
   if (yaVigente) {
     throw new ErrorDeNegocio(
       "DUPLICADO",
-      `El paciente ya tiene ${medicamento.nombre} en su medicacion vigente.`,
+      `El paciente ya tiene ${medicamento.nombre} en su medicación vigente.`,
       "medicamentoId",
     );
   }
@@ -274,7 +274,7 @@ export async function suspenderMedicacion(
   if (!medicacion) {
     throw new ErrorDeNegocio(
       "NO_ENCONTRADO",
-      "No existe esa medicacion.",
+      "No existe esa medicación.",
       "medicacionId",
     );
   }
@@ -282,7 +282,7 @@ export async function suspenderMedicacion(
   if (medicacion.fechaFin !== null) {
     throw new ErrorDeNegocio(
       "REGLA_DE_NEGOCIO",
-      "Esa medicacion ya no esta vigente.",
+      "Esa medicación ya no está vigente.",
     );
   }
 

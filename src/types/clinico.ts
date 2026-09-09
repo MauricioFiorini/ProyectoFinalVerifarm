@@ -26,7 +26,7 @@ const identificador = z.string().trim().min(1);
  * `new Date("hola")` no falla: devuelve un Date invalido que rompe mas lejos.
  */
 const fecha = z.coerce.date().refine((d) => !Number.isNaN(d.getTime()), {
-  message: "La fecha no es valida.",
+  message: "La fecha no es válida.",
 });
 
 // --- Pacientes --------------------------------------------------------------
@@ -39,7 +39,7 @@ export const esquemaCrearPaciente = z.object({
    * Que el largo minimo y el rechazo de un DNI esten en el servicio y no aca es
    * a proposito: son reglas del dominio, no de la forma del JSON.
    */
-  seudonimo: z.string().trim().min(1, "El seudonimo no puede estar vacio."),
+  seudonimo: z.string().trim().min(1, "El seudónimo no puede estar vacío."),
 });
 
 export type CrearPacienteEntrada = z.infer<typeof esquemaCrearPaciente>;

@@ -45,7 +45,7 @@ export function respuestaDeError(error: unknown, contexto: string): Response {
   console.error(contexto, error);
 
   return Response.json(
-    { error: "Ocurrio un error inesperado. Volve a intentar." },
+    { error: "Ocurrió un error inesperado. Volvé a intentar." },
     { status: 500 },
   );
 }
@@ -67,7 +67,7 @@ export function respuestaDeValidacion(
   }
 
   const cuerpo: CuerpoDeError = {
-    error: "Los datos enviados no son validos.",
+    error: "Los datos enviados no son válidos.",
     campos,
   };
 
@@ -93,7 +93,7 @@ export async function leerJson(request: Request): Promise<unknown | Response> {
     return await request.json();
   } catch {
     return Response.json(
-      { error: "El cuerpo del pedido no es JSON valido." },
+      { error: "El cuerpo del pedido no es JSON válido." },
       { status: 400 },
     );
   }

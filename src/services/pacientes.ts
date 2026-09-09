@@ -114,7 +114,7 @@ export async function crearPaciente(
   if (PARECE_DOCUMENTO.test(seudonimo)) {
     throw new ErrorDeNegocio(
       "REGLA_DE_NEGOCIO",
-      "El seudonimo no puede ser un numero de documento. Usa un codigo interno, por ejemplo PAC-001.",
+      "El seudónimo no puede ser un número de documento. Usá un código interno, por ejemplo PAC-001.",
       "seudonimo",
     );
   }

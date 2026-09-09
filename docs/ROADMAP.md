@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| 6.12 | Juan Pablo | `fix/6.12-dos-correcciones-de-terminacion` | activa | — | 2026-09-09 |
+| — | — | — | — | — | — |
 
 
 ### Reserva de tareas
@@ -485,7 +485,7 @@ verificar el sistema contra su documentación. No son alcance nuevo.
 |---|---|---|---|---|
 | 6.11 | **Las fechas del seed, relativas a la fecha de ejecución.** Hoy son absolutas —el lote de Clonazepam vence el 24/09/2026— así que el seed envejece: pasada esa fecha la tarjeta de lotes por vencer se va a cero y se cae un momento de la demostración. Se calculan como desplazamientos desde el día en que se siembra. **Incluye garantizar que los tres estados de vencimiento se vean siempre**, sin depender de cuándo se siembre: hoy no hay ningún lote VENCIDO en el seed, así que ese estado —el que justifica el indicador de la 4.17— no se puede mostrar. **Y alinear `docs/GUION_DEMOSTRACION.md`**, que afirma fechas y plazos concretos que van a dejar de coincidir con la pantalla. | `[x]` | M | 6.06, 6.09 |
 
-| 6.12 | **Dos correcciones de terminación.** (a) **La validación de lote está escrita dos veces:** `validarDatosDeLote` en `src/services/lotes.ts` dice en su comentario que existe para que la compartan `crearLote` y `crearLoteConIngreso`, pero `crearLote` conserva su propia copia en línea. Hoy son idénticas, así que no hay diferencia de comportamiento; el problema es el día que alguien corrija una sola. (b) **Los mensajes de los servicios llegan a la pantalla sin tildes** —"El numero de lote no puede estar vacio"—, mientras el resto de la interfaz sí las lleva. Los comentarios del código siguen sin tildes, que es la convención: acá se corrige solo el texto que ve el usuario. Van juntas por tamaño, aunque (a) sea de la fase 4. | `[~]` | S | 4.13 |
+| 6.12 | **Dos correcciones de terminación.** (a) **La validación de lote está escrita dos veces:** `validarDatosDeLote` en `src/services/lotes.ts` dice en su comentario que existe para que la compartan `crearLote` y `crearLoteConIngreso`, pero `crearLote` conserva su propia copia en línea. Hoy son idénticas, así que no hay diferencia de comportamiento; el problema es el día que alguien corrija una sola. (b) **Los mensajes de los servicios llegan a la pantalla sin tildes** —"El numero de lote no puede estar vacio"—, mientras el resto de la interfaz sí las lleva. Los comentarios del código siguen sin tildes, que es la convención: acá se corrige solo el texto que ve el usuario. Van juntas por tamaño, aunque (a) sea de la fase 4. | `[x]` | S | 4.13 |
 ---
 
 ## Reparto sugerido
