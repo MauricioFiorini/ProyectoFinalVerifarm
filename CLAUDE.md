@@ -17,8 +17,9 @@ bloqueado por una decisión de equipo; el traspaso, cómo quedó el último trab
 qué falta. Este archivo no se actualiza tarea por tarea, así que cualquier cosa
 concreta que diga puede estar vieja.
 
-Al **2026-09-01**: fase 3 empezada, seis tareas en `[?]` esperando decisiones de
-reunión y la 2.09 reabierta a la espera de dos verificaciones.
+Al **2026-09-09**: **fases 0 a 5 cerradas** —los dos módulos funcionan de punta
+a punta— y la fase 6 arrancada, con la 6.01 hecha. Queda una decisión de equipo
+abierta, la D8, que no bloquea nada.
 
 Este archivo lo leen tanto Claude Code como Antigravity.
 

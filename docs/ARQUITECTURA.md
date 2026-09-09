@@ -19,19 +19,23 @@ Ubicación en el repo: `docs/ARQUITECTURA.md`
 ## 1. Lo primero: qué existe hoy y qué todavía no
 
 La confusión más común es mezclar lo que está escrito con lo que está planeado.
-Al **2026-09-01**, esto es lo que hay:
+Al **2026-09-09**, esto es lo que hay:
 
 | Existe | No existe todavía |
 |---|---|
-| Proyecto Next.js que compila y levanta | Cualquier pantalla propia (la home es la de ejemplo) |
-| PostgreSQL 16 en Docker, con migración inicial aplicada | Segunda migración (tarea 2.10) |
-| Los 10 modelos de datos y 4 enums | Datos definitivos (el seed es provisorio) |
-| `src/lib/db.ts` — el cliente de base de datos | Cualquier route handler (`src/app/api/`) |
-| `src/services/medicamentos.ts` — un servicio | El resto de los servicios |
-| Paleta y tipografía en `globals.css` | Los componentes de `src/components/ui/` |
+| **Los dos módulos completos**, de la lógica a las pantallas | La pantalla de inicio de verdad (la actual es provisoria, tarea 6.03) |
+| Catálogo, stock con FEFO y trazabilidad por lote | Selector de usuario simulado (6.02) |
+| Módulo clínico: pacientes, medicación, consultas y resultado | Manejo de errores global (6.04) |
+| **1150 interacciones cargadas** desde ONCHigh | Un seed que dispare interacciones de verdad (6.06) |
+| Barra lateral con las cinco secciones navegables | `README.md`, guion y ensayo de la demostración (6.07 a 6.10) |
+| Seis componentes en `src/components/ui/` | Revisión responsive (6.05) |
 
-**Zod está en el stack declarado pero todavía no está instalado.** Entra con la
-tarea 3.02, que es la primera que lo necesita.
+**El estado exacto, tarea por tarea, está en `docs/ROADMAP.md`.** Esta tabla da
+la idea gruesa y se actualiza de vez en cuando; el roadmap es el que manda.
+
+**Una advertencia que vale para la demostración:** el catálogo del seed cruza
+hoy con **una sola** interacción. No es un error del código: el seed se armó
+antes de tener la fuente. Se corrige en la tarea 6.06 (decisión `0012`).
 
 ---
 
@@ -211,7 +215,7 @@ y agregar algo tiene un procedimiento, en `docs/decisiones/0003`.
 | **Prisma** | **7.10.0 exacta** | Traduce entre TypeScript y SQL, y versiona los cambios de esquema en migraciones | Los tipos salen del esquema: si renombrás un campo, el compilador te muestra todos los lugares a corregir |
 | **`pg` + `@prisma/adapter-pg`** | 8.x / 7.10.0 | El driver que abre la conexión real | **Prisma 7 no conecta sin adaptador.** No es opcional. Ver `decisiones/0004` |
 | **Tailwind** | 4.3.3 | Los estilos, como clases en el HTML | Sin bibliotecas de componentes: todo lo que se ve lo escribimos nosotros y lo podemos explicar |
-| **Zod** | *sin instalar* | Validará la entrada de la API | Entra con la tarea 3.02 |
+| **Zod** | 4.5.4 | Valida la **forma** de la entrada de la API, antes de llegar al servicio | Las reglas del dominio NO van acá: viven en `src/services/`. Ver la sección 4 |
 | **`tsx`** | 4.23.13 | Ejecuta TypeScript directo, sin compilar | Es lo que corre `prisma/seed.ts` |
 | **`dotenv`** | 17.x | Lee el archivo `.env` | Prisma 7 ya no lo carga solo |
 | **ESLint + Prettier** | 9.x / 3.9.6 | Reglas y formato | `npm run check` corre los dos y tiene que dar 0 |
@@ -232,7 +236,7 @@ se encuentra buscando describe Prisma 6 y dice lo contrario.
 
 ## 6. El modelo de datos
 
-Diez modelos y cuatro enums. Lo importante es que **son dos módulos que se tocan
+Once modelos y cuatro enums. Lo importante es que **son dos módulos que se tocan
 en un solo punto**.
 
 ```
@@ -250,8 +254,9 @@ en un solo punto**.
         │  MedicacionVigente ──── Paciente              │
         │                            │                  │
         │                    ConsultaInteraccion        │
-        │                            │                  │
-        │                  ObservacionInteraccion       │
+        │                       │          │            │
+        │      MedicamentoEvaluado    ObservacionInteraccion
+        │      (qué se evaluó)        (qué se encontró)  │
         │                                               │
         │  Interaccion  (rxcui1, rxcui2, severidad)     │
         │       ↑ NO tiene relación con Medicamento:    │
@@ -270,8 +275,9 @@ interacciones.** No son dos sistemas pegados: es uno con dos salidas.
 | `Lote` | Una entrada de medicación con su número y su vencimiento |
 | `MovimientoStock` | Un asiento: entró o salió tanta cantidad de tal lote. **Inmutable** |
 | `Paciente` | Solo un seudónimo. **Nunca** nombre, documento ni fecha de nacimiento |
-| `MedicacionVigente` | Qué toma un paciente hoy |
+| `MedicacionVigente` | **Un tramo**: esta droga, desde esta fecha y hasta esta otra. El estado se calcula (`decisiones/0013`) |
 | `ConsultaInteraccion` | Una evaluación puntual de un conjunto de fármacos |
+| `MedicamentoEvaluado` | **Qué entró a una consulta**, haya dado interacción o no (`decisiones/0014`) |
 | `ObservacionInteraccion` | Lo que el sistema le muestra al médico |
 | `Interaccion` | Un par de drogas que interactúan, **por RxCUI** |
 | `Usuario` | Quién registra los movimientos |
@@ -297,6 +303,14 @@ interacción no detectada**, que es el peor error posible acá.
 
 El campo es **opcional** (`decisiones/0005`), y el motivo es el modo de falla: un
 `rxcui` ausente se ve y se avisa; uno inventado no se ve y da un resultado falso.
+
+### Una consulta guarda lo que evaluó, no solo lo que encontró
+
+`MedicamentoEvaluado` existe por una razón concreta: sin él, una consulta que no
+encuentra nada queda con cero observaciones y **no dice qué revisó**. Y la
+pantalla de resultado no podría avisar que una de las drogas no está en la
+fuente, que es la distinción que sostiene todo el módulo: **"sin interacciones"
+y "sin datos" no son lo mismo** (`decisiones/0012` y `0014`).
 
 ---
 
@@ -369,9 +383,10 @@ es saber **dónde se contesta cada pregunta**:
 **Dos reglas que ahorran tardes enteras:**
 
 **Decidido no es hecho.** Que una decisión esté escrita en `docs/decisiones/` no
-significa que el código ya la refleje. Hoy mismo: el `rxcui` está decidido como
-opcional y en `schema.prisma` sigue siendo obligatorio, porque falta la
-migración de la tarea 2.10.
+significa que el código ya la refleje. Hoy mismo: la decisión `0012` fijó que el
+catálogo tiene que cruzarse con la fuente de interacciones, y el seed sigue
+teniendo el catálogo viejo —que cruza con **una sola** interacción— porque falta
+la tarea 6.06.
 
 **Si la documentación y el código se contradicen, no elijas: preguntá.** Una de
 las dos está mal, y adivinar cuál es lo que genera el trabajo que después hay que
