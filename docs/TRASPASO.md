@@ -134,6 +134,17 @@ La 6.06 además pide:
   FEFO repartiendo.
 - **Pacientes cuya medicación efectivamente dispare interacciones.**
 
+**Hoy los dos módulos no se pueden demostrar en la misma base, y eso solo lo
+arregla la 6.06.** El seed carga las 1150 interacciones, pero empieza con un
+`medicamento.deleteMany()` que se lleva en cascada los lotes y los movimientos.
+O sea que sembrar deja el módulo clínico listo y el stock vacío, y armar lotes a
+mano para mostrar FEFO deja el stock listo y la tabla de interacciones vacía, con
+todas las drogas marcadas "sin datos en la fuente". No hay orden de pasos que
+deje las dos mitades andando a la vez. La 6.06 lo resuelve de raíz porque siembra
+las dos cosas juntas: el catálogo que cruza con la fuente y los lotes con
+vencimientos distintos. Mientras no esté, el guion de la 6.08 no se puede ensayar
+entero.
+
 **La 6.03 conviene después de la 6.06**, porque las tarjetas de inicio se ven
 vacías sin datos. **Si trabajan dos en paralelo: 6.06 con 6.02, o 6.06 con
 6.04.**
