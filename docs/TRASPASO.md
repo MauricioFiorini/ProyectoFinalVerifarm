@@ -12,7 +12,7 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-09
 **Entrega:** Juan José Pastorino
-**Rama:** `feat/6.08-guion-demostracion` lista para merge a `main`.
+**Rama:** `main` (tarea 6.08 integrada y pusheada).
 
 ## La tarea 6.08 está completa (Guion de demostración)
 
