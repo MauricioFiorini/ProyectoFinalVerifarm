@@ -52,7 +52,7 @@ con el modelo viejo.
 
 | Integrante | `medicacion_con_fechas_y_motivo` (5.04) | `la_consulta_guarda_lo_evaluado` (5.21) |
 |---|---|---|
-| Juan Pablo | `[ ]` | `[ ]` |
+| Juan Pablo | `[x]` | `[x]` |
 | Mauricio | `[x]` | `[x]` |
 | Juan José | `[ ]` | `[ ]` |
 
