@@ -16,7 +16,7 @@ import { z } from "zod";
  * no falla: devuelve un Date invalido que rompe mas adelante y lejos.
  */
 const fecha = z.coerce.date().refine((d) => !Number.isNaN(d.getTime()), {
-  message: "La fecha no es valida.",
+  message: "La fecha no es válida.",
 });
 
 const identificador = z.string().trim().min(1);
@@ -26,8 +26,8 @@ export const esquemaCrearLote = z.object({
   numeroLote: z
     .string()
     .trim()
-    .min(1, "El numero de lote no puede estar vacio.")
-    .max(60, "El numero de lote no puede superar los 60 caracteres."),
+    .min(1, "El número de lote no puede estar vacío.")
+    .max(60, "El número de lote no puede superar los 60 caracteres."),
   fechaIngreso: fecha,
   fechaVencimiento: fecha,
   /**
@@ -39,7 +39,7 @@ export const esquemaCrearLote = z.object({
    */
   cantidad: z
     .number()
-    .int("La cantidad tiene que ser un numero entero.")
+    .int("La cantidad tiene que ser un número entero.")
     .positive("La cantidad tiene que ser mayor que cero.")
     .optional(),
   /**
@@ -63,7 +63,7 @@ export const esquemaListarLotes = z.object({
  */
 const cantidad = z
   .number()
-  .int("La cantidad tiene que ser un numero entero.")
+  .int("La cantidad tiene que ser un número entero.")
   .positive("La cantidad tiene que ser mayor que cero.");
 
 export const esquemaRegistrarMovimiento = z.object({

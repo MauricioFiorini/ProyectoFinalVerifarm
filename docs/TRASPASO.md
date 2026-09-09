@@ -181,9 +181,13 @@ indicador rojo, y recién después los dos vigentes.
 
 # Qué queda pendiente
 
-**Cuatro cosas, en este orden.** Salieron todas de la misma revisión del sistema
-contra su documentación, con las seis fases ya cerradas. Ninguna es alcance
-nuevo.
+**Quedan dos.** De las cuatro que había, las dos más chicas están hechas: la
+línea de `CLAUDE.md` ya está en `main` y los dos menores esperan revisión en la
+rama de la tarea 6.12. Se dejan abajo igual, con lo que se hizo, para que se
+entienda el criterio.
+
+**Las dos que faltan son las dos que necesitan verificar en pantalla**, y por eso
+quedaron: no alcanza con que compilen.
 
 ## Van sobre `main`, una por vez, y NO encadenadas
 
@@ -240,24 +244,30 @@ defecto intermitente y difícil de reproducir. El motor ya devuelve la lista
 ordenada al crear la consulta; lo que falta es imponer ese mismo orden al
 releerla.
 
-## 3. Los dos menores
+## 3. Los dos menores — HECHA, tarea 6.12
 
-**La validación de lote, escrita dos veces.** `validarDatosDeLote` en
-`src/services/lotes.ts` dice en su comentario que existe para que la compartan
-`crearLote` y `crearLoteConIngreso`, pero **`crearLote` conserva su propia copia
-en línea**. Hoy las dos copias son idénticas, así que no hay diferencia de
-comportamiento; el problema es el día que alguien corrija una sola.
+En la rama `fix/6.12-dos-correcciones-de-terminacion`, **sin mergear**.
 
-**Los mensajes de los servicios llegan a la pantalla sin tildes.** "El numero de
-lote no puede estar vacio", "Ocurrio un error inesperado". Los comentarios del
-código van sin tildes por convención y está bien, pero estos son texto que ve el
-usuario, y el resto de la interfaz sí las lleva.
+**La validación de lote ya no está escrita dos veces.** `crearLote` usa
+`validarDatosDeLote`, igual que `crearLoteConIngreso`. El comentario de esa
+función decía que existía para que la compartieran las dos, y ahora es cierto.
 
-## 4. La línea 13 de `CLAUDE.md`
+**Los mensajes que ve el usuario llevan tildes.** Se tocaron solo los de
+`ErrorDeNegocio`, los de Zod y los de `respuestaHttp.ts`, que son los que llegan
+a la pantalla. **Los comentarios del código siguen sin tildes**, que es la
+convención del repositorio y no se cambia.
 
-Dice **"Estado: en construcción del prototipo"**, siete líneas antes de decir que
-las seis fases están cerradas. Es una línea y es el primer archivo que lee
-cualquiera que abra el repositorio, asistente incluido.
+Dos mensajes quedaron sin tocar a propósito, porque **no son texto de usuario**:
+el `Error` de `consultas.ts` sobre un par que el motor no debería devolver, y el
+`RangeError` de `fefo.ts` por una cantidad no entera. Los dos están dirigidos a
+quien programa, no a quien usa el sistema.
+
+## 4. La línea 13 de `CLAUDE.md` — HECHA
+
+Ya está en `main`, commit `7ed1333`. Decía "Estado: en construcción del
+prototipo" siete líneas antes de decir que las seis fases están cerradas. Fue
+directo a `main` sin rama ni número de tarea: es una corrección de texto, y las
+convenciones mandan esos cambios directo a `main`.
 
 # Y después de las cuatro
 

@@ -57,7 +57,7 @@ function validarCantidad(cantidad: number): void {
   if (!Number.isInteger(cantidad) || cantidad <= 0) {
     throw new ErrorDeNegocio(
       "REGLA_DE_NEGOCIO",
-      "La cantidad a dispensar tiene que ser un numero entero mayor que cero.",
+      "La cantidad a dispensar tiene que ser un número entero mayor que cero.",
       "cantidad",
     );
   }

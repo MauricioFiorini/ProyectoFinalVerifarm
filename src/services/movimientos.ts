@@ -43,7 +43,7 @@ function validarCantidad(cantidad: number): void {
   if (!Number.isInteger(cantidad)) {
     throw new ErrorDeNegocio(
       "REGLA_DE_NEGOCIO",
-      "La cantidad tiene que ser un numero entero.",
+      "La cantidad tiene que ser un número entero.",
       "cantidad",
     );
   }

@@ -53,39 +53,12 @@ export async function crearLote(data: CrearLoteInput): Promise<Lote> {
     );
   }
 
-  const numeroLote = data.numeroLote.trim();
-
-  if (numeroLote === "") {
-    throw new ErrorDeNegocio(
-      "REGLA_DE_NEGOCIO",
-      "El numero de lote no puede estar vacio.",
-      "numeroLote",
-    );
-  }
-
-  // Se compara contra el final del dia de hoy: un lote que entro esta manana es
-  // valido, y la hora que traiga la fecha no tiene que decidir nada.
-  //
-  // EN UTC (tarea 4.18). Con el fin del dia LOCAL, que en UTC-3 cae a las 02:59
-  // UTC del dia siguiente, la medianoche UTC de MAÑANA quedaba por debajo del
-  // limite y una fecha de ingreso futura pasaba la validacion.
-  const finDeHoy = finDelDiaUtc();
-
-  if (data.fechaIngreso > finDeHoy) {
-    throw new ErrorDeNegocio(
-      "REGLA_DE_NEGOCIO",
-      "La fecha de ingreso no puede ser futura.",
-      "fechaIngreso",
-    );
-  }
-
-  if (data.fechaVencimiento <= data.fechaIngreso) {
-    throw new ErrorDeNegocio(
-      "REGLA_DE_NEGOCIO",
-      "El vencimiento tiene que ser posterior a la fecha de ingreso.",
-      "fechaVencimiento",
-    );
-  }
+  // Las reglas que no necesitan la base salen de `validarDatosDeLote`, la misma
+  // que usa `crearLoteConIngreso`. Hasta la tarea 6.12 esta funcion tenia su
+  // propia copia de las tres comprobaciones, identica: la funcion compartida
+  // decia en su comentario que existia para evitar justamente eso, y no la
+  // usaba nadie mas que el alta con ingreso.
+  const numeroLote = validarDatosDeLote(data);
 
   const existente = await db.lote.findUnique({
     where: {
@@ -141,7 +114,7 @@ function validarDatosDeLote(data: CrearLoteInput): string {
   if (numeroLote === "") {
     throw new ErrorDeNegocio(
       "REGLA_DE_NEGOCIO",
-      "El numero de lote no puede estar vacio.",
+      "El número de lote no puede estar vacío.",
       "numeroLote",
     );
   }
@@ -189,7 +162,7 @@ export async function crearLoteConIngreso(
   if (!Number.isInteger(cantidad) || cantidad <= 0) {
     throw new ErrorDeNegocio(
       "REGLA_DE_NEGOCIO",
-      "La cantidad tiene que ser un numero entero mayor que cero.",
+      "La cantidad tiene que ser un número entero mayor que cero.",
       "cantidad",
     );
   }

@@ -26,7 +26,7 @@ const PATRON_DOSIS = /\d+\s*(mg|ml|g|mcg|ui|%)\b/i;
 const nombre = z
   .string()
   .trim()
-  .min(1, "El nombre de la droga no puede estar vacio.")
+  .min(1, "El nombre de la droga no puede estar vacío.")
   // No es una regla del dominio, es un limite para no aceptar entradas absurdas.
   .max(200, "El nombre no puede superar los 200 caracteres.")
   .refine((v) => !PATRON_DOSIS.test(v), {
@@ -62,7 +62,7 @@ export const esquemaCrearMedicamento = z.object({
   }),
   stockMinimo: z
     .number()
-    .int("El stock minimo tiene que ser un numero entero.")
+    .int("El stock mínimo tiene que ser un número entero.")
     .min(0, "El stock minimo no puede ser negativo.")
     .optional(),
 });

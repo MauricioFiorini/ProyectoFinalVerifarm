@@ -106,7 +106,7 @@ export async function crearConsulta(
     if (!paciente) {
       throw new ErrorDeNegocio(
         "NO_ENCONTRADO",
-        "El paciente no existe o esta dado de baja.",
+        "El paciente no existe o está dado de baja.",
         "pacienteId",
       );
     }
