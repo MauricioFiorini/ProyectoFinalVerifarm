@@ -12,91 +12,132 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 ## Traspaso vigente
 
-**Fecha:** 2026-09-08
+**Fecha:** 2026-09-09
 **Entrega:** Mauricio Mateo Fiorini
-**Rama:** `feat/5.12-modal-de-alta-de-paciente` (**sin mergear**)
+**Rama:** `feat/5.13-ficha-del-paciente` (**sin mergear**)
 
 ### Qué se hizo
 
-**La 5.12: el modal de alta de paciente.** Con esto **se pueden dar de alta
-pacientes desde la interfaz**, y el botón que la 5.11 había dejado deshabilitado
-quedó habilitado.
+**La 5.13: la ficha del paciente**, en `/pacientes/[id]`. Es la pantalla donde
+se ve qué está tomando alguien y **cuál de esas drogas el sistema no puede
+evaluar**.
 
 | Archivo | Qué |
 | --- | --- |
-| `src/app/pacientes/ModalNuevoPaciente.tsx` | El modal. Nuevo |
-| `src/app/pacientes/ListaPacientes.tsx` | **Modificado**: el botón abre el modal |
+| `src/app/pacientes/[id]/page.tsx` | El "volver". Componente de servidor |
+| `src/app/pacientes/[id]/MedicacionDelPaciente.tsx` | La ficha entera |
+| `src/components/ui/Chip.tsx` | **Nuevo**: `Chip` se mudó acá |
+| `src/services/interacciones.ts` | `Evaluabilidad` y `calcularEvaluabilidad` |
+| `src/services/medicacion.ts` | Las filas traen `evaluabilidad`; se corrigió el orden |
+| `src/services/consultas.ts` | Usa el `Evaluabilidad` compartido |
+| `src/app/api/medicacion/route.ts` | `GET` devuelve `{ paciente, medicacion }` |
+| `src/app/pacientes/ListaPacientes.tsx` | Enlace **"Ver ficha"** por fila |
+| `src/app/stock/indicadores.tsx` | Importa el `Chip` mudado |
 
 ### Recordatorio: hay migraciones sin aplicar
 
 `docs/ROADMAP.md`, sección **"Migraciones pendientes de aplicar"**, arriba de
 todo. **Juan Pablo y Juan José tienen dos sin correr.**
 
-### Un campo, y una nota que no es relleno
+### La columna "Interacciones" es el punto de la pantalla
 
-El formulario pide el seudónimo y nada más. Eso, a quien no conozca el proyecto,
-se le lee como un formulario a medio hacer: falta el nombre, falta el documento,
-falta la fecha de nacimiento.
+Una lista de medicación vigente, a secas, **parece revisada y no lo está**. Si
+una de las drogas no figura en la fuente, el paciente puede tener una
+interacción que el sistema nunca va a ver, y nada lo diría.
 
-Por eso el modal lleva una nota visible, y **no es un disclaimer decorativo: es
-lo que convierte una ausencia en una decisión.** Dice que el sistema no guarda
-esos datos, que no hay ningún campo donde cargarlos, que el vínculo con la
-persona vive fuera del sistema, y cita la Ley 25.326 art. 8.
+Por eso cada fila dice si esa droga se puede cruzar, y por qué no:
 
-Es la misma idea que la leyenda del encabezado de la pantalla, pero en el
-momento en que más se nota el hueco: cuando alguien está por cargar a alguien.
+| Marca | Qué significa |
+| --- | --- |
+| "Se evalúa" (gris, sin chip) | Tiene RxCUI y la fuente lo cubre |
+| **"Sin datos en la fuente"** | Tiene RxCUI, pero ONCHigh no lo trae. Le pasa al **clonazepam** |
+| **"Sin RxCUI cargado"** | No tiene código, no hay por dónde cruzarlo |
 
-### Los errores los pinta el servidor, no se duplican en el cliente
+El caso corriente va sin chip a propósito: si todo lleva etiqueta, ninguna se
+lee.
 
-El modal manda lo que la persona escribió y muestra lo que el servidor conteste.
-Que el seudónimo no se repita, que tenga un largo mínimo y que no sea un DNI son
-reglas del servicio (5.01), y repetirlas acá garantiza que en algún momento
-digan cosas distintas.
+### Cuatro decisiones de estructura
 
-Los tres rechazos se comprobaron **en el navegador**, y los tres aparecen debajo
-del campo, en rojo, con el mensaje que escribió el servicio:
+**`Evaluabilidad` se mudó a `interacciones.ts`.** Estaba definida en
+`consultas.ts`, y la ficha necesitaba el mismo concepto. Vive junto a
+`rxcuisConCobertura`, que es de donde sale. Tener el mismo concepto escrito dos
+veces es la forma segura de que un día digan cosas distintas.
 
-| Se escribió | Respuesta | Lo que se ve |
-| --- | --- | --- |
-| `38123456` | 422 | "El seudonimo no puede ser un numero de documento. Usa un codigo interno, por ejemplo PAC-001." |
-| `ab` | 422 | "El seudonimo tiene que tener al menos 3 caracteres." |
-| `pac-001` con `PAC-001` ya cargado | 409 | "Ya hay un paciente con el seudonimo «pac-001»." |
+**La medicación trae la cobertura con cada fila**, resuelta en el servidor. Se
+pide **una** consulta para toda la lista, no una por fila: con diez drogas
+serían once viajes para dibujar una tabla. Mismo problema y misma salida que
+`obtenerDisponiblePorLote` en stock, y que la cuenta de la 5.11.
 
-**El último es el que vale la pena mirar:** se escribió en minúscula y el
-sistema lo detectó igual. Es la comparación insensible a mayúsculas de la 5.01
-funcionando de punta a punta, desde la pantalla hasta la base.
+**`GET /api/medicacion` ahora devuelve `{ paciente, medicacion }`.** El paciente
+viene en la misma respuesta, igual que en `/api/lotes`: la ficha necesita el
+seudónimo para el encabezado y pedirlo aparte serían dos viajes. Además es lo
+que permite contestar **404** cuando el id no existe, en vez de una lista vacía
+que se leería como "este paciente no toma nada".
+
+**`Chip` se mudó a `src/components/ui/Chip.tsx`.** Vivía en
+`src/app/stock/indicadores.tsx`, o sea dentro de la carpeta de una ruta, y la
+ficha tenía que importarlo desde ahí o copiarlo. Es el mismo caso de
+`unidades.ts` en la fase 4 y se resolvió igual: lo compartido sube.
+
+> **Ojo con esto:** `src/components/ui/` pasó de **cuatro archivos a cinco**.
+> Los otros son `Boton`, `Campo`, `Tabla` y `Modal`. No se agrega un sexto sin
+> una razón del mismo tipo: que dos rutas distintas necesiten lo mismo.
+> `ChipDeEstado` y `ChipDeVencimiento` **no** se movieron: traducen estados del
+> módulo de stock y siguen en `indicadores.tsx`.
+
+Se le agregó un tono `neutro` al `Chip`. Una medicación **finalizada** no es una
+alarma ni una buena noticia: sin ese tono había que elegir entre pintarla de
+verde, que dice "todo bien", o de amarillo, que avisa de algo que no pasa.
+
+### Un defecto que apareció al armar la pantalla
+
+`listarMedicacionDePaciente` ordenaba por `fechaFin` ascendente. **PostgreSQL
+manda los NULL al final en un ASC**, y `fechaFin` es NULL justamente en las
+vigentes: la ficha abría mostrando las drogas suspendidas por encima de las que
+el paciente realmente está tomando.
+
+Se corrigió con `{ sort: "asc", nulls: "first" }`. **Se vio en el navegador, no
+compilando** — el orden se escribió en la 5.04, cuando todavía no había pantalla
+que lo mostrara.
 
 ### Cómo verificarlo
 
-Con `docker compose up -d` y `npm run dev`, en `/pacientes`:
+Con `docker compose up -d` y `npm run dev`. Se cargó un paciente con las cinco
+situaciones a la vez:
 
 | Qué | Resultado |
 | --- | --- |
-| Clic en "Nuevo paciente" | Abre el modal |
-| Foco al abrir | Cae en el campo Seudónimo, **no en la cruz de cerrar** |
-| Los tres rechazos | Debajo del campo, con el mensaje del servidor |
-| Tocar el campo tras un error | El error desaparece |
-| Alta válida | Cierra el modal y **la tabla se refresca sola** con el paciente nuevo |
-| Escape | Cierra el modal |
+| Encabezado | "PAC-001 · 4 drogas vigentes · 1 en el historial" |
+| Orden | Las vigentes primero, la suspendida al final |
+| Escitalopram y Haloperidol | "Se evalúa" |
+| Clonazepam y Diazepam | **"Sin datos en la fuente"** |
+| Un medicamento sin RxCUI | **"Sin RxCUI cargado"** |
+| Diazepam suspendido | Chip rojo, y debajo "Somnolencia diurna marcada · 09/07/2026" |
+| La cuenta del listado | Dice **4**, no 5: la suspendida no cuenta |
+| "Ver ficha" desde el listado | Navega bien, y es un `<a>` real |
+| Un id que no existe | **"Ese paciente no existe"**, no la pantalla de error |
+| Los dos botones | `disabled` en el DOM, con su `title` |
+| 375 px | La tabla se desplaza dentro de su caja |
+| Consola | Solo el 404 que se disparó a propósito |
 
-Los 422 y el 409 aparecen en la consola del navegador como "Failed to load
-resource": **es el navegador registrando respuestas HTTP que no son 2xx**, no un
-error de la aplicación. Son exactamente los tres que se dispararon a propósito.
-
-El paciente de prueba **se borró al terminar**: la base quedó con 0 pacientes.
+Los datos de prueba **se borraron**: 0 pacientes, los 10 medicamentos del seed y
+las 1150 interacciones.
 
 `npm run check` da 0.
 
 ### Qué quedó sin hacer
 
 - **La rama no está mergeada.**
-- **La fila del paciente no lleva a ningún lado.** La ficha es la 5.13, y ahí la
-  tabla necesita un botón "Ver ficha" por fila.
-- **No hay baja de paciente.** `Paciente` tiene `activo` pero ningún endpoint lo
-  apaga. Ninguna tarea lo pide todavía.
+- **Los dos botones de la ficha están deshabilitados**: "Agregar medicamento" es
+  la 5.14 y "Evaluar interacciones" la 5.16.
+- **En 375 px la columna "Interacciones" queda fuera de la vista** hasta que se
+  desplaza la tabla. Es el mismo comportamiento que las tablas de stock y la
+  revisión responsive es la **6.05**; conviene mirarlo ahí, porque en esta
+  pantalla esa columna es lo importante.
 - **No hay listado de consultas.** `GET /api/consultas` devuelve una por id. La
   5.20 va a necesitar una `listarConsultas` en `src/services/consultas.ts`.
-- **La 5.13 en adelante**, y toda la fase 6 salvo la 6.01.
+- **No hay baja de paciente.**
+- **La 5.14 en adelante**, y toda la fase 6 salvo la 6.01.
 - **D8 sigue abierta.**
 
 ### Antes de mergear
@@ -105,49 +146,42 @@ El paciente de prueba **se borró al terminar**: la base quedó con 0 pacientes.
 
 ```bash
 git fetch origin
-git diff --name-only origin/main...origin/feat/5.12-modal-de-alta-de-paciente
+git diff --name-only origin/main...origin/feat/5.13-ficha-del-paciente
 ```
 
 ### Qué sigue
 
-**La 5.13: la ficha del paciente**, `/pacientes/[id]`. Es la pantalla más densa
-del módulo y de ella cuelgan la 5.14 y la 5.15.
-
 | Tarea | Tamaño | Qué es |
 | --- | --- | --- |
-| **5.13** | M | Ficha del paciente: medicación vigente con fecha de inicio y estado |
+| **5.14** | M | Modal de alta de medicación: selector con buscador y fecha de inicio |
 | **6.02** | M | Selector de usuario simulado en la barra superior |
 | **6.04** | M | Manejo de errores global |
 
-**Si trabajan dos en paralelo: 5.13 con 6.02, o 5.13 con 6.04.**
+La 5.14 habilita el primer botón de la ficha, y la **5.15** (suspender, tamaño
+S) cierra la cadena. Después la ficha queda completa y sigue la **5.16**, la
+pantalla de consulta.
 
-**Lo que la 5.13 tiene que resolver, y está en su fila del roadmap:**
+**Si trabajan dos en paralelo: 5.14 con 6.02, o 5.14 con 6.04.**
 
-1. **Marca la cobertura por fila** con `rxcuisConCobertura`. El medicamento que
-   la fuente no cubre se señala: *"sin datos"* no es *"sin interacciones"*.
-2. Pide la medicación con **`incluirNoVigentes=true`**, porque la ficha muestra
-   también lo suspendido con su motivo. El resto del sistema usa el defecto.
-3. Los estados vienen calculados en la respuesta: `VIGENTE`, `SUSPENDIDA`,
-   `FINALIZADA`. No se derivan en la pantalla.
-4. El modelo a copiar para la pantalla de detalle es
-   `src/app/stock/[medicamentoId]/`, que ya resuelve el encabezado con el nombre
-   y el "volver".
+**Para la 5.14:** el endpoint ya existe y está probado —`POST /api/medicacion`
+con `pacienteId`, `medicamentoId` y `fechaInicio`—, y devuelve 409 si la droga
+ya está vigente y 422 si la fecha es futura. El selector de medicamento puede
+usar `GET /api/medicamentos?buscar=…`, que ya filtra por nombre.
 
 ### Antes de arrancar, tener en cuenta
 
 - **Las pantallas consumen la API, no importan el servicio.**
 - **Las pantallas no revalidan reglas del dominio.** Mandan y pintan la
-  respuesta. El servidor ya manda el mensaje escrito para una persona, con el
-  campo al que corresponde.
-- **`incluirNoVigentes` es `false` por defecto** en `GET /api/medicacion`. Para
-  evaluar interacciones no se toca; para la ficha se pide en `true`.
-- **La `evaluabilidad` ya viene resuelta** en la respuesta de la consulta:
-  `EVALUADO`, `SIN_RXCUI` o `SIN_COBERTURA`. La 5.13, la 5.16 y la 5.18 tienen
-  que mostrarla.
+  respuesta.
+- **`incluirNoVigentes` es `false` por defecto** en `GET /api/medicacion`. La
+  ficha lo pide en `true`; la evaluación de interacciones no lo toca.
+- **La `evaluabilidad` viene resuelta del servidor**, tanto en la medicación
+  como en el resultado de una consulta. Las pantallas no la calculan.
+- **`src/components/ui/` tiene cinco componentes**: Boton, Campo, Tabla, Modal
+  y Chip.
 - **Las pantallas cargan datos con `setTimeout(…, 0)` dentro de un
   `useEffect`.** Es un parche para el linter, documentado en
-  `src/app/stock/TablaDeStock.tsx`. Las nuevas siguen el mismo patrón.
-- **Los cuatro componentes de `src/components/ui/` son los únicos que hay.**
+  `src/app/stock/TablaDeStock.tsx`.
 - **Las fechas se formatean con `src/lib/fechas.ts`.**
 - **Ningún dato clínico se inventa.**
 - **El catálogo actual cruza con una sola interacción.** Se arregla en la 6.06

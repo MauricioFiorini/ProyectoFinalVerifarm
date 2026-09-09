@@ -4,9 +4,11 @@ import { redactarObservacion } from "../lib/redaccion";
 import { USUARIO_CLINICO_PROVISORIO_ID } from "../lib/usuariosSemilla";
 import { ErrorDeNegocio } from "./errores";
 import {
+  calcularEvaluabilidad,
   evaluarInteracciones,
   rxcuisConCobertura,
   validarMedicamentosDeConsulta,
+  type Evaluabilidad,
 } from "./interacciones";
 
 // Servicio de consultas de interacciones (tarea 5.09).
@@ -36,14 +38,10 @@ import {
 //
 // Es una diferencia deliberada con el otro modulo, no un olvido.
 
-/** Por que un medicamento no participo del cruce, si no participo. */
-export type Evaluabilidad =
-  /** Tiene RxCUI y la fuente lo cubre: se cruzo de verdad. */
-  | "EVALUADO"
-  /** No tiene RxCUI cargado. No hay por donde cruzarlo (decision 0005). */
-  | "SIN_RXCUI"
-  /** Tiene RxCUI, pero la fuente no trae ningun par con esta droga. */
-  | "SIN_COBERTURA";
+// `Evaluabilidad` se define en `interacciones.ts`, junto a la funcion que
+// calcula la cobertura. Se reexporta para no romper a quien ya la importaba
+// desde aca.
+export type { Evaluabilidad } from "./interacciones";
 
 export type MedicamentoDeLaConsulta = {
   id: string;
@@ -141,12 +139,7 @@ export async function crearConsulta(
   const medicamentosDeLaConsulta: MedicamentoDeLaConsulta[] = medicamentos.map(
     (m) => ({
       ...m,
-      evaluabilidad:
-        m.rxcui === null
-          ? "SIN_RXCUI"
-          : enLaFuente.has(m.rxcui)
-            ? "EVALUADO"
-            : "SIN_COBERTURA",
+      evaluabilidad: calcularEvaluabilidad(m.rxcui, enLaFuente),
     }),
   );
 
@@ -298,12 +291,7 @@ export async function obtenerConsulta(
     pacienteId: consulta.pacienteId,
     medicamentos: medicamentos.map((m) => ({
       ...m,
-      evaluabilidad:
-        m.rxcui === null
-          ? "SIN_RXCUI"
-          : enLaFuente.has(m.rxcui)
-            ? "EVALUADO"
-            : "SIN_COBERTURA",
+      evaluabilidad: calcularEvaluabilidad(m.rxcui, enLaFuente),
     })),
     observaciones: consulta.observaciones,
   };

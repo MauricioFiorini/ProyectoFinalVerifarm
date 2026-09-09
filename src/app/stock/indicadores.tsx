@@ -1,3 +1,4 @@
+import { Chip } from "@/components/ui/Chip";
 import type { EstadoDeStock, EstadoDeVencimiento } from "@/services/stock";
 
 // Indicadores visuales del modulo de stock (tareas 4.11 y 4.17).
@@ -5,34 +6,12 @@ import type { EstadoDeStock, EstadoDeVencimiento } from "@/services/stock";
 // Los colores salen de los tokens de estado de la 1.10 —ok, advertencia,
 // critico— y no de hex escritos a mano. Ese es todo el sistema de color de
 // estado que tiene el proyecto: no se agregan mas.
+//
+// `Chip` se mudo a `src/components/ui/Chip.tsx` en la 5.13, porque la ficha del
+// paciente necesitaba lo mismo y no podia importarlo desde una carpeta de stock.
+// Lo que queda aca es la traduccion de los estados de ESTE modulo.
 
-type PropsChip = {
-  tono: "ok" | "advertencia" | "critico";
-  children: React.ReactNode;
-};
-
-const TONOS = {
-  ok: "bg-ok-fondo text-ok-texto border-ok-borde",
-  advertencia:
-    "bg-advertencia-fondo text-advertencia-texto border-advertencia-borde",
-  critico: "bg-critico-fondo text-critico-texto border-critico-borde",
-} as const;
-
-/**
- * Etiqueta de estado.
- *
- * El texto no es decorativo: quien no distingue los colores tiene que poder leer
- * el estado igual. Por eso nunca se usa un punto de color solo.
- */
-export function Chip({ tono, children }: PropsChip) {
-  return (
-    <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ${TONOS[tono]}`}
-    >
-      {children}
-    </span>
-  );
-}
+type PropsChip = { tono: "ok" | "advertencia" | "critico" };
 
 const ESTADO_DE_STOCK: Record<
   EstadoDeStock,

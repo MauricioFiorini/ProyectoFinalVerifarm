@@ -4,6 +4,7 @@ import {
   listarMedicacionVigente,
   suspenderMedicacion,
 } from "@/services/medicacion";
+import { obtenerPacientePorId } from "@/services/pacientes";
 import {
   esquemaAgregarMedicacion,
   esquemaListarMedicacion,
@@ -33,6 +34,14 @@ import {
  * GET /api/medicacion?pacienteId=…
  * GET /api/medicacion?pacienteId=…&incluirNoVigentes=true
  *
+ * Devuelve `{ paciente, medicacion }`.
+ *
+ * El paciente viene en la misma respuesta a proposito, igual que en
+ * `/api/lotes`: la ficha (5.13) necesita el seudonimo para el encabezado, y
+ * pedirlo aparte serian dos viajes para dibujar una sola pantalla. Ademas es lo
+ * que permite contestar 404 cuando el id no existe, en vez de una lista vacia
+ * que se leeria como "este paciente no toma nada".
+ *
  * Por defecto solo la vigente. **Ese defecto importa:** la evaluacion de
  * interacciones corre sobre la medicacion vigente, y si el defecto trajera el
  * historial, olvidarse el parametro daria un aviso por una droga que el paciente
@@ -53,11 +62,20 @@ export async function GET(request: Request) {
   const { pacienteId, incluirNoVigentes } = entrada.data;
 
   try {
+    const paciente = await obtenerPacientePorId(pacienteId);
+
+    if (!paciente) {
+      return Response.json(
+        { error: "El paciente no existe o esta dado de baja." },
+        { status: 404 },
+      );
+    }
+
     const medicacion = incluirNoVigentes
       ? await listarMedicacionDePaciente(pacienteId)
       : await listarMedicacionVigente(pacienteId);
 
-    return Response.json(medicacion);
+    return Response.json({ paciente, medicacion });
   } catch (error) {
     return respuestaDeError(error, "GET /api/medicacion");
   }
