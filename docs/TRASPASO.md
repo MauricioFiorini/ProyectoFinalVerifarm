@@ -12,8 +12,9 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-09
 **Entrega:** Juan Pablo Malizani
-**Ramas:** ninguna abierta. **Las dos correcciones están mergeadas a `main`**
-(PR #35 y #36). No queda trabajo a medias en ninguna rama.
+**Ramas:** ninguna abierta. **Las tres correcciones están mergeadas a `main`**
+(PR #35, #36 y #37), más la línea de `CLAUDE.md`, que fue directo. No queda
+trabajo a medias en ninguna rama.
 
 # Dos correcciones posteriores al cierre, las dos terminadas
 
@@ -181,10 +182,9 @@ indicador rojo, y recién después los dos vigentes.
 
 # Qué queda pendiente
 
-**Quedan dos.** De las cuatro que había, las dos más chicas están hechas: la
-línea de `CLAUDE.md` ya está en `main` y los dos menores esperan revisión en la
-rama de la tarea 6.12. Se dejan abajo igual, con lo que se hizo, para que se
-entienda el criterio.
+**Quedan dos.** De las cuatro que había, las dos más chicas ya están en `main`:
+la línea de `CLAUDE.md` y los dos menores de la tarea 6.12. Se dejan abajo igual,
+con lo que se hizo, para que se entienda el criterio.
 
 **Las dos que faltan son las dos que necesitan verificar en pantalla**, y por eso
 quedaron: no alcanza con que compilen.
@@ -246,7 +246,7 @@ releerla.
 
 ## 3. Los dos menores — HECHA, tarea 6.12
 
-En la rama `fix/6.12-dos-correcciones-de-terminacion`, **sin mergear**.
+Mergeada a `main` (PR #37).
 
 **La validación de lote ya no está escrita dos veces.** `crearLote` usa
 `validarDatosDeLote`, igual que `crearLoteConIngreso`. El comentario de esa
