@@ -52,7 +52,7 @@ con el modelo viejo.
 
 | Integrante | `medicacion_con_fechas_y_motivo` (5.04) | `la_consulta_guarda_lo_evaluado` (5.21) |
 |---|---|---|
-| Juan Pablo | `[ ]` | `[ ]` |
+| Juan Pablo | `[x]` | `[x]` |
 | Mauricio | `[x]` | `[x]` |
 | Juan José | `[x]` | `[x]` |
 
@@ -149,22 +149,23 @@ que reemplaza a la anterior.
 | D9 | **El catálogo se alinea con la fuente**, en la tarea 6.06 | `decisiones/0012-el-catalogo-se-alinea-con-la-fuente.md` |
 | D10 | **La consulta guarda los medicamentos evaluados**, no solo los hallazgos | `decisiones/0014-la-consulta-guarda-lo-que-evaluo.md` |
 
-**Decidido no es hecho.** Las seis destraban las fases 3, 4 y 5, pero tres de
-ellas necesitan trabajo antes de que esas fases arranquen de verdad. Ese trabajo
-son dos tareas nuevas de la fase 2, y **van antes que todo lo demás**:
+**Decidido no es hecho.** Las seis destrabaron las fases 3, 4 y 5, pero tres de
+ellas necesitaban trabajo antes de que esas fases arrancaran de verdad. Ese
+trabajo fueron dos tareas nuevas de la fase 2, y fueron antes que todo lo demás:
 
 - **2.10** — migración: `rxcui` opcional y `Lote.fechaIngreso` (decisiones 0005 y
   0007).
 - **2.11** — corregir el seed: nombres sin dosis, RxCUI de ingrediente
   verificados y usuario con `id` fijo (decisiones 0006, 0008 y 0009).
 
-Hasta que la **2.11** esté hecha, la **5.02** y la **5.03** siguen sin poder
-empezar: los pares de interacciones se cruzan por RxCUI, y hasta que los del seed
-no estén verificados no hay contra qué cruzar.
+**Las dos están hechas**, y con ellas se destrabó la **5.02**. La **5.03** quedó
+sin efecto por la decisión `0012`: el mapeo de DrugBank a RxCUI resolvió completo
+—123 de 123— y la red de seguridad no hizo falta. La lección queda igual: una
+decisión tomada no es trabajo hecho, y conviene mirar qué tarea nueva abre antes
+de suponer que la fase siguiente ya puede arrancar.
 
 **D8 no bloquea ninguna tarea**, así que hoy no hay trabajo esperando una
-reunión. Lo que traba el avance son la **2.10** y la **2.11**, y eso es trabajo,
-no decisión: alguien las tiene que tomar.
+reunión, y tampoco queda trabajo de fases anteriores trabando el avance.
 
 **La 3.05** —los cuatro componentes base de `src/components/ui/`— no depende de
 ninguna de las dos y se puede tomar en paralelo.

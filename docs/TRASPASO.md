@@ -85,6 +85,17 @@ npm run dev
 `npm run check` da 0. La base quedó limpia: **0 pacientes, 0 consultas**, los 10
 medicamentos del seed y las **1150 interacciones**.
 
+**Eso describe la máquina de quien entregó, no la de cada uno.** En la de Juan
+Pablo, al 2026-09-09, quedaron datos de una verificación del aviso de cobertura:
+un paciente **`ZZ-PRUEBA-COBERTURA`** con escitalopram y haloperidol vigentes, y
+una consulta suelta sobre esos dos. **No son datos de una demostración ni de una
+tarea: son basura de prueba.** No se pueden borrar desde la aplicación —ni
+consultas ni pacientes tienen endpoint de borrado, y en el caso de la consulta es
+a propósito, porque un registro clínico no se reescribe—, así que salen con
+`npx prisma db seed`, que limpia y vuelve a sembrar, o quedan hasta que la 6.06
+rehaga el seed. El seudónimo empieza con `ZZ` justamente para que caiga al final
+del listado y se distinga de un paciente del caso de estudio.
+
 ### Dónde está el proyecto
 
 ```
@@ -127,6 +138,17 @@ La 6.06 además pide:
 - **Un medicamento con dos lotes de distinto vencimiento**, para poder mostrar
   FEFO repartiendo.
 - **Pacientes cuya medicación efectivamente dispare interacciones.**
+
+**Hoy los dos módulos no se pueden demostrar en la misma base, y eso solo lo
+arregla la 6.06.** El seed carga las 1150 interacciones, pero empieza con un
+`medicamento.deleteMany()` que se lleva en cascada los lotes y los movimientos.
+O sea que sembrar deja el módulo clínico listo y el stock vacío, y armar lotes a
+mano para mostrar FEFO deja el stock listo y la tabla de interacciones vacía, con
+todas las drogas marcadas "sin datos en la fuente". No hay orden de pasos que
+deje las dos mitades andando a la vez. La 6.06 lo resuelve de raíz porque siembra
+las dos cosas juntas: el catálogo que cruza con la fuente y los lotes con
+vencimientos distintos. Mientras no esté, el guion de la 6.08 no se puede ensayar
+entero.
 
 **La 6.03 conviene después de la 6.06**, porque las tarjetas de inicio se ven
 vacías sin datos. **Si trabajan dos en paralelo: 6.06 con 6.02, o 6.06 con
