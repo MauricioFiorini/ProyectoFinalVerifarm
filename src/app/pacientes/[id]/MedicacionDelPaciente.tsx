@@ -8,6 +8,7 @@ import { formatearFecha } from "@/lib/fechas";
 import type { EstadoDeMedicacion } from "@/services/medicacion";
 import type { Evaluabilidad } from "@/services/interacciones";
 import { ModalAgregarMedicacion } from "./ModalAgregarMedicacion";
+import { ModalSuspender } from "./ModalSuspender";
 
 // Ficha del paciente (tarea 5.13).
 //
@@ -64,7 +65,13 @@ const EVALUABILIDAD: Record<
   SIN_RXCUI: { tono: "advertencia", texto: "Sin RxCUI cargado" },
 };
 
-const COLUMNAS: Columna<MedicacionDeApi>[] = [
+/**
+ * Las columnas se arman con una funcion porque la ultima necesita un callback
+ * del componente. Mismo criterio que en LotesDelMedicamento.tsx.
+ */
+const columnas = (
+  suspender: (m: MedicacionDeApi) => void,
+): Columna<MedicacionDeApi>[] => [
   {
     clave: "droga",
     encabezado: "Droga",
@@ -110,6 +117,18 @@ const COLUMNAS: Columna<MedicacionDeApi>[] = [
       );
     },
   },
+  {
+    clave: "acciones",
+    encabezado: "",
+    alineacion: "derecha",
+    // Solo en las vigentes. Una medicacion ya suspendida no se vuelve a
+    // suspender —el servicio lo rechaza con un 422—, asi que no se ofrece el
+    // boton: un boton que siempre falla es peor que no tenerlo.
+    celda: (m) =>
+      m.estado === "VIGENTE" ? (
+        <Boton onClick={() => suspender(m)}>Suspender</Boton>
+      ) : null,
+  },
 ];
 
 export function MedicacionDelPaciente({ pacienteId }: { pacienteId: string }) {
@@ -117,6 +136,7 @@ export function MedicacionDelPaciente({ pacienteId }: { pacienteId: string }) {
   const [medicacion, setMedicacion] = useState<MedicacionDeApi[]>([]);
   const [estado, setEstado] = useState<Estado>("cargando");
   const [modalAbierto, setModalAbierto] = useState(false);
+  const [aSuspender, setASuspender] = useState<MedicacionDeApi | null>(null);
 
   const cargar = useCallback(async () => {
     try {
@@ -235,7 +255,7 @@ export function MedicacionDelPaciente({ pacienteId }: { pacienteId: string }) {
       </header>
 
       <Tabla
-        columnas={COLUMNAS}
+        columnas={columnas(setASuspender)}
         filas={medicacion}
         claveDeFila={(m) => m.id}
         descripcion={`Medicación de ${paciente?.seudonimo ?? "el paciente"}`}
@@ -252,6 +272,15 @@ export function MedicacionDelPaciente({ pacienteId }: { pacienteId: string }) {
           pacienteId={pacienteId}
           alCerrar={() => setModalAbierto(false)}
           alAgregar={() => void cargar()}
+        />
+      ) : null}
+
+      {aSuspender ? (
+        <ModalSuspender
+          medicacionId={aSuspender.id}
+          nombreMedicamento={aSuspender.medicamento.nombre}
+          alCerrar={() => setASuspender(null)}
+          alSuspender={() => void cargar()}
         />
       ) : null}
     </div>
