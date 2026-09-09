@@ -355,3 +355,37 @@ export async function listarConsultas(): Promise<ConsultaEnLista[]> {
     cantidadDeObservaciones: f._count.observaciones,
   }));
 }
+
+/**
+ * Consultas de interacciones registradas en el día de hoy (tarea 6.03).
+ *
+ * Considera las consultas desde el inicio del día (00:00:00) hasta la fecha de
+ * referencia. Ordenadas de la más reciente a la más antigua.
+ */
+export async function obtenerConsultasDelDia(
+  referencia: Date = new Date(),
+): Promise<ConsultaEnLista[]> {
+  const inicioDelDia = new Date(referencia);
+  inicioDelDia.setHours(0, 0, 0, 0);
+
+  const filas = await db.consultaInteraccion.findMany({
+    where: {
+      createdAt: { gte: inicioDelDia },
+    },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      createdAt: true,
+      paciente: { select: { seudonimo: true } },
+      _count: { select: { medicamentosEvaluados: true, observaciones: true } },
+    },
+  });
+
+  return filas.map((f) => ({
+    id: f.id,
+    fecha: f.createdAt,
+    seudonimo: f.paciente?.seudonimo ?? null,
+    cantidadDeMedicamentos: f._count.medicamentosEvaluados,
+    cantidadDeObservaciones: f._count.observaciones,
+  }));
+}

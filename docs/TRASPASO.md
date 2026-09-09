@@ -14,16 +14,16 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-09
 **Entrega:** Juan José Pastorino
-**Rama:** `main` (`6.02` y `6.06` mergeadas a `main`).
+**Rama:** `feat/6.03-pantalla-inicio` lista para merge a `main`.
 
-## La tarea 6.06 está completa (Seed definitivo)
+## La tarea 6.03 está completa (Pantalla de inicio definitiva con tarjetas)
 
-El seed definitivo quedó cargado y probado en toda la aplicación:
-- **Catálogo de 25 medicamentos** alineados con ONCHigh (57 interacciones detectables).
-- **Lotes para FEFO:** Haloperidol con dos lotes de distinto vencimiento que demuestran el reparto proporcional (40 de uno + 20 de otro para 60 unidades).
-- **Alertas de stock:** Clonazepam ("Lote por vencer", < 30 días) y Risperidona ("Bajo mínimo").
-- **Pacientes sintéticos:** PAC-101 (ISRS + IMAO), PAC-102 (riesgo QT concomitante), PAC-103 (sin cobertura en ONCHigh, Decisión 0012) y PAC-104 (sin interacciones).
-- **Consultas iniciales registradas:** PAC-101 y PAC-102 evaluados por Dr. House.
+La pantalla de inicio provisoria fue reemplazada por el tablero definitivo:
+- **Endpoint `GET /api/inicio`:** consolida en una sola llamada los tres conjuntos de indicadores respetando la arquitectura de capas (las pantallas consumen la API, no importan servicios directamente).
+- **Tarjeta 1 — Stock bajo mínimo:** muestra la cuenta de medicamentos con existencias por debajo del umbral mínimo configurado, el desglose de los faltantes más críticos y enlace directo a `/stock`.
+- **Tarjeta 2 — Lotes por vencer:** visualiza los lotes vigentes cuya fecha de vencimiento cae dentro de los próximos 30 días (FEFO), indicando días restantes y enlace a `/stock`.
+- **Tarjeta 3 — Consultas del día:** cuenta las consultas de interacciones realizadas en la fecha, resume los hallazgos y enlaza al listado `/consultas` y al acceso directo `+ Nueva`.
+- **Módulos del Sistema:** accesos directos rápidos a Control de Stock, Evaluar Interacciones, Pacientes y Catálogo Farmacológico.
 
 ### Lo que se hizo en este bloque
 
@@ -31,15 +31,11 @@ El seed definitivo quedó cargado y probado en toda la aplicación:
 | --- | --- |
 | 6.02 | Selector de usuario simulado en `BarraSuperior` y layout transversal. |
 | 6.06 | `seed.ts` definitivo con 25 fármacos, lotes para FEFO, alertas visuales de stock, 4 pacientes y consultas registradas. |
-
-También se **actualizó la documentación que había quedado vieja**: la sección 1
-de `docs/ARQUITECTURA.md` decía que no existía ninguna pantalla ni route
-handler, la tabla del stack daba Zod como "sin instalar", el ejemplo de
-"decidido no es hecho" citaba una migración que ya se hizo, y la línea de estado
-de `CLAUDE.md` hablaba de la fase 3.
-
+| 6.03 | Tablero de inicio con tarjetas de stock bajo mínimo, lotes por vencer y consultas del día (`TableroInicio.tsx`, `page.tsx`, `api/inicio`). |
 
 ### El recorrido que ya funciona
+
+**Inicio:** entrar a `/` y ver el estado consolidado de la colonia en tres tarjetas interactivas: qué medicamentos están bajo stock mínimo, qué lotes vencen en menos de un mes y cuántas consultas clínicas se evaluaron hoy.
 
 **Stock:** entrar a `/stock`, ver qué está bajo mínimo, abrir un medicamento,
 registrar un ingreso, dispensar una cantidad y ver cómo el sistema reparte entre
@@ -71,19 +67,7 @@ npx prisma db seed
 npm run dev
 ```
 
-`npm run check` da 0. La base quedó limpia: **0 pacientes, 0 consultas**, los 10
-medicamentos del seed y las **1150 interacciones**.
-
-**Eso describe la máquina de quien entregó, no la de cada uno.** En la de Juan
-Pablo, al 2026-09-09, quedaron datos de una verificación del aviso de cobertura:
-un paciente **`ZZ-PRUEBA-COBERTURA`** con escitalopram y haloperidol vigentes, y
-una consulta suelta sobre esos dos. **No son datos de una demostración ni de una
-tarea: son basura de prueba.** No se pueden borrar desde la aplicación —ni
-consultas ni pacientes tienen endpoint de borrado, y en el caso de la consulta es
-a propósito, porque un registro clínico no se reescribe—, así que salen con
-`npx prisma db seed`, que limpia y vuelve a sembrar, o quedan hasta que la 6.06
-rehaga el seed. El seudónimo empieza con `ZZ` justamente para que caiga al final
-del listado y se distinga de un paciente del caso de estudio.
+`npm run check` da 0.
 
 ### Dónde está el proyecto
 
@@ -94,17 +78,16 @@ Fase 2 — modelo de datos ...  11 de 11   ✅
 Fase 3 — catálogo ..........   8 de  8   ✅
 Fase 4 — stock y FEFO ......  17 de 17   ✅
 Fase 5 — módulo clínico ....  20 de 21   ✅ (la 5.03 quedó sin efecto)
-Fase 6 — cierre ............   3 de 10   (6.01, 6.02 y 6.06 completas)
+Fase 6 — cierre ............   4 de 10   (6.01, 6.02, 6.03 y 6.06 completas)
 ```
 
 ### Qué sigue: la fase 6
 
-**Siete tareas pendientes.** En orden de conveniencia:
+**Seis tareas pendientes.** En orden de conveniencia:
 
 | Tarea | Tamaño | Qué es |
 | --- | --- | --- |
-| **6.03** | L | **Pantalla de inicio definitiva con tarjetas.** Ahora que el seed tiene stock bajo mínimo, lotes por vencer y consultas del día, las tarjetas se pueden implementar completas. |
-| **6.04** | M | Manejo de errores global |
+| **6.04** | M | **Manejo de errores global:** página de error y componente de error por sección. |
 | **6.05** | M | Revisión responsive |
 | **6.07** | M | `README.md` |
 | **6.08** | M | Guion de demostración |
