@@ -12,9 +12,32 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-09
 **Entrega:** Mauricio Mateo Fiorini
-**Rama:** `main` (la 6.09 es documentación y va directo, según convenciones).
+**Rama:** `main` (las dos tareas son documentación y van directo, según
+convenciones).
 
-## La tarea 6.09 está completa (Ensayo de la demostración)
+# La fase 6 está cerrada. El prototipo está completo.
+
+**10 de 10.** Con esto quedan cerradas las seis fases: el alcance del prototipo
+está terminado.
+
+```
+Fase 0 — entorno ...........   9 de  9   ✅
+Fase 1 — andamiaje .........  15 de 15   ✅
+Fase 2 — modelo de datos ...  11 de 11   ✅
+Fase 3 — catálogo ..........   8 de  8   ✅
+Fase 4 — stock y FEFO ......  17 de 17   ✅
+Fase 5 — módulo clínico ....  20 de 21   ✅ (la 5.03 quedó sin efecto)
+Fase 6 — cierre ............  10 de 10   ✅
+```
+
+## Lo que se hizo en este bloque
+
+| Tarea | Qué dejó |
+| --- | --- |
+| 6.09 | Ensayo completo con base desde cero. Guion corregido y registro del ensayo al final de `docs/GUION_DEMOSTRACION.md`. |
+| 6.10 | `docs/PREGUNTAS_PREVISIBLES.md`: doce preguntas con respuesta corta, la fuente que la respalda y la repregunta que sigue. |
+
+## La 6.09 — el ensayo
 
 Se corrió la demostración entera contra el sistema, con la base cargada desde
 cero y a 1366×768, la resolución de la notebook de la defensa.
@@ -26,9 +49,7 @@ de "sin interacciones"; y el rol elegido en el selector queda asentado en el
 libro mayor —verificado dispensando como Dr. House y leyendo el asiento—.
 
 **El guion, en cambio, tenía doce afirmaciones que no coincidían con la
-pantalla.** Están corregidas, y el registro completo del ensayo quedó al final
-de [`docs/GUION_DEMOSTRACION.md`](GUION_DEMOSTRACION.md). Las tres que más
-costaban:
+pantalla.** Están corregidas. Las tres que más costaban:
 
 1. **`npm run setup` no resetea la base**, solo regenera el cliente de Prisma.
    Estaba escrito como el comando de emergencia durante la defensa: si algo
@@ -36,11 +57,9 @@ costaban:
    `npx prisma db seed`**, que sí limpia todas las tablas antes de cargar.
 2. **La observación no menciona síndrome serotoninérgico ni crisis
    hipertensiva.** El guion se lo atribuía a la pantalla. ONCHigh no publica
-   descripciones (decisión `0011`) y el sistema no las inventa: decirlo como si
-   estuviera en pantalla es exactamente lo que la regla 6 prohíbe.
+   descripciones (decisión `0011`) y el sistema no las inventa.
 3. **Los usuarios se llaman "Farm. Pérez" y "Dr. House"**, no "Ana Clara
-   Benítez" ni "Gregory House". Leer en voz alta un nombre que no está en
-   pantalla, frente al jurado, es caro.
+   Benítez" ni "Gregory House".
 
 El resto: no existe el botón "Guardar consulta" (evaluar guarda), el botón es
 "Dispensar" y su modal no tiene campo de motivo, las filas de las tablas no son
@@ -53,13 +72,52 @@ confirmar**, con el reparto y la razón escrita; la **advertencia de cobertura
 antes de evaluar** en `PAC-103`; y el **asiento del libro mayor** con usuario y
 hora.
 
-### Lo que se hizo en este bloque
+## La 6.10 — las preguntas del jurado
 
-| Tarea | Qué dejó |
-| --- | --- |
-| 6.09 | Ensayo completo con base desde cero; guion corregido y registro del ensayo. |
+`docs/PREGUNTAS_PREVISIBLES.md`. Las cinco que pedía la tarea —receta,
+proveedor, API en vivo, auditoría, validación médica— con tratamiento completo,
+más siete que salen naturalmente después: la severidad única, la verificación de
+los RxCUI, la concurrencia sobre saldos, la falta de pruebas, el stock en cero,
+el login y el texto generado.
 
-### Cómo verificarlo
+Cada una trae **el documento que la respalda**, para que ninguna respuesta sea
+una opinión improvisada en la defensa.
+
+**Dos advertencias quedaron escritas ahí y conviene leerlas antes de la
+defensa:**
+
+- **La auditoría es la más delicada de las cinco.** Es la única donde el modelo
+  de datos promete algo que el sistema no cumple, y el jurado puede verlo en el
+  diagrama. La tabla existe y está vacía. Hay que decirlo.
+- **No hay que dejar que "está en el roadmap del producto" sirva para todo.** Si
+  algo se dejó afuera por tiempo, se dice así. El jurado distingue una decisión
+  de alcance de una tarea que no se hizo.
+
+## Tres cosas anotadas para corregir, que no toqué
+
+Son de otras tareas y no las metí de prepo. **Las tres son errores de hecho en
+documentos que el jurado puede leer.**
+
+1. **`docs/ROADMAP_PRODUCTO.md`, tarea P.3.01** dice *"Los campos ya están en
+   `ObservacionInteraccion`"* y **no están**: el modelo tiene `consultaId`, los
+   dos medicamentos, `severidad`, `descripcion` y `createdAt`, nada más. Está
+   avisado dentro de `PREGUNTAS_PREVISIBLES.md` para que nadie lo afirme en la
+   defensa.
+2. **`docs/ROADMAP_PRODUCTO.md`, encabezado de P.6** dice *"En el prototipo son
+   15 pares cargados a mano (tarea 5.03)"*. Quedó viejo: la 5.03 no se hizo y
+   hoy son **1150 pares importados** de ONCHigh.
+3. **No hay ningún paciente que muestre "sin interacciones" con cobertura
+   real.** `PAC-104` es Amoxicilina + Paracetamol y **las dos tienen cero
+   cobertura en la fuente**, así que da "sin datos", igual que `PAC-103`. De los
+   tres estados posibles del módulo, la demostración muestra dos. Para el
+   tercero sirve **Carbamazepina + Fluoxetina**, verificado contra la base; hoy
+   se arma a mano desde `/consultas/nueva`.
+
+Relacionado con la tercera: **16 de los 25 medicamentos están en cero**, así que
+`/stock` se lee como un sistema sin cargar. Hay respuesta preparada en el guion,
+pero se resuelve mejor en el seed.
+
+## Cómo levantarlo
 
 ```bash
 docker compose up -d
@@ -75,50 +133,28 @@ npm run dev
 como Dr. House, la próxima corrida arranca como Dr. House. Se corrige a mano
 desde la barra superior.
 
-### Dónde está el proyecto
+## Qué queda
 
-```
-Fase 0 — entorno ...........   9 de  9   ✅
-Fase 1 — andamiaje .........  15 de 15   ✅
-Fase 2 — modelo de datos ...  11 de 11   ✅
-Fase 3 — catálogo ..........   8 de  8   ✅
-Fase 4 — stock y FEFO ......  17 de 17   ✅
-Fase 5 — módulo clínico ....  20 de 21   ✅ (la 5.03 quedó sin efecto)
-Fase 6 — cierre ............   9 de 10
-```
+**Del roadmap del prototipo, nada.** Lo que sigue es la defensa.
 
-### Qué sigue
+Antes de esa fecha conviene: **ensayar el guion en voz alta y con cronómetro**
+—el ensayo de la 6.09 verificó que el sistema hace lo que el guion dice, no que
+entre en cinco minutos—, y **repartir `docs/PREGUNTAS_PREVISIBLES.md`** para que
+los tres respondan lo mismo.
 
-**Una sola tarea.** La **6.10**: preparar respuestas a las preguntas
-previsibles del jurado —por qué no hay receta, por qué no hay proveedor, por qué
-las interacciones no vienen de una API en vivo, por qué no hay auditoría
-implementada, por qué no hay validación médica registrada—.
-
-### Dos cosas que el ensayo dejó señaladas
-
-**No hay ningún paciente que muestre "sin interacciones" con cobertura real.**
-`PAC-104` es Amoxicilina + Paracetamol y **las dos tienen cero cobertura en la
-fuente**, así que da "sin datos", igual que `PAC-103`. De los tres estados
-posibles del módulo, la demostración muestra dos. Para el tercero hace falta un
-par cubierto que no interactúe entre sí: sirve **Carbamazepina + Fluoxetina**,
-verificado contra la base. Hoy se arma a mano desde `/consultas/nueva`.
-
-**16 de los 25 medicamentos están en cero**, así que `/stock` se lee como un
-sistema sin cargar y los "17 bajo mínimo" del panel son consecuencia de eso. Hay
-una respuesta preparada en el guion, pero se resuelve mejor en el seed.
-
-### Lo que sigue abierto de antes
+## Lo que sigue abierto de antes
 
 **El parche del `setTimeout`.** Todas las pantallas cargan datos con
 `setTimeout(…, 0)` dentro de un `useEffect`, para que la regla
 `react-hooks/set-state-in-effect` no rechace la llamada. **La regla tiene razón**
 y el timeout no lo arregla, solo lo esconde. Está documentado en
-`src/app/stock/TablaDeStock.tsx` desde la fase 4.
+`src/app/stock/TablaDeStock.tsx` desde la fase 4. Es deuda conocida, no un
+bloqueo.
 
 **La D8 sigue abierta** desde el 2026-09-01: si se sostiene la regla de "código
 va en rama y otro le pasa el ojo" o se cambia el documento.
 
-### Antes de arrancar, tener en cuenta
+## Si alguien vuelve a tocar código
 
 - **El aviso clínico va en toda pantalla clínica nueva**, con
   `<AvisoClinico />`. No se copia el texto.
@@ -134,12 +170,12 @@ va en rama y otro le pasa el ojo" o se cambia el documento.
   necesitan lo mismo.
 - **Las fechas se formatean con `src/lib/fechas.ts`.**
 - **Ningún dato clínico se inventa.** Vale también para lo que se le atribuye a
-  la pantalla en el guion: es donde falló la primera versión.
+  la pantalla en el guion: es donde falló su primera versión.
 - **El sistema asiste, no decide.**
 - **El paciente no tiene datos identificatorios.** Solo un seudónimo.
 - **El puerto sigue siendo el 5433** y Docker Desktop no arranca solo.
 - **Después de cambiar el esquema, `npm run setup` antes de `npm run check`.**
 
-### Bloqueos
+## Bloqueos
 
 **Ninguno.** D8 sigue abierta y no bloquea ninguna tarea.

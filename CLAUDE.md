@@ -17,9 +17,11 @@ bloqueado por una decisión de equipo; el traspaso, cómo quedó el último trab
 qué falta. Este archivo no se actualiza tarea por tarea, así que cualquier cosa
 concreta que diga puede estar vieja.
 
-Al **2026-09-09**: **fases 0 a 5 cerradas** —los dos módulos funcionan de punta
-a punta— y la fase 6 arrancada, con la 6.01 hecha. Queda una decisión de equipo
-abierta, la D8, que no bloquea nada.
+Al **2026-09-09**: **las seis fases están cerradas**. El alcance del prototipo
+está completo: los dos módulos funcionan de punta a punta, la demostración está
+guionada y ensayada contra el sistema, y las respuestas para el jurado están
+preparadas. Lo que sigue es la defensa, no más alcance. Queda una decisión de
+equipo abierta, la D8, que no bloquea nada.
 
 Este archivo lo leen tanto Claude Code como Antigravity.
 
@@ -64,6 +66,8 @@ Si venís a retomar el trabajo de otra persona, leé antes que nada
 | `docs/ROADMAP.md` | **Alcance vigente.** Qué falta, qué está hecho, quién está en cada cosa. |
 | `docs/ROADMAP_PRODUCTO.md` | Lo que quedó fuera del prototipo. **No se implementa.** |
 | `docs/TRASPASO.md` | Cómo quedó la última tarea y por dónde seguir. |
+| `docs/GUION_DEMOSTRACION.md` | Guion de la defensa, ensayado contra el sistema. **Lo que diga que se ve en pantalla, se verifica corriendo.** |
+| `docs/PREGUNTAS_PREVISIBLES.md` | Respuestas preparadas para el jurado, con el documento que respalda cada una. |
 | `docs/CONVENCIONES.md` | Invariantes, ramas, commits, comandos, definición de "hecho". |
 | `docs/REGLAS_IA.md` | Reglas obligatorias para asistentes de IA. |
 | `docs/decisiones/` | Decisiones de arquitectura y su porqué. Append-only. |

@@ -194,7 +194,9 @@ Toda la fundamentación conceptual, decisiones de diseño y registros de avance 
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | Estado detallado del proyecto y seguimiento tarea por tarea (Fases 0 a 6). |
 | [`docs/ROADMAP_PRODUCTO.md`](docs/ROADMAP_PRODUCTO.md) | Registro de funcionalidades que deliberadamente quedaron fuera del prototipo académico. |
 | [`docs/TRASPASO.md`](docs/TRASPASO.md) | Documento dinámico que describe el estado exacto del último bloque de trabajo. |
-| [`docs/decisiones/`](docs/decisiones/) | Registro secuencial de decisiones arquitectónicas tomadas (`0001` a `0015`). |
+| [`docs/GUION_DEMOSTRACION.md`](docs/GUION_DEMOSTRACION.md) | Guion cronometrado de la defensa, ensayado contra el sistema corriendo. |
+| [`docs/PREGUNTAS_PREVISIBLES.md`](docs/PREGUNTAS_PREVISIBLES.md) | Respuestas preparadas a lo que el jurado va a preguntar, con la fuente de cada una. |
+| [`docs/decisiones/`](docs/decisiones/) | Registro secuencial de decisiones arquitectónicas tomadas (`0001` a `0014`). |
 | [`docs/MD_VERIFARM.drawio`](docs/MD_VERIFARM.drawio) | Diagrama del modelo de dominio de Verifarm. |
 
 ---
