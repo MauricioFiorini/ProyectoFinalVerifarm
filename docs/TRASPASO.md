@@ -14,7 +14,7 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-09
 **Entrega:** Juan José Pastorino
-**Rama:** `feat/6.06-seed-definitivo` lista para merge a `main`.
+**Rama:** `main` (`6.02` y `6.06` mergeadas a `main`).
 
 ## La tarea 6.06 está completa (Seed definitivo)
 
@@ -38,17 +38,6 @@ handler, la tabla del stack daba Zod como "sin instalar", el ejemplo de
 "decidido no es hecho" citaba una migración que ya se hizo, y la línea de estado
 de `CLAUDE.md` hablaba de la fase 3.
 
-### Recordatorio: hay migraciones sin aplicar
-
-`docs/ROADMAP.md`, sección **"Migraciones pendientes de aplicar"**, arriba de
-todo. **Juan Pablo y Juan José tienen dos sin correr**, y sin ellas
-`npm run check` falla con errores de tipo que no mencionan a Prisma por ningún
-lado.
-
-```bash
-npx prisma migrate dev
-npm run setup
-```
 
 ### El recorrido que ya funciona
 
@@ -122,37 +111,6 @@ Fase 6 — cierre ............   3 de 10   (6.01, 6.02 y 6.06 completas)
 | **6.09** | M | Ensayo en la máquina de la defensa |
 | **6.10** | M | Respuestas a las preguntas previsibles |
 
-### Por qué la 6.06 va primero
-
-**Hoy el catálogo cruza con una sola interacción**: escitalopram con haloperidol.
-Cualquier demostración del módulo clínico muestra un único hallazgo, y eso no
-alcanza para mostrar de qué es capaz.
-
-No es un error del código: el seed se armó en la 2.08, antes de que existiera la
-fuente. La decisión `0012` ya fijó el criterio —elegir el catálogo de manera que
-se cruce con ONCHigh, sin dejar de ser verosímil para una colonia psiquiátrica—
-y está medido: **20 drogas tomadas de la propia lista dan 47 pares**.
-
-La 6.06 además pide:
-
-- **Un medicamento con dos lotes de distinto vencimiento**, para poder mostrar
-  FEFO repartiendo.
-- **Pacientes cuya medicación efectivamente dispare interacciones.**
-
-**Hoy los dos módulos no se pueden demostrar en la misma base, y eso solo lo
-arregla la 6.06.** El seed carga las 1150 interacciones, pero empieza con un
-`medicamento.deleteMany()` que se lleva en cascada los lotes y los movimientos.
-O sea que sembrar deja el módulo clínico listo y el stock vacío, y armar lotes a
-mano para mostrar FEFO deja el stock listo y la tabla de interacciones vacía, con
-todas las drogas marcadas "sin datos en la fuente". No hay orden de pasos que
-deje las dos mitades andando a la vez. La 6.06 lo resuelve de raíz porque siembra
-las dos cosas juntas: el catálogo que cruza con la fuente y los lotes con
-vencimientos distintos. Mientras no esté, el guion de la 6.08 no se puede ensayar
-entero.
-
-**La 6.03 conviene después de la 6.06**, porque las tarjetas de inicio se ven
-vacías sin datos. **Si trabajan dos en paralelo: 6.06 con 6.02, o 6.06 con
-6.04.**
 
 ### Tres cosas que el equipo debería mirar
 
