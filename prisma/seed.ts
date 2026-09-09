@@ -17,6 +17,7 @@ import {
   USUARIO_MEDICO_ID,
 } from "../src/lib/usuariosSemilla";
 import { crearConsulta } from "../src/services/consultas";
+import { inicioDelDiaUtc, sumarDias } from "../src/lib/fechas";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
@@ -403,31 +404,60 @@ async function main() {
     return lote;
   }
 
+  // --- Las fechas son RELATIVAS al dia en que se siembra (tarea 6.11) -------
+  //
+  // POR QUE NO SON FECHAS FIJAS
+  //
+  // Lo eran, y el seed envejecia: el lote de Clonazepam vencia el 24/09/2026, y
+  // pasada esa fecha la tarjeta de "lotes por vencer" se iba a cero y se caia un
+  // momento de la demostracion. Un seed que solo sirve una semana no sirve.
+  //
+  // Con desfases, los tres estados de vencimiento —VENCIDO, POR_VENCER y
+  // VIGENTE— se ven siempre, se siembre el dia que se siembre. Eso importa
+  // porque el guion los muestra y porque el indicador de la 4.17 existe para
+  // distinguirlos.
+  //
+  // Usa las primitivas de src/lib/fechas.ts, las mismas que el servicio: asi el
+  // seed no inventa su propia idea de "el dia" y las fechas quedan como
+  // medianoche UTC, que es la convencion de todo el sistema. Ver la tarea 4.18.
+  const enDias = (n: number) => inicioDelDiaUtc(sumarDias(new Date(), n));
+
   // --- FEFO: Haloperidol con dos lotes de distinto vencimiento ---
-  // Lote 1: vence el 15/11/2026 (dentro de ~2 meses), 40 ampollas
+  // Lote vigente que vence ANTES: es el que FEFO agota primero. A ~2 meses, o
+  // sea fuera de la ventana de 30 dias, asi que figura Vigente y no Por vencer.
+  await crearLoteConStock("Haloperidol", "HAL-L1", enDias(-39), enDias(67), 40);
+  // Lote vigente que vence despues. Aporta las 10 que le faltan al primero.
+  await crearLoteConStock("Haloperidol", "HAL-L2", enDias(-8), enDias(371), 80);
+
+  // --- Lote VENCIDO, para que se vea el tercer estado (tarea 6.11) ----------
+  //
+  // Vence antes que los otros dos y FEFO NO LO TOCA. Es la unica forma de
+  // MOSTRAR la exclusion de vencidos, que hasta ahora el guion afirmaba sin
+  // poder ensenar: al dispensar 50, el sistema saltea estas 25 y reparte 40 + 10
+  // entre los dos lotes vigentes.
+  //
+  // Ademas es lo que hace aparecer el renglon rojo de "N en lotes vencidos" en
+  // la pantalla de lotes, que estaba construido desde la 4.17 y nunca se habia
+  // visto funcionando porque el seed no tenia ningun lote vencido.
+  //
+  // Las 25 unidades NO cuentan para el disponible: ni en /stock ni en el total
+  // de la pantalla de lotes. Estan fisicamente y no se pueden usar, que es
+  // exactamente el problema que el proyecto viene a resolver.
   await crearLoteConStock(
     "Haloperidol",
-    "HAL-2026-L1",
-    new Date("2026-08-01"),
-    new Date("2026-11-15"),
-    40,
-  );
-  // Lote 2: vence el 15/09/2027 (el año próximo), 80 ampollas
-  await crearLoteConStock(
-    "Haloperidol",
-    "HAL-2027-L2",
-    new Date("2026-09-01"),
-    new Date("2027-09-15"),
-    80,
+    "HAL-VENCIDO",
+    enDias(-400),
+    enDias(-20),
+    25,
   );
 
   // --- Alerta amarilla: Lote por vencer (< 30 días) ---
-  // Clonazepam: vence el 24/09/2026 (a 15 días)
+  // Clonazepam, a 15 dias: dentro de la ventana de 30.
   await crearLoteConStock(
     "Clonazepam",
-    "CLO-2026-VENCE",
-    new Date("2026-08-10"),
-    new Date("2026-09-24"),
+    "CLO-POR-VENCER",
+    enDias(-30),
+    enDias(15),
     35,
   );
 
@@ -435,53 +465,47 @@ async function main() {
   // Risperidona: stock mínimo 30, pero solo ingresan 10 unidades
   await crearLoteConStock(
     "Risperidona",
-    "RIS-2027-01",
-    new Date("2026-08-15"),
-    new Date("2027-06-30"),
+    "RIS-01",
+    enDias(-25),
+    enDias(294),
     10,
   );
 
   // --- Stock regular de otros medicamentos ---
-  await crearLoteConStock(
-    "Sertralina",
-    "SER-2027-01",
-    new Date("2026-08-20"),
-    new Date("2027-10-15"),
-    80,
-  );
+  await crearLoteConStock("Sertralina", "SER-01", enDias(-20), enDias(401), 80);
   await crearLoteConStock(
     "Tranilcipromina",
-    "TRA-2027-01",
-    new Date("2026-08-20"),
-    new Date("2027-12-31"),
+    "TRA-01",
+    enDias(-20),
+    enDias(478),
     50,
   );
   await crearLoteConStock(
     "Tioridazina",
-    "TIO-2027-01",
-    new Date("2026-08-20"),
-    new Date("2027-11-30"),
+    "TIO-01",
+    enDias(-20),
+    enDias(447),
     40,
   );
   await crearLoteConStock(
     "Escitalopram",
-    "ESC-2027-01",
-    new Date("2026-08-20"),
-    new Date("2027-08-30"),
+    "ESC-01",
+    enDias(-20),
+    enDias(355),
     60,
   );
   await crearLoteConStock(
     "Paracetamol",
-    "PAR-2027-01",
-    new Date("2026-08-01"),
-    new Date("2027-12-01"),
+    "PAR-01",
+    enDias(-39),
+    enDias(448),
     200,
   );
   await crearLoteConStock(
     "Amoxicilina",
-    "AMX-2027-01",
-    new Date("2026-08-01"),
-    new Date("2027-05-01"),
+    "AMX-01",
+    enDias(-39),
+    enDias(234),
     60,
   );
 
@@ -514,26 +538,26 @@ async function main() {
 
   // Paciente 1: Dispara interacción ISRS + IMAO (Sertralina + Tranilcipromina)
   const pac101 = await crearPacienteConMedicacion("PAC-101", [
-    { nombre: "Sertralina", fechaInicio: new Date("2026-06-01") },
-    { nombre: "Tranilcipromina", fechaInicio: new Date("2026-08-15") },
+    { nombre: "Sertralina", fechaInicio: enDias(-100) },
+    { nombre: "Tranilcipromina", fechaInicio: enDias(-25) },
   ]);
 
   // Paciente 2: Dispara interacción QT (Haloperidol + Tioridazina)
   const pac102 = await crearPacienteConMedicacion("PAC-102", [
-    { nombre: "Haloperidol", fechaInicio: new Date("2026-05-10") },
-    { nombre: "Tioridazina", fechaInicio: new Date("2026-07-20") },
+    { nombre: "Haloperidol", fechaInicio: enDias(-122) },
+    { nombre: "Tioridazina", fechaInicio: enDias(-51) },
   ]);
 
   // Paciente 3: Sin cobertura en la fuente (Clonazepam + Risperidona - Decisión 0012)
   await crearPacienteConMedicacion("PAC-103", [
-    { nombre: "Clonazepam", fechaInicio: new Date("2026-04-01") },
-    { nombre: "Risperidona", fechaInicio: new Date("2026-05-15") },
+    { nombre: "Clonazepam", fechaInicio: enDias(-161) },
+    { nombre: "Risperidona", fechaInicio: enDias(-117) },
   ]);
 
   // Paciente 4: Sin interacciones entre sí (Paracetamol + Amoxicilina)
   await crearPacienteConMedicacion("PAC-104", [
-    { nombre: "Paracetamol", fechaInicio: new Date("2026-09-01") },
-    { nombre: "Amoxicilina", fechaInicio: new Date("2026-09-01") },
+    { nombre: "Paracetamol", fechaInicio: enDias(-8) },
+    { nombre: "Amoxicilina", fechaInicio: enDias(-8) },
   ]);
 
   // 6. Consultas clínicas históricas registradas

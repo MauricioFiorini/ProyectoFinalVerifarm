@@ -12,10 +12,9 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-09
 **Entrega:** Juan Pablo Malizani
-**Ramas:** `fix/4.18-corte-de-vencimiento-en-utc` y
-`fix/6.11-fechas-del-seed-relativas`, las dos pusheadas y **sin mergear**.
+**Rama:** `fix/6.11-fechas-del-seed-relativas`. La 4.18 **ya está en `main`**.
 
-# Dos correcciones posteriores al cierre. La 6.11 quedó a medias
+# Dos correcciones posteriores al cierre, las dos terminadas
 
 **El prototipo sigue completo.** Nada de esto es alcance nuevo: son defectos del
 trabajo ya hecho, encontrados al verificar el sistema contra su documentación.
@@ -24,8 +23,8 @@ cierre de la fase"**, una en la fase 4 y otra en la fase 6.
 
 | Tarea | Estado | Qué dejó |
 | --- | --- | --- |
-| 4.18 | `[x]` | El corte del día se calcula en UTC. Lista para revisar y mergear. |
-| 6.11 | `[!]` | Seed con fechas relativas, hecho y verificado. **Falta alinear el guion.** |
+| 4.18 | `[x]` | El corte del día se calcula en UTC. **Mergeada.** |
+| 6.11 | `[x]` | Seed con fechas relativas, lote vencido y guion alineado. En rama. |
 
 ## Lo primero, si vas a ensayar
 
@@ -123,11 +122,15 @@ Haloperidol disponible: 120   (las 25 vencidas no cuentan)
 plan FEFO de 50:    HAL-L1:40 + HAL-L2:10
 ```
 
-# Lo que falta de la 6.11: alinear el guion
+# El guion, alineado
 
-**Esto es lo único pendiente, y está analizado.** No hace falta volver a
-estudiarlo: son seis pasajes de `docs/GUION_DEMOSTRACION.md` y tres nombres de
-lote. Se retoma sobre la misma rama, `fix/6.11-fechas-del-seed-relativas`.
+**Hecho.** Eran seis pasajes de `docs/GUION_DEMOSTRACION.md` y tres nombres de
+lote. Queda escrito acá qué cambió, porque el guion es lo que se lee en voz alta
+el día de la defensa y conviene saber por qué dice lo que dice.
+
+**El guion ahora nombra plazos, no fechas.** Quedó como regla escrita en su
+encabezado, al lado de la que ya estaba sobre no escribir de memoria: "vence en
+15 días" es cierto siempre, "vence el 24/09/2026" deja de serlo a la semana.
 
 ## Los tres nombres de lote que cambiaron
 
@@ -139,37 +142,37 @@ El seed ya no pone el año en el número de lote, justamente porque envejecía.
 | `HAL-2026-L1` | `HAL-L1` |
 | `HAL-2027-L2` | `HAL-L2` |
 
-Y hay uno nuevo que el guion todavía no nombra: **`HAL-VENCIDO`**.
+Y hay uno nuevo, que el guion ahora sí nombra: **`HAL-VENCIDO`**.
 
 ## Los seis pasajes
 
-**Regla general: el guion tiene que nombrar plazos, no fechas.** "Vence en 15
-días" sigue siendo cierto siempre; "vence el 24/09/2026" deja de serlo.
+Los seis, ya corregidos. Se listan con lo que decían, para que se entienda el
+criterio si mañana alguien agrega un paso.
 
 1. **Línea 79.** Dice que el lote `CLO-2026-VENCE` vence "el 24/09/2026, en 15
-   días". El plazo es correcto y ahora lo es siempre; sacar la fecha y corregir
-   el nombre del lote.
+   días". El plazo era correcto y ahora lo es siempre. Salió la fecha y se
+   corrigió el nombre del lote.
 2. **Líneas 105-106.** Da los vencimientos de los dos lotes de Haloperidol como
-   15/11/2026 y 15/09/2027. Van como plazos, y con los nombres nuevos.
+   15/11/2026 y 15/09/2027. Van como plazos, con los nombres nuevos y con el lote vencido sumado a la tabla.
 3. **Líneas 110-112.** Dice que los dos figuran "Vigente" y que el primero vence
    "dentro de dos meses". **Sigue siendo cierto**: el desfase se eligió en 67
    días justamente para que quede fuera de la ventana de 30. Solo revisar la
    redacción si se cambian las líneas de arriba.
-4. **Líneas 126-127.** El plan de egreso repite las dos fechas. Mismo criterio.
+4. **Líneas 126-127.** El plan de egreso repite las dos fechas. Mismo criterio, y se agregó la nota de que el lote vencido no aparece en el plan.
 5. **Líneas 162-163.** La medicación de `PAC-101` figura "desde 15/08/2026" y
-   "desde 01/06/2026". Ahora son relativas: van como plazos o se sacan.
+   "desde 01/06/2026". Se sacaron: la pantalla las muestra igual, y el guion no necesita repetirlas.
 6. **Líneas 8 y 260.** Son la fecha del ensayo de la 6.09. **No se tocan**: son
    registro histórico de cuándo se ensayó, no una afirmación sobre la pantalla.
 
-## Lo que hay que agregar al guion, no solo corregir
+## Lo que se agregó al guion, no solo corrigió
 
 **La escena de FEFO ahora tiene tres lotes y eso es una mejora, no un estorbo.**
 La tabla de Haloperidol muestra primero `HAL-VENCIDO` con sus 25 ampollas y su
 indicador rojo, y recién después los dos vigentes.
 
-- **La narración dice "el primer lote solo tiene 40"** y hay que corregirla a
-  **"el primer lote vigente"**. Está acordado.
-- **Conviene detenerse ahí un segundo**: hay 145 ampollas en el depósito y solo
+- **La narración decía "el primer lote solo tiene 40"** y ahora dice **"el
+  primer lote vigente"**.
+- **El guion se detiene ahí un segundo**: hay 145 ampollas en el depósito y solo
   120 se pueden usar. Es el problema que el proyecto viene a resolver, visible en
   pantalla, y es la respuesta al jurado que pregunte cómo se sabe que FEFO
   descarta lo vencido.
