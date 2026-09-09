@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| — | — | — | — | — | — |
+| 6.10 | Mauricio | main | activa | — | 2026-09-09 |
 
 
 ### Reserva de tareas
@@ -459,7 +459,7 @@ queda fuera del prototipo (el RxCUI se carga a mano).
 | 6.07 | `README.md`: qué resuelve, cómo se levanta, decisiones de arquitectura. | `[x]` | M | 6.05 |
 | 6.08 | Guion de demostración: recorrido de cinco minutos con trazabilidad de lote, un egreso FEFO que reparte entre dos lotes y una detección de interacción. | `[x]` | M | 6.06 |
 | 6.09 | Ensayo de la demostración en la máquina de la defensa, con la base cargada desde cero. **Corrigió doce afirmaciones del guion que no coincidían con la pantalla**, entre ellas el comando de emergencia (`npm run setup` no resetea la base) y un cuadro clínico que la fuente no publica. Registro al final de `docs/GUION_DEMOSTRACION.md`. | `[x]` | M | 6.08 |
-| 6.10 | Preparar respuestas a las preguntas previsibles: por qué no hay receta, por qué no hay proveedor, por qué las interacciones no vienen de una API en vivo, por qué no hay auditoría implementada, por qué no hay validación médica registrada. | `[ ]` | M | 6.08 |
+| 6.10 | Preparar respuestas a las preguntas previsibles: por qué no hay receta, por qué no hay proveedor, por qué las interacciones no vienen de una API en vivo, por qué no hay auditoría implementada, por qué no hay validación médica registrada. | `[~]` | M | 6.08 |
 
 ---
 
