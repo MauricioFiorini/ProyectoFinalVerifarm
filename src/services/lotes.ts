@@ -2,6 +2,7 @@ import { db } from "../lib/db";
 import { Lote, TipoMovimiento } from "@prisma/client";
 import { ErrorDeNegocio } from "./errores";
 import { USUARIO_PROVISORIO_ID } from "../lib/usuariosSemilla";
+import { finDelDiaUtc } from "../lib/fechas";
 
 // Alta y consulta de lotes (tarea 4.01).
 //
@@ -64,8 +65,11 @@ export async function crearLote(data: CrearLoteInput): Promise<Lote> {
 
   // Se compara contra el final del dia de hoy: un lote que entro esta manana es
   // valido, y la hora que traiga la fecha no tiene que decidir nada.
-  const finDeHoy = new Date();
-  finDeHoy.setHours(23, 59, 59, 999);
+  //
+  // EN UTC (tarea 4.18). Con el fin del dia LOCAL, que en UTC-3 cae a las 02:59
+  // UTC del dia siguiente, la medianoche UTC de MAÑANA quedaba por debajo del
+  // limite y una fecha de ingreso futura pasaba la validacion.
+  const finDeHoy = finDelDiaUtc();
 
   if (data.fechaIngreso > finDeHoy) {
     throw new ErrorDeNegocio(
@@ -142,8 +146,8 @@ function validarDatosDeLote(data: CrearLoteInput): string {
     );
   }
 
-  const finDeHoy = new Date();
-  finDeHoy.setHours(23, 59, 59, 999);
+  // En UTC, por lo mismo que en `crearLote`. Ver la tarea 4.18.
+  const finDeHoy = finDelDiaUtc();
 
   if (data.fechaIngreso > finDeHoy) {
     throw new ErrorDeNegocio(

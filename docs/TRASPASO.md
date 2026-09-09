@@ -11,181 +11,151 @@ Ubicación en el repo: `docs/TRASPASO.md`
 ## Traspaso vigente
 
 **Fecha:** 2026-09-09
-**Entrega:** Mauricio Mateo Fiorini
-**Rama:** `main` (documentación, va directo según convenciones).
+**Entrega:** Juan Pablo Malizani
+**Rama:** `fix/4.18-corte-de-vencimiento-en-utc`.
 
-# La fase 6 está cerrada. El prototipo está completo.
+# La 4.18: un lote figuraba vencido el día en que vencía
 
-**10 de 10.** Con esto quedan cerradas las seis fases: el alcance del prototipo
-está terminado.
+**El prototipo sigue completo.** Esta no es una tarea de alcance nuevo: es la
+primera de una serie de correcciones que salieron de revisar el sistema contra su
+propia documentación, con las seis fases ya cerradas. Viven en una sección nueva
+del roadmap, **"Correcciones posteriores al cierre de la fase"**, para que no se
+confundan con el alcance del prototipo.
+
+## Qué estaba mal
+
+Las fechas sin hora —`Lote.fechaVencimiento` y `Lote.fechaIngreso`— se guardan
+como **medianoche UTC**, porque así las manda un `<input type="date">` y así las
+deja Postgres. Pero `src/services/stock.ts` armaba el corte del día con
+`setHours(0,0,0,0)`, que es **medianoche local**. En UTC-3 esas dos medianoches
+están a tres horas de distancia, y la del servicio caía después.
+
+El efecto: **un lote que vencía el 24/09 figuraba vencido durante todo el 24/09**,
+desde el primer minuto. Contradecía el criterio escrito en el comentario de la
+propia función, que dice que un lote que vence hoy todavía sirve. Y no era
+cosmético: FEFO excluye los lotes vencidos, así que el motor se salteaba un lote
+todavía utilizable y dispensaba del siguiente.
+
+**La misma causa tenía una cara opuesta**, en `src/services/lotes.ts`: la
+validación de "la fecha de ingreso no puede ser futura" comparaba contra el fin
+del día local, que en UTC son las 02:59 del día siguiente. La medianoche UTC de
+**mañana** quedaba por debajo de ese límite y pasaba la validación. Se podía
+cargar un lote con fecha de ingreso de mañana.
+
+## Cómo se arregló
+
+**Se comparte la convención, no la regla.** La discusión al plantear la tarea fue
+si el servicio y la pantalla debían compartir una función. La respuesta es que no
+hay ninguna regla de negocio para compartir: **ninguna pantalla calcula
+vencimientos**, el estado le llega resuelto del servidor y ella solo lo pinta.
+Eso ya estaba bien y no se tocó.
+
+Lo que sí estaba escrito dos veces era algo más chico: **qué significa "el día" de
+una fecha sin hora**. `src/lib/fechas.ts` lo resolvía en UTC y `stock.ts` en hora
+local. Esas tres horas eran todo el error.
+
+Así que las primitivas van a `src/lib/fechas.ts`, que ya era el dueño de la
+convención y ya explicaba por qué es UTC:
+
+- **`inicioDelDiaUtc(referencia)`** — el piso contra el que se compara.
+- **`finDelDiaUtc(referencia)`** — el techo, para que la comparación siga siendo
+  inclusiva si la fecha trae hora. No es hipotético: `esquemaCrearLote` acepta
+  tanto `"2026-09-24"` como una cadena ISO completa.
+- **`sumarDias(referencia, dias)`** — para el límite de la ventana de 30 días.
+
+**Las tres leen el día calendario en hora local y devuelven el borde en UTC.** Esa
+mezcla es deliberada y está explicada en el archivo: el día es el que la persona
+ve en su calendario, y el borde tiene que estar en la zona en la que están
+guardadas las fechas. `referencia` es siempre un instante, nunca una fecha ya
+normalizada: pasarle el resultado de `inicioDelDiaUtc` la haría retroceder un día.
+
+La decisión de si un lote está vencido **se quedó en el servicio**, donde estaba.
+
+## El `setHours` que NO se tocó
+
+`src/services/consultas.ts` tiene un `setHours(0,0,0,0)` local y **es correcto**.
+Es el único que quedó después de esta tarea, así que va a llamar la atención del
+próximo que busque `setHours` en el repositorio. Quedó un comentario en el propio
+archivo explicando por qué sobrevivió.
+
+La diferencia es el dato, no el criterio: ahí se filtra por `createdAt`, que es un
+**instante real** —cuándo se registró la consulta—, y "las consultas de hoy" son
+las del día de quien mira la pantalla. Pasarlo a UTC haría que a las 21 apareciera
+una consulta de mañana. **Un arreglo aplicado en barrido lo rompe.**
+
+## Qué se verificó
+
+Sin pruebas automatizadas, a mano. `npm run check` da 0.
+
+**El borde del vencimiento**, con un lote que vence el 24/09 y la fecha de
+referencia movida a mano:
 
 ```
-Fase 0 — entorno ...........   9 de  9   ✅
-Fase 1 — andamiaje .........  15 de 15   ✅
-Fase 2 — modelo de datos ...  11 de 11   ✅
-Fase 3 — catálogo ..........   8 de  8   ✅
-Fase 4 — stock y FEFO ......  17 de 17   ✅
-Fase 5 — módulo clínico ....  20 de 21   ✅ (la 5.03 quedó sin efecto)
-Fase 6 — cierre ............  10 de 10   ✅
+23/09 10:00   vencido: false   POR_VENCER   dias: 1
+24/09 00:30   vencido: false   POR_VENCER   dias: 0
+24/09 23:30   vencido: false   POR_VENCER   dias: 0
+25/09 00:30   vencido: true    VENCIDO      dias: -1
 ```
 
-## Lo que se hizo en este bloque
+El día del vencimiento ahora da **0 y no `-0`**, que era lo que devolvía
+`Math.round` de un negativo chico.
 
-| Tarea | Qué dejó |
-| --- | --- |
-| 6.09 | Ensayo completo con base desde cero. Guion corregido y registro del ensayo al final de `docs/GUION_DEMOSTRACION.md`. |
-| 6.10 | `docs/PREGUNTAS_PREVISIBLES.md`: doce preguntas con respuesta corta, la fuente que la respalda y la repregunta que sigue. |
-| — | Revisión de toda la documentación contra el sistema, con la fase ya cerrada. Detalle más abajo. |
+**La ventana de 30 días** sigue siendo inclusiva: a 29 y 30 días `POR_VENCER`, a
+31 `VIGENTE`.
 
-## La 6.09 — el ensayo
+**La fecha de ingreso**: hoy con hora completa se acepta, mañana se rechaza.
 
-Se corrió la demostración entera contra el sistema, con la base cargada desde
-cero y a 1366×768, la resolución de la notebook de la defensa.
+**Las nueve situaciones de FEFO** se volvieron a correr para descartar regresiones.
+Ocho dan igual que antes. La novena es la que cambió, y es la que se quería
+cambiar: el lote que vence hoy **ahora se usa primero** en vez de saltearse.
 
-**Lo sustantivo funciona.** El reparto FEFO de 50 ampollas de Haloperidol dejó
-los lotes en 0 y 70 como promete el guion; el par Sertralina + Tranilcipromina
-se detecta con severidad alta; el contraste de `PAC-103` distingue "sin datos"
-de "sin interacciones"; y el rol elegido en el selector queda asentado en el
-libro mayor —verificado dispensando como Dr. House y leyendo el asiento—.
+**Contra la base real**, para confirmar que Prisma devuelve las fechas como se
+suponía: los seis lotes vuelven como medianoche UTC exacta y se clasifican bien.
 
-**El guion, en cambio, tenía doce afirmaciones que no coincidían con la
-pantalla.** Están corregidas. Las tres que más costaban:
+## Lo que queda anotado
 
-1. **`npm run setup` no resetea la base**, solo regenera el cliente de Prisma.
-   Estaba escrito como el comando de emergencia durante la defensa: si algo
-   fallaba, el rescate no rescataba. **El comando correcto es
-   `npx prisma db seed`**, que sí limpia todas las tablas antes de cargar.
-2. **La observación no menciona síndrome serotoninérgico ni crisis
-   hipertensiva.** El guion se lo atribuía a la pantalla. ONCHigh no publica
-   descripciones (decisión `0011`) y el sistema no las inventa.
-3. **Los usuarios se llaman "Farm. Pérez" y "Dr. House"**, no "Ana Clara
-   Benítez" ni "Gregory House".
+**El arreglo de fondo es del esquema, no del código.** `Lote.fechaVencimiento` y
+`Lote.fechaIngreso` son fechas, no instantes, pero están declaradas `DateTime` y
+Postgres las guarda como `timestamp(3)`. Mientras sea así, todo el código que las
+compare tiene que saber en qué zona construir el corte, y cuando alguien se
+olvide, el error vuelve. **Con la columna en `date` no podría volver.**
 
-El resto: no existe el botón "Guardar consulta" (evaluar guarda), el botón es
-"Dispensar" y su modal no tiene campo de motivo, las filas de las tablas no son
-clickeables, la columna de la ficha dice "Se evalúa", el texto del aviso clínico
-citado no era el real, y las consultas del día son 2, no 3.
+No se hizo acá porque es una migración, y el esquema lo toca una sola persona por
+vez. Quedó escrito como **P.8.08** en `docs/ROADMAP_PRODUCTO.md`.
 
-**El ensayo además agregó** tres momentos que el guion se salteaba y que son de
-lo mejor que tiene la demostración: el **plan de egreso visible antes de
-confirmar**, con el reparto y la razón escrita; la **advertencia de cobertura
-antes de evaluar** en `PAC-103`; y el **asiento del libro mayor** con usuario y
-hora.
+## Qué sigue
 
-## La 6.10 — las preguntas del jurado
+Las otras correcciones que salieron de la misma revisión, en este orden acordado:
 
-`docs/PREGUNTAS_PREVISIBLES.md`. Las cinco que pedía la tarea —receta,
-proveedor, API en vivo, auditoría, validación médica— con tratamiento completo,
-más siete que salen naturalmente después: la severidad única, la verificación de
-los RxCUI, la concurrencia sobre saldos, la falta de pruebas, el stock en cero,
-el login y el texto generado.
+1. **Las fechas del seed, que sean relativas a la fecha de ejecución.** Hoy son
+   absolutas: el lote de Clonazepam vence el 24/09/2026 y el guion afirma "en 15
+   días". Después de esa fecha la tarjeta de lotes por vencer se va a cero y se
+   cae un momento de la demostración.
+2. **Un paciente que muestre "sin interacciones" con cobertura real**, o sea dos
+   drogas que estén en ONCHigh y no interactúen entre sí. Es la más importante:
+   hoy la demostración muestra dos de los tres estados del módulo clínico, y el
+   que falta es justo el que prueba que el sistema distingue entre "se revisó y
+   está limpio" y "no se pudo revisar". `PAC-104` es Amoxicilina + Paracetamol y
+   las dos tienen cero cobertura, así que da "sin datos" igual que `PAC-103`.
+3. **El orden por severidad al releer una consulta guardada.**
+   `obtenerConsulta` ordena por `createdAt`, y todas las observaciones de una
+   consulta se escriben en la misma transacción, así que comparten timestamp y el
+   orden lo decide Postgres. Hoy no se nota porque las 1150 filas de la fuente son
+   todas de severidad alta.
+4. **Dos menores:** la validación de lote escrita dos veces —`validarDatosDeLote`
+   dice existir para que la compartan `crearLote` y `crearLoteConIngreso`, pero
+   `crearLote` conserva su propia copia— y los mensajes de los servicios, que
+   llegan a la pantalla sin tildes.
 
-Cada una trae **el documento que la respalda**, para que ninguna respuesta sea
-una opinión improvisada en la defensa.
+Después de eso, **ensayar el guion completo con la base sembrada** y cronometrar
+el recorrido.
 
-**Dos advertencias quedaron escritas ahí y conviene leerlas antes de la
-defensa:**
+## Ojo con esto al retomar
 
-- **La auditoría es la más delicada de las cinco.** Es la única donde el modelo
-  de datos promete algo que el sistema no cumple, y el jurado puede verlo en el
-  diagrama. La tabla existe y está vacía. Hay que decirlo.
-- **No hay que dejar que "está en el roadmap del producto" sirva para todo.** Si
-  algo se dejó afuera por tiempo, se dice así. El jurado distingue una decisión
-  de alcance de una tarea que no se hizo.
-
-## Revisión de la documentación, con la fase ya cerrada
-
-Con todo mergeado se revisó la documentación completa contra el sistema. **Lo
-que había no era cosmético: el `README.md` explicaba una instalación que no
-funciona.** Tres errores encadenados, y cualquiera alcanzaba para dejar a un
-tutor sin poder levantar el proyecto:
-
-1. **La `DATABASE_URL` daba `postgres:postgres`** y la base usa
-   `verifarm:verifarm`. No conecta.
-2. **Decía `npm install`**, cuando el proyecto va con `npm ci` por la decisión
-   `0002` —el `latest` de Prisma apunta a un *release candidate* de la 8—.
-3. **Daba `npm run setup` como el comando que migra y siembra.** No hace ni una
-   cosa ni la otra: verifica el `.env` y genera el cliente. Siguiendo el README
-   al pie de la letra, la aplicación levantaba con todas las tablas vacías.
-
-**El origen del tercero estaba en el script.** `npm run setup` terminaba
-diciendo *"El paso siguiente es: `docker compose up -d`, `npm run dev`"*, sin
-nombrar migrar ni sembrar. Ahora lo dice completo y aclara que no toca la base,
-así que la herramienta deja de inducir el error.
-
-También en el README: los usuarios inventados —los mismos que traía el guion—,
-la paleta de Tailwind (`primario` y `exito` no existen; son `marca-*` y `ok-*`),
-el nombre de la función de dispensación (`dispensar`, no
-`dispensarMedicamento`), y la atribución de la fuente, que decía "HealthIT.gov /
-NLM" en vez de Phansalkar y colaboradores vía `dbmi-pitt/public-PDDI-analysis`.
-
-**`docs/ARQUITECTURA.md` tenía dos problemas de fondo:**
-
-- **La sección 1 daba por inexistente todo lo hecho en la fase 6** —la pantalla
-  de inicio, el selector de usuario, el manejo de errores, el seed, el
-  responsive— y avisaba que el catálogo cruzaba con una sola interacción, que
-  dejó de ser cierto con la 6.06. Se reescribió: ahora la columna derecha no son
-  pendientes, son las ausencias decididas.
-- **La sección 3 decía "si una pantalla necesita lógica, importa el
-  servicio"**, que contradice el diagrama de capas del mismo archivo. Se
-  verificó el código: **ninguna pantalla importa un servicio**, solo hay
-  `import type`, que se borra al compilar. La frase estaba mal, no el código.
-
-**`docs/CONTEXTO.md` seguía diciendo "en construcción del prototipo. No hay
-código todavía."** Es el primer documento que se lee.
-
-Y los dos errores de `docs/ROADMAP_PRODUCTO.md` que estaban anotados quedaron
-corregidos: P.3.01 afirmaba que los campos de validación ya existen en
-`ObservacionInteraccion` —no existen— y el encabezado de P.6 todavía hablaba de
-15 pares cargados a mano.
-
-## Lo que sigue anotado y no se tocó
-
-**No hay ningún paciente que muestre "sin interacciones" con cobertura real.**
-`PAC-104` es Amoxicilina + Paracetamol y **las dos tienen cero cobertura en la
-fuente**, así que da "sin datos", igual que `PAC-103`. De los tres estados
-posibles del módulo, la demostración muestra dos. Para el tercero sirve
-**Carbamazepina + Fluoxetina**, verificado contra la base; hoy se arma a mano
-desde `/consultas/nueva`.
-
-Relacionado: **16 de los 25 medicamentos están en cero**, así que `/stock` se
-lee como un sistema sin cargar. Hay respuesta preparada en el guion, pero se
-resuelve mejor en el seed.
-
-## Qué se verificó del sistema
-
-- **`npm run build` completa** y genera las 19 rutas. **`npm run check` da 0.**
-- **Sin desborde horizontal** en ninguna pantalla, ni a 1366×768 —la notebook de
-  la defensa— ni a 375 px. Las tablas anchas scrollean dentro de su tarjeta, que
-  es lo que la 6.05 dice haber hecho.
-- **El recorrido completo anda**: FEFO repartiendo 40 + 10, la detección del par
-  ISRS + IMAO, el contraste de `PAC-103`, y el rol del selector asentado en el
-  libro mayor.
-
-## Cómo levantarlo
-
-```bash
-docker compose up -d
-npx prisma db seed
-npm run dev
-```
-
-`npm run check` da 0. La base queda con 25 medicamentos, 10 lotes, 4 pacientes,
-2 consultas y las 1150 interacciones.
-
-**Ojo con el selector de rol.** Se guarda en el `localStorage` del navegador y
-**no lo resetea ni el seed ni `npm run setup`**: si el ensayo anterior terminó
-como Dr. House, la próxima corrida arranca como Dr. House. Se corrige a mano
-desde la barra superior.
-
-## Qué queda
-
-**Del roadmap del prototipo, nada.** Lo que sigue es la defensa.
-
-Antes de esa fecha conviene: **ensayar el guion en voz alta y con cronómetro**
-—el ensayo de la 6.09 verificó que el sistema hace lo que el guion dice, no que
-entre en cinco minutos—, y **repartir `docs/PREGUNTAS_PREVISIBLES.md`** para que
-los tres respondan lo mismo.
+**La base de esta máquina no está en estado de demostración.** Tiene 10
+medicamentos, 1 paciente, 1 consulta y la tabla `Interaccion` **vacía**, restos de
+la verificación del aviso de cobertura. Antes de cualquier ensayo hay que correr
+`npx prisma db seed`, que limpia y vuelve a sembrar.
 
 ## Lo que sigue abierto de antes
 
@@ -199,8 +169,26 @@ bloqueo.
 **La D8 sigue abierta** desde el 2026-09-01: si se sostiene la regla de "código
 va en rama y otro le pasa el ojo" o se cambia el documento.
 
+## Cómo levantarlo
+
+```bash
+docker compose up -d
+npx prisma db seed
+npm run dev
+```
+
+`npm run check` da 0. Después de sembrar, la base queda con 25 medicamentos, 10
+lotes, 4 pacientes, 2 consultas y las 1150 interacciones.
+
+**Ojo con el selector de rol.** Se guarda en el `localStorage` del navegador y
+**no lo resetea ni el seed ni `npm run setup`**: si el ensayo anterior terminó
+como Dr. House, la próxima corrida arranca como Dr. House. Se corrige a mano
+desde la barra superior.
+
 ## Si alguien vuelve a tocar código
 
+- **Las fechas sin hora se comparan con las primitivas de `src/lib/fechas.ts`.**
+  Nunca con `setHours` local. La excepción es `createdAt`, que es un instante.
 - **El aviso clínico va en toda pantalla clínica nueva**, con
   `<AvisoClinico />`. No se copia el texto.
 - **Las pantallas consumen la API, no importan el servicio.**
@@ -213,9 +201,7 @@ va en rama y otro le pasa el ojo" o se cambia el documento.
 - **`src/components/ui/` tiene siete componentes**: Boton, Campo, Tabla, Modal,
   Chip, AvisoClinico y ErrorSeccion. Algo sube ahí cuando **dos o más rutas**
   necesitan lo mismo.
-- **Las fechas se formatean con `src/lib/fechas.ts`.**
-- **Ningún dato clínico se inventa.** Vale también para lo que se le atribuye a
-  la pantalla en el guion: es donde falló su primera versión.
+- **Ningún dato clínico se inventa.**
 - **El sistema asiste, no decide.**
 - **El paciente no tiene datos identificatorios.** Solo un seudónimo.
 - **El puerto sigue siendo el 5433** y Docker Desktop no arranca solo.

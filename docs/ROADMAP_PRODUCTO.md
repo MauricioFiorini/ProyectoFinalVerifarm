@@ -140,6 +140,7 @@ una interfaz que permite sustituir la implementación.
 | P.8.05 | Modo manual como excepción a FEFO: permite apartarse del plan con motivo escrito, registrado en auditoría. | `[ ]` | M |
 | P.8.06 | Panel de alertas dedicado, con listas separadas de stock bajo y vencimientos próximos. En el prototipo son indicadores dentro de la tabla. | `[ ]` | M |
 | P.8.07 | Marcar una alerta como atendida. **Requiere una clase nueva**: hoy las alertas se calculan y reaparecen en cada visita. | `[ ]` | L |
+| P.8.08 | **Guardar las fechas sin hora como `date` y no como `timestamp`.** `Lote.fechaVencimiento` y `Lote.fechaIngreso` son fechas, no instantes, pero el esquema las declara `DateTime` y Postgres las guarda como `timestamp(3)` a medianoche UTC. Eso obliga a que todo el código que las compara sepa en qué zona construir el corte del día, y cuando alguien se olvida, un lote figura vencido un día antes: es exactamente el error que arregló la tarea **4.18**. Con la columna en `date` el problema **no podría volver**, porque no habría hora que interpretar ni zona que elegir. En el prototipo se arregló en el código —las primitivas de `src/lib/fechas.ts`— y no en el esquema, porque es una migración y el esquema lo toca una sola persona por vez. Incluye migrar las columnas, revisar que Prisma las devuelva como se espera y sacar de `fechas.ts` lo que deje de hacer falta. | `[ ]` | M |
 
 ---
 

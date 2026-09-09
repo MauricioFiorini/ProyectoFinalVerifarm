@@ -1,5 +1,6 @@
 import { db } from "../lib/db";
 import { TipoMovimiento, type UnidadMedida } from "@prisma/client";
+import { finDelDiaUtc, inicioDelDiaUtc, sumarDias } from "../lib/fechas";
 
 // Calculo de existencias (tarea 4.02).
 //
@@ -114,14 +115,17 @@ export type LoteParaCalculo = {
  * CRITERIO: un lote que vence HOY todavia sirve. Se compara contra el comienzo
  * del dia, no contra el instante actual, porque el vencimiento es una fecha y no
  * una hora: si no, un lote pasaria a estar vencido a mitad de la mañana.
+ *
+ * EL COMIENZO DEL DIA ES EN UTC (tarea 4.18). Con medianoche local el criterio de
+ * arriba no se cumplia: las fechas se guardan como medianoche UTC, que en UTC-3
+ * cae tres horas ANTES de la medianoche local del mismo dia, asi que el lote
+ * quedaba vencido desde el primer minuto del dia en que vencia.
  */
 export function estaVencido(
   fechaVencimiento: Date,
   referencia: Date = new Date(),
 ): boolean {
-  const inicioDelDia = new Date(referencia);
-  inicioDelDia.setHours(0, 0, 0, 0);
-  return fechaVencimiento < inicioDelDia;
+  return fechaVencimiento < inicioDelDiaUtc(referencia);
 }
 
 /**
@@ -252,9 +256,7 @@ export async function obtenerVencimientosProximos(
   dias: number = DIAS_PARA_VENCIMIENTO_PROXIMO,
   referencia: Date = new Date(),
 ): Promise<LotePorVencer[]> {
-  const limite = new Date(referencia);
-  limite.setHours(23, 59, 59, 999);
-  limite.setDate(limite.getDate() + dias);
+  const limite = finDelDiaUtc(sumarDias(referencia, dias));
 
   const lotes = await db.lote.findMany({
     where: { fechaVencimiento: { lte: limite } },
@@ -269,8 +271,7 @@ export async function obtenerVencimientosProximos(
     orderBy: { fechaVencimiento: "asc" },
   });
 
-  const inicioDeHoy = new Date(referencia);
-  inicioDeHoy.setHours(0, 0, 0, 0);
+  const inicioDeHoy = inicioDelDiaUtc(referencia);
   const UN_DIA = 1000 * 60 * 60 * 24;
 
   return lotes
@@ -345,9 +346,7 @@ export async function listarEstadoDeStock(
   dias: number = DIAS_PARA_VENCIMIENTO_PROXIMO,
   referencia: Date = new Date(),
 ): Promise<StockDeMedicamento[]> {
-  const limite = new Date(referencia);
-  limite.setHours(23, 59, 59, 999);
-  limite.setDate(limite.getDate() + dias);
+  const limite = finDelDiaUtc(sumarDias(referencia, dias));
 
   const medicamentos = await db.medicamento.findMany({
     where: { activo: true },
@@ -421,9 +420,7 @@ export function calcularEstadoDeVencimiento(
 ): EstadoDeVencimiento {
   if (estaVencido(fechaVencimiento, referencia)) return "VENCIDO";
 
-  const limite = new Date(referencia);
-  limite.setHours(23, 59, 59, 999);
-  limite.setDate(limite.getDate() + dias);
+  const limite = finDelDiaUtc(sumarDias(referencia, dias));
 
   return fechaVencimiento <= limite ? "POR_VENCER" : "VIGENTE";
 }
@@ -432,14 +429,17 @@ export function calcularEstadoDeVencimiento(
  * Cuantos dias faltan para el vencimiento. Negativo si ya vencio.
  *
  * Se cuenta contra el comienzo del dia, no contra el instante actual: un
- * vencimiento es una fecha, no una hora.
+ * vencimiento es una fecha, no una hora. En UTC, por lo mismo que `estaVencido`.
+ *
+ * El dia del vencimiento da 0, no `-0`. Con medianoche local daba `-0`, que es lo
+ * que devuelve `Math.round` de un numero negativo chico, y la pantalla mostraba
+ * un lote todavia util como si ya se hubiera vencido.
  */
 export function diasHastaVencimiento(
   fechaVencimiento: Date,
   referencia: Date = new Date(),
 ): number {
-  const inicioDeHoy = new Date(referencia);
-  inicioDeHoy.setHours(0, 0, 0, 0);
+  const inicioDeHoy = inicioDelDiaUtc(referencia);
   const UN_DIA = 1000 * 60 * 60 * 24;
   return Math.round(
     (fechaVencimiento.getTime() - inicioDeHoy.getTime()) / UN_DIA,
