@@ -14,107 +14,103 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-09
 **Entrega:** Mauricio Mateo Fiorini
-**Rama:** `feat/5.16-pantalla-de-consulta` (**sin mergear**)
+**Rama:** `feat/5.18-pantalla-de-resultado` (**sin mergear**)
 
 ### Qué se hizo
 
-**La 5.16: la pantalla de consulta**, en `/consultas/nueva`. **El recorrido
-completo del módulo clínico ya funciona**: se eligen medicamentos, se evalúan y
-la consulta queda guardada.
+**La 5.18: la pantalla de resultado.** Reemplaza la pantalla provisoria que
+había dejado la 5.16. **El módulo clínico ya se puede demostrar entero**: cargar
+un paciente, cargarle medicación, evaluar interacciones y leer el resultado.
 
 | Archivo | Qué |
 | --- | --- |
-| `src/app/consultas/nueva/page.tsx` | El encabezado |
-| `src/app/consultas/nueva/NuevaConsulta.tsx` | La pantalla |
-| `src/app/consultas/[id]/page.tsx` | **Provisoria**, ver abajo |
-| `src/services/medicamentos.ts` | `conCobertura()` |
-| `src/types/medicamento.ts` | El parámetro `conCobertura` |
-| `src/app/api/medicamentos/route.ts` | `GET …?conCobertura=true` |
-| `src/app/pacientes/[id]/MedicacionDelPaciente.tsx` | "Evaluar interacciones" ya es un enlace |
+| `src/app/consultas/[id]/ResultadoDeConsulta.tsx` | La pantalla. Nueva |
+| `src/app/consultas/[id]/page.tsx` | **Reescrito**: ya no es provisorio |
 
 ### Recordatorio: hay migraciones sin aplicar
 
 `docs/ROADMAP.md`, sección **"Migraciones pendientes de aplicar"**, arriba de
 todo. **Juan Pablo y Juan José tienen dos sin correr.**
 
-### La marca de cobertura va antes de evaluar, no después
+### La regla que organiza toda la pantalla
 
-Es lo que pide la tarea y es el punto de la pantalla. Cada droga elegida dice,
-en la misma lista, si el sistema la va a poder cruzar:
+**"Sin interacciones" y "sin datos" no se pueden ver igual.**
 
-| Caso | Lo que se lee |
-| --- | --- |
-| `EVALUADO` | Nada. El caso corriente no se etiqueta |
-| `SIN_COBERTURA` | "la fuente no tiene datos de esta droga" |
-| `SIN_RXCUI` | "no se puede evaluar: falta el código" |
+- *"No se encontraron interacciones"* significa que se cruzaron las drogas
+  contra la fuente y no había ningún par cargado.
+- *"Sin datos en la fuente"* significa que esa droga **nunca entró al cruce**.
+  No se revisó. No se sabe.
 
-Y arriba del botón, cuando hay alguna:
+Por eso el bloque de drogas sin cobertura **aparece siempre que haya alguna, no
+solo cuando el resultado viene vacío**. Un resultado con tres interacciones y
+una droga sin datos tampoco está completo.
 
-> **2 de los medicamentos elegidos no se van a poder cruzar.** El resultado no va
-> a decir nada sobre esas drogas, ni siquiera que estén bien.
+Va con `role="alert"`: es lo que le falta al resultado, y quien use un lector de
+pantalla tiene que enterarse sin ir a buscarlo.
 
-Esa última frase es la que importa. Sin ella, alguien puede leer "no se
-encontraron interacciones" creyendo que se revisó todo.
+### Un caso que la tarea no pedía y conviene que esté
 
-### `GET /api/medicamentos?conCobertura=true`
+Cuando el resultado viene vacío **y además hay menos de dos drogas cruzables**,
+debajo del texto obligatorio aparece la razón:
 
-Es nuevo, y es **opcional a propósito**: calcularla cuesta una consulta más y la
-pantalla del catálogo no la necesita. Mismo criterio que `incluirNoVigentes` en
-la medicación: el que la quiere, la pide.
+> Solo uno de los medicamentos evaluados se pudo cruzar contra la fuente, así
+> que no hubo ningún par que revisar.
 
-### La pantalla de resultado es provisoria
+Sin eso, una consulta de dos drogas donde una no tiene RxCUI diría solamente "no
+se encontraron interacciones", que es cierto y engañoso al mismo tiempo: no se
+encontró nada porque no hubo nada que buscar.
 
-`/consultas/[id]` existe pero **no es la 5.18**: muestra que la consulta se
-guardó y su identificador, y dice en pantalla qué tarea la reemplaza.
+### Sobre el color por severidad
 
-Está para que el recorrido no termine en un 404. Es el mismo criterio de la
-pantalla de inicio provisoria de la 6.01. **La consulta ya queda guardada con
-todo** —sus medicamentos evaluados y sus observaciones—; lo único que falta es
-mostrarlas.
+Está escrito para las tres —`ALTA` crítico, `MEDIA` advertencia, `BAJA` neutro—,
+pero hoy todas las filas de la fuente entran como `ALTA`. **En la práctica se ve
+un solo color, y no es un defecto de esta pantalla**: ONCHigh no publica una
+escala y graduarla sería inventarla (decisión `0011`).
 
-### Por qué este buscador no es el mismo componente que el de la 5.14
-
-Aquel elige **una** droga y la deja fija con un botón "Cambiar". Este agrega a
-una lista, excluye las ya elegidas y muestra la cobertura.
-
-Lo único que comparten de verdad es el pedido con espera —unas quince líneas—, y
-un componente cuyas props tuvieran que cubrir los dos comportamientos sería más
-difícil de leer que los dos por separado. **La regla sigue en pie:** algo sube a
-`src/components/ui/` cuando dos rutas necesitan **lo mismo**. Estas necesitan
-cosas parecidas, que no es igual.
+`BAJA` va en neutro y no en verde: una interacción de severidad baja sigue
+siendo una interacción, y verde diría "esto está bien".
 
 ### Cómo verificarlo
 
-Con `docker compose up -d` y `npm run dev`, en `/consultas/nueva`:
+Con `docker compose up -d` y `npm run dev`. Se armaron tres consultas:
 
-| Qué | Resultado |
-| --- | --- |
-| Sin medicamentos | Botón deshabilitado, "Elegí 2 medicamentos para evaluar." |
-| Con uno | Deshabilitado, "Falta 1 medicamento más." |
-| Escitalopram | Sin marca |
-| Clonazepam | "la fuente no tiene datos de esta droga" |
-| Una droga sin RxCUI | "no se puede evaluar: falta el código" |
-| Con dos sin cobertura | El aviso amarillo, con el conteo |
-| Buscar una ya elegida | Aparece en gris, **"Ya está en la lista"**, no clicable |
-| Buscar un paciente | Lista los seudónimos; al elegirlo queda fijado con "Quitar" |
-| Evaluar | Guarda y **lleva a `/consultas/[id]`** |
-| 375 px | Entra bien: es un formulario, no una tabla |
-
-Lo que quedó **guardado** en la consulta de prueba, leído después por la API:
+**A — con hallazgos, y con drogas sin cobertura:**
 
 ```
-medicamentos evaluados:
-  Escitalopram      EVALUADO
-  Clonazepam        SIN_COBERTURA
-  PRUEBA-Zopiclona  SIN_RXCUI
-  Haloperidol       EVALUADO
-observaciones: 1
+1 interacción encontrada
+  Escitalopram + Haloperidol            [Severidad alta]
   Escitalopram + Haloperidol: interaccion de severidad alta.
+  Ambos farmacos prolongan el intervalo QT. Par de alta prioridad…
+  Fuente: ONC High Priority List (Phansalkar et al., JAMIA 2012)…
+
+Sin datos en la fuente: no se pudo revisar esta droga
+  Clonazepam       — la fuente no tiene datos de esta droga
+  PRUEBA-Zopiclona — no tiene RxCUI cargado, no hay por dónde cruzarla
 ```
 
-**Los cuatro se guardaron, no solo los dos que cruzaron.** Es lo que cerró la
-decisión `0014` y lo que le va a permitir a la 5.18 reconstruir el aviso al
-reabrir la consulta.
+**Ese segundo bloque saliendo junto con una interacción encontrada es el
+requisito central de la tarea.**
+
+**B — sin hallazgos, ninguna cruzable:** el texto obligatorio, más "Ninguno de
+los medicamentos evaluados se pudo cruzar contra la fuente", más el bloque de
+sin datos.
+
+**C — sin hallazgos, una sola cruzable:** el texto obligatorio, más "Solo uno de
+los medicamentos evaluados se pudo cruzar…".
+
+**Una consulta que no existe** muestra "Esa consulta no existe", no la pantalla
+de error.
+
+### Un defecto que se corrigió al verificar
+
+La frase de cierre del bloque de sin cobertura decía, con **una sola** droga:
+
+> El resultado de arriba no dice nada sobre esta droga: no que **estén** bien,
+> sino que no se **revisaron**.
+
+Singular y plural mezclados, justo en la frase donde más importa que se entienda.
+Ahora concuerda de punta a punta en los dos casos. **Se vio leyendo la pantalla,
+no compilando.**
 
 Los datos de prueba **se borraron**: 0 pacientes, 0 consultas, los 10
 medicamentos del seed y las 1150 interacciones. `npm run check` da 0.
@@ -122,15 +118,16 @@ medicamentos del seed y las 1150 interacciones. `npm run check` da 0.
 ### Qué quedó sin hacer
 
 - **La rama no está mergeada.**
-- **La pantalla de resultado es la 5.18**, y es lo que sigue.
-- **No hay precarga del paciente**: al entrar desde la ficha, la pantalla se
-  abre vacía. Es la **5.17**.
+- **No hay precarga del paciente** al entrar desde la ficha: es la **5.17**.
 - **"Consultas" sigue pendiente en la barra lateral**, porque `/consultas` —el
-  listado— es la 5.20. Hoy a `/consultas/nueva` se llega desde la ficha de un
-  paciente o escribiendo la URL.
-- **El buscador no navega con flechas.** Los resultados son botones y se llega
-  con Tab.
-- **La 5.17 en adelante**, y toda la fase 6 salvo la 6.01.
+  listado— es la **5.20**. Hoy se llega desde la ficha de un paciente o
+  escribiendo la URL.
+- **El aviso de "el sistema asiste, no decide" está como texto chico al pie**
+  de las pantallas clínicas. Formalizarlo es la **5.19**.
+- **La consulta no muestra el paciente.** El resultado trae `pacienteId` pero no
+  el seudónimo, así que la pantalla no lo dibuja. Si la 5.20 lo necesita,
+  conviene que `obtenerConsulta` lo traiga resuelto, como hace
+  `GET /api/medicacion`.
 - **D8 sigue abierta.**
 
 ### Antes de mergear
@@ -139,45 +136,36 @@ medicamentos del seed y las 1150 interacciones. `npm run check` da 0.
 
 ```bash
 git fetch origin
-git diff --name-only origin/main...origin/feat/5.16-pantalla-de-consulta
+git diff --name-only origin/main...origin/feat/5.18-pantalla-de-resultado
 ```
 
 ### Qué sigue
 
+**Quedan tres tareas de la fase 5**, y ninguna es grande:
+
 | Tarea | Tamaño | Qué es |
 | --- | --- | --- |
-| **5.18** | L | Pantalla de resultado: observaciones por severidad, y los sin cobertura |
+| **5.20** | M | Pantalla `/consultas`: lista por fecha. **Habilita la barra lateral** |
 | **5.17** | M | Precarga: al elegir un paciente vienen sus medicamentos vigentes |
-| **6.02** | M | Selector de usuario simulado |
-| **6.04** | M | Manejo de errores global |
+| **5.19** | S | Aviso obligatorio en toda pantalla clínica |
 
-**La 5.18 primero**, porque reemplaza una pantalla provisoria que hoy está en el
-recorrido. Después la 5.17, que es comodidad.
+**La 5.20 primero**, porque es la que destraba la última sección pendiente de la
+barra lateral y cierra el recorrido: hoy una consulta guardada solo se puede
+volver a abrir si alguien anotó la dirección.
 
-**Lo que la 5.18 tiene que resolver, y está en su fila del roadmap:**
-
-1. Observaciones **ordenadas por severidad**, con color según ese valor. Hoy
-   todas son `ALTA`: va a salir un solo color y está asumido (decisión `0011`).
-2. Estado vacío: **"No se encontraron interacciones registradas entre los
-   medicamentos evaluados"**.
-3. **Ese texto no aparece nunca solo.** Al lado va la lista de los evaluados que
-   la fuente no cubre, bajo **"Sin datos en la fuente: no se pudo revisar esta
-   droga"** — y va **también cuando sí hay interacciones**.
-4. Todo lo necesario ya viene de `GET /api/consultas?id=…`: los medicamentos con
-   su `evaluabilidad` y las observaciones con su texto ya compuesto.
-
-**Para la 5.17:** la ficha ya enlaza a `/consultas/nueva`. Alcanza con pasarle
-`?pacienteId=…` y que la pantalla, al arrancar con ese parámetro, pida
-`GET /api/medicacion?pacienteId=…` **sin** `incluirNoVigentes` —una droga
-suspendida ya no la toma— y precargue esos medicamentos.
+**Le va a hacer falta una `listarConsultas` en `src/services/consultas.ts`**, y
+que `GET /api/consultas` sin `id` devuelva el listado. Conviene que cada fila
+traiga la fecha, el seudónimo del paciente si lo hay, y la cantidad de
+observaciones.
 
 ### Antes de arrancar, tener en cuenta
 
 - **Las pantallas consumen la API, no importan el servicio.**
-- **Las pantallas no revalidan reglas del dominio.** Lo único que decide el
-  cliente es si el formulario está completo.
-- **La `evaluabilidad` viene resuelta del servidor**, en la medicación, en el
-  catálogo con `conCobertura=true` y en el resultado de una consulta.
+- **"Sin interacciones" y "sin datos" no se pueden ver igual.** Es la regla que
+  atraviesa todo el módulo (decisión `0012`).
+- **La `evaluabilidad` viene resuelta del servidor.**
+- **El texto de la observación viene guardado**, no se recompone al mostrar. La
+  cobertura sí se recalcula al releer (decisión `0014`).
 - **`src/components/ui/` tiene cinco componentes**: Boton, Campo, Tabla, Modal
   y Chip. Algo sube ahí cuando **dos** rutas necesitan lo mismo.
 - **Las pantallas cargan datos con `setTimeout(…, 0)` dentro de un
