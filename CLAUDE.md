@@ -10,11 +10,10 @@ datos reales de pacientes.
 **Stack:** Next.js (App Router) · TypeScript estricto · PostgreSQL en Docker ·
 Prisma 7.10.0 · Tailwind. Sin bibliotecas de componentes.
 
-**Estado:** en construcción del prototipo. **El estado vigente no vive acá:
-está en `docs/ROADMAP.md` y `docs/TRASPASO.md`**, y es lo que hay que leer antes
-de tomar nada. El roadmap dice qué está hecho, qué se puede tomar y qué está
-bloqueado por una decisión de equipo; el traspaso, cómo quedó el último trabajo y
-qué falta. Este archivo no se actualiza tarea por tarea, así que cualquier cosa
+**El estado del proyecto no vive acá: está en `docs/ROADMAP.md` y
+`docs/TRASPASO.md`**, y es lo que hay que leer antes de tomar nada. El roadmap
+dice qué está hecho, qué se puede tomar y qué está bloqueado por una decisión de
+equipo; el traspaso, cómo quedó el último trabajo y qué falta. Este archivo no se actualiza tarea por tarea, así que cualquier cosa
 concreta que diga puede estar vieja.
 
 Al **2026-09-09**: **las seis fases están cerradas**. El alcance del prototipo
