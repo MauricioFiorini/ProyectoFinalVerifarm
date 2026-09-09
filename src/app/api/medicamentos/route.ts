@@ -1,4 +1,5 @@
 import {
+  conCobertura,
   crearMedicamento,
   buscarMedicamentosPorNombre,
   listarMedicamentos,
@@ -22,28 +23,37 @@ import { respuestaDeError, respuestaDeValidacion } from "@/lib/respuestaHttp";
 /**
  * GET /api/medicamentos
  * GET /api/medicamentos?buscar=parac
+ * GET /api/medicamentos?conCobertura=true
  *
  * Sin `buscar` devuelve el catalogo completo; con `buscar` filtra por nombre.
+ *
+ * Con `conCobertura=true` cada medicamento trae ademas su `evaluabilidad`, o
+ * sea si la fuente de interacciones lo cubre. Lo pide la pantalla de consulta
+ * (5.16), que avisa **antes de evaluar** cual de las drogas elegidas no se va a
+ * poder cruzar.
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
 
   const entrada = esquemaListarMedicamentos.safeParse({
     buscar: searchParams.get("buscar") ?? undefined,
+    conCobertura: searchParams.get("conCobertura") ?? undefined,
   });
 
   if (!entrada.success) {
     return respuestaDeValidacion(entrada.error.issues);
   }
 
-  const { buscar } = entrada.data;
+  const { buscar, conCobertura: pideCobertura } = entrada.data;
 
   try {
     const medicamentos = buscar
       ? await buscarMedicamentosPorNombre(buscar)
       : await listarMedicamentos();
 
-    return Response.json(medicamentos);
+    return Response.json(
+      pideCobertura ? await conCobertura(medicamentos) : medicamentos,
+    );
   } catch (error) {
     return respuestaDeError(error, "GET /api/medicamentos");
   }

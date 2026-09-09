@@ -1,6 +1,11 @@
 import { db } from "../lib/db";
 import { Medicamento, UnidadMedida } from "@prisma/client";
 import { ErrorDeNegocio } from "./errores";
+import {
+  calcularEvaluabilidad,
+  rxcuisConCobertura,
+  type Evaluabilidad,
+} from "./interacciones";
 
 export async function listarMedicamentos(): Promise<Medicamento[]> {
   return db.medicamento.findMany({
@@ -27,6 +32,42 @@ export async function obtenerMedicamentoPorId(
   return db.medicamento.findUnique({
     where: { id, activo: true },
   });
+}
+
+// --- Cobertura de la fuente de interacciones (tarea 5.16) -------------------
+//
+// POR QUE ES OPCIONAL Y NO VIENE SIEMPRE
+//
+// Calcularla cuesta una consulta mas. La pantalla del catalogo (3.06) no la
+// necesita: ahi lo que importa es si el `rxcui` esta cargado, y eso ya se ve.
+// La que la necesita es la pantalla de consulta (5.16), que tiene que avisar
+// **antes de evaluar** cual de las drogas elegidas la fuente no cubre.
+//
+// Por eso se pide explicitamente, igual que `incluirNoVigentes` en la
+// medicacion: el que la quiere, la pide.
+
+export type MedicamentoConCobertura = Medicamento & {
+  evaluabilidad: Evaluabilidad;
+};
+
+/**
+ * Agrega a cada medicamento si la fuente de interacciones lo cubre.
+ *
+ * Una sola consulta para toda la lista, no una por fila. Mismo criterio que la
+ * cuenta de pacientes (5.11) y la cobertura de la medicacion (5.13).
+ */
+export async function conCobertura(
+  medicamentos: Medicamento[],
+): Promise<MedicamentoConCobertura[]> {
+  const rxcuis = medicamentos
+    .map((m) => m.rxcui)
+    .filter((r): r is string => r !== null);
+  const cubiertos = new Set(await rxcuisConCobertura(rxcuis));
+
+  return medicamentos.map((m) => ({
+    ...m,
+    evaluabilidad: calcularEvaluabilidad(m.rxcui, cubiertos),
+  }));
 }
 
 export type CrearMedicamentoInput = {

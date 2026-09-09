@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { Boton } from "@/components/ui/Boton";
 import { Chip } from "@/components/ui/Chip";
 import { Tabla, type Columna } from "@/components/ui/Tabla";
@@ -236,21 +237,18 @@ export function MedicacionDelPaciente({ pacienteId }: { pacienteId: string }) {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {/* "Evaluar interacciones" lleva a la pantalla de la 5.16, que
-              todavia no existe. Va deshabilitado en vez de no estar, para que la
-              ficha ya muestre que se puede hacer desde aca y un clic no se quede
-              sin respuesta. Mismo criterio que el boton "Nuevo paciente" en la
-              5.11. */}
           <Boton onClick={() => setModalAbierto(true)}>
             Agregar medicamento
           </Boton>
-          <Boton
-            variante="primario"
-            disabled
-            title="Todavía no implementado (tarea 5.16)"
+          {/* Un enlace y no un boton: lleva a otra pagina. La precarga de la
+              medicacion de este paciente en esa pantalla es la 5.17; por ahora
+              se abre vacia. */}
+          <Link
+            href="/consultas/nueva"
+            className="inline-flex items-center justify-center gap-2 rounded-md border border-marca-600 bg-marca-600 px-4 py-2 text-sm font-medium text-superficie transition-colors hover:border-marca-700 hover:bg-marca-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-marca-600"
           >
             Evaluar interacciones
-          </Boton>
+          </Link>
         </div>
       </header>
 

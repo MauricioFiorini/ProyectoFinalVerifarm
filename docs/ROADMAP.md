@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| 5.16 | Mauricio Mateo Fiorini | `feat/5.16-pantalla-de-consulta` | activa | — | 2026-09-09 |
+| — | — | — | — | — | — |
 
 ### Migraciones pendientes de aplicar
 
@@ -467,7 +467,7 @@ queda fuera del prototipo (el RxCUI se carga a mano).
 | 5.13 | Pantalla `/pacientes/[id]`: medicación vigente con fecha de inicio y estado. Botones **"Agregar medicamento"** y **"Evaluar interacciones"**. **Marca la cobertura por fila** con `rxcuisConCobertura`: el medicamento que la fuente no cubra se muestra con **"sin datos en la fuente"**. Es la misma razón que en la 5.16 y la 5.18: una lista de medicación vigente sin esa marca parece revisada y no lo está. Decisión `0012`. | `[x]` | M | 5.11 |
 | 5.14 | Modal de alta de medicación: selector de medicamento con buscador y fecha de inicio. Botón **"Agregar"**. | `[x]` | M | 5.13 |
 | 5.15 | Botón **"Suspender"** por fila, con modal que pide motivo obligatorio. | `[x]` | S | 5.14 |
-| 5.16 | Pantalla `/consultas/nueva`: paciente (opcional, para el médico de guardia) y medicamentos a evaluar. Botón **"Evaluar interacciones"**, deshabilitado con menos de dos. **Usa `rxcuisConCobertura`** (`src/services/interacciones.ts`) sobre lo seleccionado: el medicamento que la fuente no cubra queda marcado en la lista con **"la fuente no tiene datos de esta droga"**, y el que no tenga `rxcui`, con **"no se puede evaluar: falta el código"**. Se ve **antes** de evaluar, no después. Decisión `0012`. | `[~]` | L | 5.13 |
+| 5.16 | Pantalla `/consultas/nueva`: paciente (opcional, para el médico de guardia) y medicamentos a evaluar. Botón **"Evaluar interacciones"**, deshabilitado con menos de dos. **Usa `rxcuisConCobertura`** (`src/services/interacciones.ts`) sobre lo seleccionado: el medicamento que la fuente no cubra queda marcado en la lista con **"la fuente no tiene datos de esta droga"**, y el que no tenga `rxcui`, con **"no se puede evaluar: falta el código"**. Se ve **antes** de evaluar, no después. Decisión `0012`. | `[x]` | L | 5.13 |
 | 5.17 | Precarga: al elegir un paciente, sus medicamentos vigentes vienen seleccionados y se pueden agregar otros. | `[ ]` | M | 5.16 |
 | 5.18 | Pantalla de resultado: observaciones ordenadas por severidad, con color según ese valor. Estado vacío explícito: **"No se encontraron interacciones registradas entre los medicamentos evaluados"**. **Ese texto no aparece nunca solo:** al lado va la lista de los medicamentos evaluados que la fuente no cubre —de `rxcuisConCobertura`— bajo **"Sin datos en la fuente: no se pudo revisar esta droga"**, y va también cuando sí hay interacciones. **"Sin interacciones" y "sin datos" no se pueden ver igual** (decisión `0012`). | `[ ]` | L | 5.16 |
 | 5.19 | Aviso obligatorio en toda pantalla clínica: el sistema asiste, no reemplaza el criterio profesional. | `[ ]` | S | 5.18 |

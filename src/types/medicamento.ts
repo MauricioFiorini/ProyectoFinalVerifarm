@@ -75,6 +75,17 @@ export type CrearMedicamentoEntrada = z.infer<typeof esquemaCrearMedicamento>;
  */
 export const esquemaListarMedicamentos = z.object({
   buscar: z.string().trim().optional(),
+  /**
+   * Si cada medicamento viene con su `evaluabilidad` (tarea 5.16).
+   *
+   * Opcional porque cuesta una consulta mas y casi ninguna pantalla la
+   * necesita. Mismo criterio que `incluirNoVigentes` en la medicacion: el que
+   * la quiere, la pide.
+   */
+  conCobertura: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
 });
 
 export type ListarMedicamentosEntrada = z.infer<
