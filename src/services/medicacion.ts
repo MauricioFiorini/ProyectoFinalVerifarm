@@ -1,6 +1,11 @@
 import { db } from "../lib/db";
 import { MedicacionVigente } from "@prisma/client";
 import { ErrorDeNegocio } from "./errores";
+import {
+  calcularEvaluabilidad,
+  rxcuisConCobertura,
+  type Evaluabilidad,
+} from "./interacciones";
 
 // Servicio de medicacion de un paciente (tarea 5.04).
 //
@@ -92,16 +97,50 @@ export function calcularEstadoDeMedicacion(
 /** La fila mas su estado, que es como la piden las pantallas (5.13, 5.15). */
 export type MedicacionConEstado = MedicacionConMedicamento & {
   estado: EstadoDeMedicacion;
+  /**
+   * Si la fuente de interacciones cubre esta droga (tarea 5.13).
+   *
+   * **Va con la fila y no lo calcula la pantalla**, por la misma razon por la
+   * que la cuenta de la 5.11 viene con el paciente: la pantalla no habla con la
+   * base, y sin esto tendria que pedir la cobertura aparte.
+   *
+   * Y va SIEMPRE, no solo cuando la pantalla lo pide. Una lista de medicacion
+   * sin esta marca parece revisada y no lo esta: si una de las drogas no esta en
+   * la fuente, el paciente puede tener una interaccion que el sistema nunca va a
+   * ver. Decision 0012.
+   */
+  evaluabilidad: Evaluabilidad;
 };
 
 export function conEstado(
   medicacion: MedicacionConMedicamento,
+  cubiertos: Set<string>,
   referencia: Date = new Date(),
 ): MedicacionConEstado {
   return {
     ...medicacion,
     estado: calcularEstadoDeMedicacion(medicacion, referencia),
+    evaluabilidad: calcularEvaluabilidad(
+      medicacion.medicamento.rxcui,
+      cubiertos,
+    ),
   };
+}
+
+/**
+ * La cobertura de toda la lista, en UNA consulta.
+ *
+ * Se pide una vez para las N filas y no una por fila: con diez drogas serian
+ * once viajes a la base para dibujar una tabla. Mismo problema y misma salida
+ * que `obtenerDisponiblePorLote` en el modulo de stock.
+ */
+async function coberturaDe(
+  filas: MedicacionConMedicamento[],
+): Promise<Set<string>> {
+  const rxcuis = filas
+    .map((f) => f.medicamento.rxcui)
+    .filter((r): r is string => r !== null);
+  return new Set(await rxcuisConCobertura(rxcuis));
 }
 
 /**
@@ -119,7 +158,8 @@ export async function listarMedicacionVigente(
     include: CON_MEDICAMENTO,
     orderBy: { fechaInicio: "asc" },
   });
-  return filas.map((f) => conEstado(f));
+  const cubiertos = await coberturaDe(filas);
+  return filas.map((f) => conEstado(f, cubiertos));
 }
 
 /**
@@ -133,9 +173,20 @@ export async function listarMedicacionDePaciente(
   const filas = await db.medicacionVigente.findMany({
     where: { pacienteId },
     include: CON_MEDICAMENTO,
-    orderBy: [{ fechaFin: "asc" }, { fechaInicio: "desc" }],
+    // Las vigentes primero, y dentro de cada grupo la mas reciente arriba.
+    //
+    // `nulls: "first"` no es un detalle: `fechaFin` es NULL en las vigentes, y
+    // PostgreSQL manda los NULL al final en un ASC. Sin esto, la ficha abre
+    // mostrando las drogas suspendidas por encima de las que el paciente
+    // realmente esta tomando. Se vio al armar la pantalla de la 5.13, no
+    // compilando.
+    orderBy: [
+      { fechaFin: { sort: "asc", nulls: "first" } },
+      { fechaInicio: "desc" },
+    ],
   });
-  return filas.map((f) => conEstado(f));
+  const cubiertos = await coberturaDe(filas);
+  return filas.map((f) => conEstado(f, cubiertos));
 }
 
 export type AgregarMedicacionInput = {

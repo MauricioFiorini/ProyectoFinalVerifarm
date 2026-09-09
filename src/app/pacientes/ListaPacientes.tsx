@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { Boton } from "@/components/ui/Boton";
 import { Campo } from "@/components/ui/Campo";
 import { Tabla, type Columna } from "@/components/ui/Tabla";
@@ -47,6 +48,22 @@ const COLUMNAS: Columna<PacienteDeApi>[] = [
       ) : (
         <span className="font-medium">{p.medicacionVigente}</span>
       ),
+  },
+  {
+    clave: "ficha",
+    encabezado: "",
+    alineacion: "derecha",
+    // Un enlace y no un boton: lleva a otra pagina. Con un boton se pierden el
+    // clic del medio, el "abrir en pestaña nueva" y el copiar la direccion.
+    // Mismo criterio que "Ver lotes" en la tabla de stock.
+    celda: (p) => (
+      <Link
+        href={`/pacientes/${p.id}`}
+        className="inline-flex items-center justify-center gap-2 rounded-md border border-borde bg-superficie px-4 py-2 text-sm font-medium text-texto transition-colors hover:bg-superficie-tenue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-marca-600"
+      >
+        Ver ficha
+      </Link>
+    ),
   },
 ];
 

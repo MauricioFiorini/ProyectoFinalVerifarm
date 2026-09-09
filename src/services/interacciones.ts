@@ -173,6 +173,34 @@ export async function rxcuisConCobertura(rxcuis: string[]): Promise<string[]> {
   return unicos.filter((r) => enLaFuente.has(r)).sort();
 }
 
+// --- Si un medicamento se puede evaluar, y por que no (tarea 5.13) ----------
+//
+// Vive aca y no en `consultas.ts` porque es la lectura de `rxcuisConCobertura`,
+// que esta unas lineas mas arriba. Lo usan dos pantallas distintas —la ficha del
+// paciente y el resultado de una consulta— y tener el mismo concepto escrito dos
+// veces es la forma segura de que un dia digan cosas distintas.
+
+/** Por que un medicamento no participo del cruce, si no participo. */
+export type Evaluabilidad =
+  /** Tiene RxCUI y la fuente lo cubre: se cruza de verdad. */
+  | "EVALUADO"
+  /** No tiene RxCUI cargado. No hay por donde cruzarlo (decision 0005). */
+  | "SIN_RXCUI"
+  /** Tiene RxCUI, pero la fuente no trae ningun par con esta droga. */
+  | "SIN_COBERTURA";
+
+/**
+ * Funcion pura. `cubiertos` sale de `rxcuisConCobertura`, que se pide una vez
+ * para toda la lista y no una vez por fila.
+ */
+export function calcularEvaluabilidad(
+  rxcui: string | null,
+  cubiertos: Set<string>,
+): Evaluabilidad {
+  if (rxcui === null) return "SIN_RXCUI";
+  return cubiertos.has(rxcui) ? "EVALUADO" : "SIN_COBERTURA";
+}
+
 // --- Que una consulta necesita al menos dos medicamentos (tarea 5.07) --------
 //
 // POR QUE ESTO NO ESTA ADENTRO DEL MOTOR
