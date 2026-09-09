@@ -23,7 +23,9 @@ Los dos módulos se tocan en un punto: `Medicamento`. Es la misma droga la que s
 controla en inventario y la que se evalúa por interacciones. No son dos sistemas
 pegados, es uno con dos salidas.
 
-**Estado actual:** en construcción del prototipo. No hay código todavía.
+**Estado actual (2026-09-09):** el prototipo está terminado. Las seis fases
+cerradas y los dos módulos andando de punta a punta. El detalle tarea por tarea
+está en `docs/ROADMAP.md`; lo que sigue es la defensa, no más alcance.
 
 ---
 
@@ -159,6 +161,9 @@ después del prototipo.
 | `docs/CONVENCIONES.md` | Invariantes, política de ramas, autoría de commits, convenciones de código. |
 | `docs/REGLAS_IA.md` | Reglas obligatorias para asistentes de IA. |
 | `docs/decisiones/` | Decisiones de arquitectura y su porqué. Append-only. |
+| `docs/GUION_DEMOSTRACION.md` | El recorrido de la defensa, ensayado contra el sistema. |
+| `docs/PREGUNTAS_PREVISIBLES.md` | Respuestas preparadas para el jurado, con la fuente de cada una. |
+| `README.md` (raíz) | Presentación del proyecto y cómo levantarlo desde cero. |
 | `prisma/schema.prisma` | Modelo de datos, derivado del modelo de dominio en UML. |
 
 ---

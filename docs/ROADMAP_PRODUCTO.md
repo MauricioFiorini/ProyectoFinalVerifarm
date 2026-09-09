@@ -60,7 +60,7 @@ registra ninguna decisión clínica.
 
 | # | Tarea | Estado | Tamaño |
 |---|---|---|---|
-| P.3.01 | Persistir el pronunciamiento del médico sobre cada observación: aceptada o rechazada, con fecha. Los campos ya están en `ObservacionInteraccion`. | `[ ]` | M |
+| P.3.01 | Persistir el pronunciamiento del médico sobre cada observación: aceptada o rechazada, con fecha. **Los campos NO existen todavía**: `ObservacionInteraccion` tiene consulta, los dos medicamentos, severidad, descripción y fecha de creación, nada más. Agregarlos es parte de esta tarea y lleva migración. | `[ ]` | M |
 | P.3.02 | Botones **"Aceptar"** y **"Rechazar"** por observación en la pantalla de resultado. | `[ ]` | M |
 | P.3.03 | El rechazo exige justificación escrita. | `[ ]` | S |
 | P.3.04 | Que el médico que valida sea siempre el que generó la consulta (decisión de modelo ya tomada). | `[ ]` | S |
@@ -101,7 +101,9 @@ la Interaction API, discontinuada en enero de 2024).
 
 ## P.6 — Fuente completa de interacciones
 
-En el prototipo son 15 pares cargados a mano (tarea 5.03).
+En el prototipo son **1150 pares importados** de ONCHigh (tarea 5.02). La 5.03
+planeaba cargar 15 a mano y quedó sin efecto: el mapeo de DrugBank a RxCUI
+resolvió completo, 123 de 123 (decisiones `0011` y `0012`).
 
 | # | Tarea | Estado | Tamaño |
 |---|---|---|---|

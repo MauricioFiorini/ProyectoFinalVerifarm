@@ -188,12 +188,12 @@ ya funciona con esa lógica de no-borrado.
 - `docs/CONTEXTO.md` sección 6: *"sin registro de la validación médica de la
   observación"*.
 
-> **Ojo con un dato que el roadmap del producto tiene mal.** La tarea P.3.01
-> dice *"Los campos ya están en `ObservacionInteraccion`"*, y **no están**: el
-> modelo tiene `consultaId`, los dos medicamentos, `severidad`, `descripcion` y
-> `createdAt`, nada más. **No afirmar en la defensa que el campo existe.** La
-> respuesta correcta es que agregarlo es parte de P.3. Está anotado para
-> corregir en el roadmap del producto.
+> **Ojo con un detalle.** Los campos para guardar ese pronunciamiento **no
+> existen** en el modelo: `ObservacionInteraccion` tiene `consultaId`, los dos
+> medicamentos, `severidad`, `descripcion` y `createdAt`, nada más. **No
+> afirmar que el campo ya está y que solo falta usarlo**: agregarlo es parte de
+> P.3 y lleva migración. El roadmap del producto decía lo contrario y quedó
+> corregido.
 
 ### Si insisten: *"¿Y qué queda registrado entonces de una consulta?"*
 

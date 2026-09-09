@@ -10,6 +10,8 @@ No reemplaza a los otros documentos, los ordena:
 - `docs/ROADMAP.md` — **qué falta** y quién está en cada cosa.
 - `docs/CONVENCIONES.md` — **cómo se trabaja** (ramas, commits, invariantes).
 - `docs/decisiones/` — **por qué** se resolvió cada cosa así.
+- `docs/GUION_DEMOSTRACION.md` — **cómo se muestra** en la defensa.
+- `docs/PREGUNTAS_PREVISIBLES.md` — **qué contestar** cuando el jurado pregunte.
 - **Este archivo** — **cómo funciona por dentro** lo que ya está construido.
 
 Ubicación en el repo: `docs/ARQUITECTURA.md`
@@ -19,23 +21,26 @@ Ubicación en el repo: `docs/ARQUITECTURA.md`
 ## 1. Lo primero: qué existe hoy y qué todavía no
 
 La confusión más común es mezclar lo que está escrito con lo que está planeado.
-Al **2026-09-09**, esto es lo que hay:
+Al **2026-09-09**, **el alcance del prototipo está completo**: las seis fases
+cerradas.
 
-| Existe | No existe todavía |
+| Existe | No existe, y es a propósito |
 |---|---|
-| **Los dos módulos completos**, de la lógica a las pantallas | La pantalla de inicio de verdad (la actual es provisoria, tarea 6.03) |
-| Catálogo, stock con FEFO y trazabilidad por lote | Selector de usuario simulado (6.02) |
-| Módulo clínico: pacientes, medicación, consultas y resultado | Manejo de errores global (6.04) |
-| **1150 interacciones cargadas** desde ONCHigh | Un seed que dispare interacciones de verdad (6.06) |
-| Barra lateral con las cinco secciones navegables | `README.md`, guion y ensayo de la demostración (6.07 a 6.10) |
-| Seis componentes en `src/components/ui/` | Revisión responsive (6.05) |
+| **Los dos módulos completos**, de la lógica a las pantallas | Autenticación: el selector de usuario simulado la reemplaza |
+| Catálogo, stock con FEFO y trazabilidad por lote | Recetas y posología |
+| Módulo clínico: pacientes, medicación, consultas y resultado | Proveedores y órdenes de compra |
+| **1150 interacciones cargadas** desde ONCHigh | Auditoría: la tabla existe en el modelo y no se escribe |
+| Pantalla de inicio, barra lateral y selector de usuario | Registro de la validación médica de la observación |
+| Manejo de errores global y revisión responsive | Pruebas automatizadas |
+| Siete componentes en `src/components/ui/` | Consulta a RxNorm en vivo |
+| Seed definitivo, guion de la demostración y respuestas al jurado | |
 
 **El estado exacto, tarea por tarea, está en `docs/ROADMAP.md`.** Esta tabla da
 la idea gruesa y se actualiza de vez en cuando; el roadmap es el que manda.
 
-**Una advertencia que vale para la demostración:** el catálogo del seed cruza
-hoy con **una sola** interacción. No es un error del código: el seed se armó
-antes de tener la fuente. Se corrige en la tarea 6.06 (decisión `0012`).
+**La columna derecha no son pendientes: son decisiones.** Cada una tiene su
+justificación en `docs/ROADMAP_PRODUCTO.md`, y las respuestas preparadas para
+defenderlas están en `docs/PREGUNTAS_PREVISIBLES.md`.
 
 ---
 
@@ -119,8 +124,11 @@ verificación manual es la única red.
 > Si estás por escribir un `if` con una regla del dominio dentro de un
 > `route.ts` o de un `.tsx`, está mal. Va en `src/services/`.
 
-Si una pantalla necesita lógica, **importa el servicio**; nunca reescribe la
-regla.
+**Ojo con una tentación:** una pantalla **no importa el servicio**. Le pega a la
+API, que es la que llama al servicio —es lo que dibuja el diagrama de arriba, y
+las flechas no se saltean—. Lo único que una pantalla toma de `src/services/` es
+un `import type`, que se borra al compilar y no arrastra nada del servidor. Quien
+importa el servicio es el route handler.
 
 ### Route Handlers, no Server Actions
 
@@ -134,8 +142,8 @@ visible.
 
 ## 4. Un recorrido completo, de punta a punta
 
-Alta de un medicamento, que es lo que van a construir en la fase 3. Sirve de
-molde para todo lo demás.
+Alta de un medicamento, que fue lo que se construyó en la fase 3. Sirve de molde
+para todo lo demás.
 
 **1. La pantalla** — `src/app/medicamentos/page.tsx`
 
@@ -349,7 +357,12 @@ npx prisma studio         # ver y editar los datos a mano, en el navegador
 ```
 
 **El orden en una máquina nueva:** crear el `.env`, `npm ci`, `npm run setup`,
-`docker compose up -d`, `npx prisma migrate dev`, `npm run dev`.
+`docker compose up -d`, `npx prisma migrate dev`, **`npx prisma db seed`**,
+`npm run dev`.
+
+**`npm run setup` no toca la base.** Verifica el `.env` y genera el cliente de
+Prisma, nada más. Migrar y sembrar son los dos comandos siguientes, y son
+distintos: sin el seed la aplicación levanta con todas las tablas vacías.
 
 ### Tres trampas que ya nos costaron tiempo
 
@@ -383,10 +396,11 @@ es saber **dónde se contesta cada pregunta**:
 **Dos reglas que ahorran tardes enteras:**
 
 **Decidido no es hecho.** Que una decisión esté escrita en `docs/decisiones/` no
-significa que el código ya la refleje. Hoy mismo: la decisión `0012` fijó que el
-catálogo tiene que cruzarse con la fuente de interacciones, y el seed sigue
-teniendo el catálogo viejo —que cruza con **una sola** interacción— porque falta
-la tarea 6.06.
+significa que el código ya la refleje, y tampoco al revés: que algo esté escrito
+en un documento no significa que el código lo haga. **Este archivo mismo quedó
+mal dos veces** —daba por inexistentes pantallas que ya estaban hechas—, y el
+`README.md` llegó a explicar una instalación que no funcionaba. Cuando el
+documento afirma algo verificable, se verifica corriéndolo.
 
 **Si la documentación y el código se contradicen, no elijas: preguntá.** Una de
 las dos está mal, y adivinar cuál es lo que genera el trabajo que después hay que
@@ -398,12 +412,13 @@ desandar.
 
 Sin autenticación ni roles · sin recetas ni posología · sin nombres comerciales
 ni ANMAT · sin proveedores ni órdenes de compra · sin destino del egreso · sin
-análisis predictivo · sin auditoría implementada · sin pruebas automatizadas ·
-sin consulta a RxNorm en vivo.
+análisis predictivo · sin auditoría implementada · **sin registro de la
+validación médica de la observación** · sin pruebas automatizadas · sin consulta
+a RxNorm en vivo.
 
 **Cada una de esas ausencias es una decisión con justificación escrita**, no un
-olvido. Están en `docs/ROADMAP_PRODUCTO.md`, y hay que poder sostenerlas en la
-defensa: la tarea 6.10 es justamente preparar esas respuestas.
+olvido. Están en `docs/ROADMAP_PRODUCTO.md`, y las respuestas preparadas para
+sostenerlas en la defensa están en `docs/PREGUNTAS_PREVISIBLES.md`.
 
 Si ves algo que "obviamente falta", lo más probable es que esté en esa lista.
 Mirala antes de construirlo.

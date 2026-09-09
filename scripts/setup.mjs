@@ -105,8 +105,17 @@ try {
   ]);
 }
 
-process.stdout.write("\nListo. El paso siguiente es:\n\n");
+// Los pasos siguientes se listan COMPLETOS a proposito. Este script no toca la
+// base: no migra ni siembra. Cuando el mensaje final nombraba solamente
+// `docker compose up -d` y `npm run dev`, la conclusion natural era que
+// `npm run setup` dejaba la base lista —el README llego a afirmarlo— y quien
+// seguia las instrucciones terminaba con la aplicacion levantada y todas las
+// tablas vacias.
+process.stdout.write("\nListo. Este script no toca la base de datos.\n");
+process.stdout.write("Los pasos que siguen son:\n\n");
 process.stdout.write(
-  "  docker compose up -d   # Docker Desktop tiene que estar abierto\n",
+  "  docker compose up -d     # Docker Desktop tiene que estar abierto\n",
 );
+process.stdout.write("  npx prisma migrate dev   # crea las tablas\n");
+process.stdout.write("  npx prisma db seed       # carga los datos\n");
 process.stdout.write("  npm run dev\n\n");

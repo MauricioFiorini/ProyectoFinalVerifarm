@@ -53,18 +53,28 @@ La Colonia Psiquiátrica «Dr. Abelardo Irigoyen Freyre» es una institución de
 2. Configurar el archivo de variables de entorno `.env` en la raíz del proyecto. El archivo ya cuenta con los valores por defecto para desarrollo local:
 
    ```env
-   # Puerto 5433 para evitar colisiones con instancias locales de PostgreSQL
-   DATABASE_URL="postgresql://postgres:postgres@localhost:5433/verifarm?schema=public"
-   PORT=3000
+   # Usuario, contraseña y base son los tres `verifarm`, definidos en
+   # docker-compose.yml. El puerto es 5433, no el 5432 habitual: si tenés
+   # PostgreSQL instalado en la máquina, ese ocupa el 5432 y Prisma se
+   # conectaría a él en vez de a la base del proyecto.
+   DATABASE_URL="postgresql://verifarm:verifarm@localhost:5433/verifarm?schema=public"
    ```
+
+   El archivo `.env` **no se versiona**. La plantilla es `.env.example`, que
+   trae esa misma URL comentada: `cp .env.example .env` y descomentarla.
 
 ### Puesta en marcha paso a paso
 
 1. **Instalar dependencias de Node:**
 
    ```bash
-   npm install
+   npm ci
    ```
+
+   **`npm ci`, no `npm install`.** Instala exactamente lo que fija el
+   `package-lock.json`. Con `npm install`, Prisma puede subir a una versión
+   distinta de la 7.10.0 —el tag `latest` apunta hoy a un *release candidate* de
+   la 8— y romper la base del resto del equipo (decisión `0002`).
 
 2. **Levantar la base de datos PostgreSQL en Docker:**
 
@@ -74,32 +84,56 @@ La Colonia Psiquiátrica «Dr. Abelardo Irigoyen Freyre» es una institución de
 
    *Nota:* Verifica que el contenedor de PostgreSQL esté saludable corriendo en el puerto `5433`.
 
-3. **Ejecutar migraciones y cargar el seed definitivo:**
+3. **Generar el cliente de Prisma:**
 
    ```bash
    npm run setup
    ```
 
-   *Este comando ejecuta internamente:*
-   - `prisma migrate dev`: Aplica las migraciones de base de datos (`prisma/migrations/`).
-   - `prisma db seed`: Carga el catálogo de 25 psicofármacos representativos con RxCUI verificado, lotes preparados para demostración FEFO, stock bajo mínimo, 1150 pares de interacciones de severidad alta (ONCHigh) y pacientes con esquemas de medicación activa que disparan alertas clínicas reales.
+   Verifica que el `.env` esté completo y genera el cliente de Prisma. **No
+   toca la base de datos**: no aplica migraciones ni carga datos. Existe porque
+   npm bloquea por defecto los scripts de instalación de las dependencias, así
+   que el cliente no se genera solo y el síntoma aparece después, como un error
+   de TypeScript que no nombra a Prisma (decisión `0001`).
 
-4. **Iniciar el servidor de desarrollo:**
+4. **Aplicar las migraciones:**
+
+   ```bash
+   npx prisma migrate dev
+   ```
+
+5. **Cargar el seed definitivo:**
+
+   ```bash
+   npx prisma db seed
+   ```
+
+   Carga el catálogo de 25 psicofármacos con RxCUI verificado, los lotes
+   preparados para la demostración FEFO, 1150 pares de interacciones de
+   severidad alta (ONCHigh) y cuatro pacientes con medicación vigente. **El
+   seed limpia todas las tablas antes de cargar**, así que se puede volver a
+   correr cuantas veces haga falta para dejar la base en su estado inicial.
+
+6. **Iniciar el servidor de desarrollo:**
 
    ```bash
    npm run dev
    ```
 
-5. **Abrir en el navegador:**  
+7. **Abrir en el navegador:**  
    Ingresar a [http://localhost:3000](http://localhost:3000).
 
 ### Usuarios para pruebas del prototipo
 
 El sistema incluye un **selector de usuario simulado** en el extremo superior derecho de la barra institucional para alternar roles sin necesidad de autenticación real (la autenticación con JWT/RBAC quedó deliberadamente fuera del alcance del prototipo, ver `docs/ROADMAP_PRODUCTO.md`):
 
-- **Farmacéutico:** Ana Clara Benítez
-- **Médico Psiquiatra:** Dr. Gregory House
-- **Administrador:** Juan José Pastorino
+- **Farmacéutico:** Farm. Pérez — gestión de stock, lotes, ingresos y dispensación FEFO.
+- **Médico:** Dr. House — evaluación clínica de pacientes e interacciones.
+- **Administrador:** Admin Sistema — catálogo y configuración general.
+
+El rol elegido **no es decorativo**: es el que queda asentado como autor en cada
+movimiento de stock y en cada consulta. Se guarda en el `localStorage` del
+navegador, así que sobrevive a recargas y al reseteo de la base.
 
 ### Verificación de código y calidad
 
@@ -124,7 +158,7 @@ npx prisma studio
 - **Frontend & Backend Integrado:** **Next.js 16 (App Router)** con React Server Components y Route Handlers (`src/app/api/`). Permite servir la interfaz y los endpoints REST desde un único proceso Node, simplificando el despliegue y eliminando puntos de fallo externos para la defensa.
 - **Lenguaje:** **TypeScript estricto** en todo el proyecto (`noImplicitAny`, interfaces estrictas para entidades, DTOs y respuestas).
 - **Base de Datos & ORM:** **PostgreSQL 16** gestionado mediante **Prisma ORM 7.10.0**, con migraciones declarativas y consultas seguras tipadas.
-- **Estilos:** **Tailwind CSS** con paleta semántica institucional personalizada (`primario`, `superficie`, `borde`, `texto`, `critico`, `advertencia`, `exito`). No se utilizan bibliotecas de componentes externas (como Shadcn, Radix o MUI) para mantener un control artesanal absoluto del código, evitar dependencias frágiles y garantizar accesibilidad nativa.
+- **Estilos:** **Tailwind CSS 4**, con la paleta declarada en `@theme` dentro de `src/app/globals.css` —no hay `tailwind.config`—: una escala de marca (`marca-50` a `marca-900`) más los tokens semánticos `fondo`, `superficie`, `borde`, `texto`, `ok`, `advertencia`, `critico` e `info`. No se utilizan bibliotecas de componentes externas (como Shadcn, Radix o MUI) para mantener un control artesanal absoluto del código, evitar dependencias frágiles y garantizar accesibilidad nativa.
 
 ### Arquitectura en tres capas desacopladas
 
@@ -160,10 +194,11 @@ El flujo de información sigue un diseño unidireccional estricto:
    La cantidad disponible de un lote o de un medicamento no se almacena en una columna `cantidad_actual`. Se calcula en tiempo real a partir del libro mayor de inventario (`ingreso` menos suma de `egreso`). Persistir un saldo crearía dos fuentes de verdad propensas a inconsistencias concurrentes.
 
 2. **Dispensación FEFO estricta:**  
-   La lógica de egreso (`dispensarMedicamento`) recupera los lotes vigentes ordenados por `fechaVencimiento ASC`. Descuenta las unidades necesarias del lote más próximo a vencer y, si se agota, continúa sucesivamente con los siguientes, registrando un movimiento inmutable por cada fracción.
+   La lógica de egreso (`dispensar`, en `src/services/dispensacion.ts`) recupera los lotes vigentes ordenados por `fechaVencimiento ASC`. Descuenta las unidades necesarias del lote más próximo a vencer y, si se agota, continúa sucesivamente con los siguientes, registrando un movimiento inmutable por cada fracción.
 
 3. **Base de interacciones local y determinística:**  
-   En enero de 2024, la *National Library of Medicine* (NLM) de EE.UU. **discontinuó definitivamente la Drug Interaction API de RxNav**. En lugar de depender de servicios de terceros caídos o inestables, Verifarm incorpora una tabla propia normalizada con **1150 interacciones de severidad alta** provenientes de la lista oficial **ONCHigh** (HealthIT.gov / NLM), indexadas con pares ordenados de códigos RxNorm (`ordenarParRxcui`). La detección es determinística, funciona 100% offline y es totalmente citable y verificable.
+   En enero de 2024, la *National Library of Medicine* (NLM) de EE.UU. **discontinuó definitivamente la Drug Interaction API de RxNav**. En lugar de depender de servicios de terceros caídos o inestables, Verifarm incorpora una tabla propia normalizada con **1150 interacciones de severidad alta** provenientes de la **ONC High Priority List** (Phansalkar y colaboradores, *JAMIA*, 2012), obtenidas del repositorio público `dbmi-pitt/public-PDDI-analysis` e indexadas con pares ordenados de códigos RxNorm (`ordenarParRxcui`). La detección es determinística, funciona 100% offline y es citable y verificable.
+   **Lo que la fuente no publica, el sistema no lo inventa:** ONCHigh no trae una escala de severidad ni descripciones del efecto clínico, así que todos los pares entran como severidad alta —que es la definición de la lista— y el texto se compone con las clases farmacológicas, que sí son dato publicado (decisión `0011`).
 
 4. **Observaciones compuestas por plantilla:**  
    La generación de explicaciones clínicas no depende de APIs de LLM externas comerciales (OpenAI, Anthropic, Gemini). Se resuelven mediante plantillas clínicas estructuradas que garantizan que el sistema funcione en la mesa de examen sin conexión a internet ni consumo de créditos.
@@ -172,7 +207,7 @@ El flujo de información sigue un diseño unidireccional estricto:
    En estricto cumplimiento de la Ley de Protección de Datos Personales (art. 8, datos de salud), el sistema no almacena nombres, apellidos ni DNIs. Cada paciente se identifica únicamente mediante un código seudonimizado (`PAC-101`), manteniendo la confidencialidad en entornos académicos y de prueba.
 
 6. **El sistema asiste, no decide:**  
-   Ante una interacción medicamentosa grave, el sistema emite una advertencia destacada (`<AvisoClinico />`) pero **no bloquea** la dispensación ni la prescripción. La responsabilidad y el criterio clínico final permanecen siempre bajo la órbita del profesional médico y farmacéutico.
+   Ante una interacción medicamentosa el sistema informa, pero **no bloquea** la dispensación ni la prescripción. El componente `<AvisoClinico />` está presente en las cinco pantallas clínicas y es deliberadamente sobrio: un recuadro de color repetido en todas dejaría de leerse y competiría con los avisos que sí dicen algo de este paciente —una droga sin cobertura, una interacción encontrada—. La responsabilidad y el criterio clínico final permanecen siempre bajo la órbita del profesional médico y farmacéutico.
 
 7. **Manejo de errores global y componentes reutilizables:**  
    La aplicación cuenta con error boundaries nativos (`src/app/error.tsx`), pantalla 404 personalizada (`src/app/not-found.tsx`), manejador crítico de layout (`src/app/global-error.tsx`) y una suite de 7 componentes base en `src/components/ui/` (`Boton`, `Campo`, `Tabla`, `Modal`, `Chip`, `AvisoClinico` y `ErrorSeccion`).

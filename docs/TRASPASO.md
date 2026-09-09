@@ -12,8 +12,7 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-09
 **Entrega:** Mauricio Mateo Fiorini
-**Rama:** `main` (las dos tareas son documentación y van directo, según
-convenciones).
+**Rama:** `main` (documentación, va directo según convenciones).
 
 # La fase 6 está cerrada. El prototipo está completo.
 
@@ -36,6 +35,7 @@ Fase 6 — cierre ............  10 de 10   ✅
 | --- | --- |
 | 6.09 | Ensayo completo con base desde cero. Guion corregido y registro del ensayo al final de `docs/GUION_DEMOSTRACION.md`. |
 | 6.10 | `docs/PREGUNTAS_PREVISIBLES.md`: doce preguntas con respuesta corta, la fuente que la respalda y la repregunta que sigue. |
+| — | Revisión de toda la documentación contra el sistema, con la fase ya cerrada. Detalle más abajo. |
 
 ## La 6.09 — el ensayo
 
@@ -93,29 +93,74 @@ defensa:**
   algo se dejó afuera por tiempo, se dice así. El jurado distingue una decisión
   de alcance de una tarea que no se hizo.
 
-## Tres cosas anotadas para corregir, que no toqué
+## Revisión de la documentación, con la fase ya cerrada
 
-Son de otras tareas y no las metí de prepo. **Las tres son errores de hecho en
-documentos que el jurado puede leer.**
+Con todo mergeado se revisó la documentación completa contra el sistema. **Lo
+que había no era cosmético: el `README.md` explicaba una instalación que no
+funciona.** Tres errores encadenados, y cualquiera alcanzaba para dejar a un
+tutor sin poder levantar el proyecto:
 
-1. **`docs/ROADMAP_PRODUCTO.md`, tarea P.3.01** dice *"Los campos ya están en
-   `ObservacionInteraccion`"* y **no están**: el modelo tiene `consultaId`, los
-   dos medicamentos, `severidad`, `descripcion` y `createdAt`, nada más. Está
-   avisado dentro de `PREGUNTAS_PREVISIBLES.md` para que nadie lo afirme en la
-   defensa.
-2. **`docs/ROADMAP_PRODUCTO.md`, encabezado de P.6** dice *"En el prototipo son
-   15 pares cargados a mano (tarea 5.03)"*. Quedó viejo: la 5.03 no se hizo y
-   hoy son **1150 pares importados** de ONCHigh.
-3. **No hay ningún paciente que muestre "sin interacciones" con cobertura
-   real.** `PAC-104` es Amoxicilina + Paracetamol y **las dos tienen cero
-   cobertura en la fuente**, así que da "sin datos", igual que `PAC-103`. De los
-   tres estados posibles del módulo, la demostración muestra dos. Para el
-   tercero sirve **Carbamazepina + Fluoxetina**, verificado contra la base; hoy
-   se arma a mano desde `/consultas/nueva`.
+1. **La `DATABASE_URL` daba `postgres:postgres`** y la base usa
+   `verifarm:verifarm`. No conecta.
+2. **Decía `npm install`**, cuando el proyecto va con `npm ci` por la decisión
+   `0002` —el `latest` de Prisma apunta a un *release candidate* de la 8—.
+3. **Daba `npm run setup` como el comando que migra y siembra.** No hace ni una
+   cosa ni la otra: verifica el `.env` y genera el cliente. Siguiendo el README
+   al pie de la letra, la aplicación levantaba con todas las tablas vacías.
 
-Relacionado con la tercera: **16 de los 25 medicamentos están en cero**, así que
-`/stock` se lee como un sistema sin cargar. Hay respuesta preparada en el guion,
-pero se resuelve mejor en el seed.
+**El origen del tercero estaba en el script.** `npm run setup` terminaba
+diciendo *"El paso siguiente es: `docker compose up -d`, `npm run dev`"*, sin
+nombrar migrar ni sembrar. Ahora lo dice completo y aclara que no toca la base,
+así que la herramienta deja de inducir el error.
+
+También en el README: los usuarios inventados —los mismos que traía el guion—,
+la paleta de Tailwind (`primario` y `exito` no existen; son `marca-*` y `ok-*`),
+el nombre de la función de dispensación (`dispensar`, no
+`dispensarMedicamento`), y la atribución de la fuente, que decía "HealthIT.gov /
+NLM" en vez de Phansalkar y colaboradores vía `dbmi-pitt/public-PDDI-analysis`.
+
+**`docs/ARQUITECTURA.md` tenía dos problemas de fondo:**
+
+- **La sección 1 daba por inexistente todo lo hecho en la fase 6** —la pantalla
+  de inicio, el selector de usuario, el manejo de errores, el seed, el
+  responsive— y avisaba que el catálogo cruzaba con una sola interacción, que
+  dejó de ser cierto con la 6.06. Se reescribió: ahora la columna derecha no son
+  pendientes, son las ausencias decididas.
+- **La sección 3 decía "si una pantalla necesita lógica, importa el
+  servicio"**, que contradice el diagrama de capas del mismo archivo. Se
+  verificó el código: **ninguna pantalla importa un servicio**, solo hay
+  `import type`, que se borra al compilar. La frase estaba mal, no el código.
+
+**`docs/CONTEXTO.md` seguía diciendo "en construcción del prototipo. No hay
+código todavía."** Es el primer documento que se lee.
+
+Y los dos errores de `docs/ROADMAP_PRODUCTO.md` que estaban anotados quedaron
+corregidos: P.3.01 afirmaba que los campos de validación ya existen en
+`ObservacionInteraccion` —no existen— y el encabezado de P.6 todavía hablaba de
+15 pares cargados a mano.
+
+## Lo que sigue anotado y no se tocó
+
+**No hay ningún paciente que muestre "sin interacciones" con cobertura real.**
+`PAC-104` es Amoxicilina + Paracetamol y **las dos tienen cero cobertura en la
+fuente**, así que da "sin datos", igual que `PAC-103`. De los tres estados
+posibles del módulo, la demostración muestra dos. Para el tercero sirve
+**Carbamazepina + Fluoxetina**, verificado contra la base; hoy se arma a mano
+desde `/consultas/nueva`.
+
+Relacionado: **16 de los 25 medicamentos están en cero**, así que `/stock` se
+lee como un sistema sin cargar. Hay respuesta preparada en el guion, pero se
+resuelve mejor en el seed.
+
+## Qué se verificó del sistema
+
+- **`npm run build` completa** y genera las 19 rutas. **`npm run check` da 0.**
+- **Sin desborde horizontal** en ninguna pantalla, ni a 1366×768 —la notebook de
+  la defensa— ni a 375 px. Las tablas anchas scrollean dentro de su tarjeta, que
+  es lo que la 6.05 dice haber hecho.
+- **El recorrido completo anda**: FEFO repartiendo 40 + 10, la detección del par
+  ISRS + IMAO, el contraste de `PAC-103`, y el rol del selector asentado en el
+  libro mayor.
 
 ## Cómo levantarlo
 
