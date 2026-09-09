@@ -543,6 +543,26 @@ Lista viva. Se agrega, no se borra.
   el código. Las ramas se borran del remoto al mergear, así que después no queda
   de dónde recuperarlo —`origin` tiene solo `main`—: lo que no se pusheó a
   tiempo hay que reescribirlo, que es lo que hubo que hacer con la 5.06.
+- **En la pantalla de resultado, el bloque ámbar de "sin datos en la fuente" no
+  se puede sacar, por más ruidoso que parezca.** La obligación ya está escrita en
+  la fila de la **5.18** del roadmap —"ese texto no aparece nunca solo"—, pero esa
+  fila está en `[x]` y quien encare la fase 6 no tiene motivo para volver a
+  leerla, así que queda acá el porqué y cómo comprobarlo. La frase principal del
+  estado vacío es **la misma en los dos casos**: dice "No se encontraron interacciones
+  registradas entre los medicamentos evaluados" tanto cuando cruzó las drogas
+  contra la fuente y no halló ningún par como cuando no llegó a cruzar ninguna.
+  Lo único que separa "se revisó y está limpio" de "no se revisó" es lo que va
+  **debajo** de esa frase: la línea que aclara cuántas drogas se pudieron cruzar
+  y el bloque ámbar que las lista una por una. Sacar el bloque, plegarlo detrás
+  de un "ver más" o bajarlo a texto tenue deja la frase sola, y sola afirma un
+  resultado negativo que nunca se obtuvo. Es exactamente el error que la decisión
+  `0012` existe para impedir, y en un sistema que asiste decisiones clínicas es
+  el peor que puede cometer. Verificado el 2026-09-09 con la tabla `Interaccion`
+  vacía: las tres pantallas del módulo avisaron bien. **Quien rediseñe
+  `src/app/consultas/[id]/ResultadoDeConsulta.tsx` en la fase 6 tiene que
+  reproducir esa prueba antes de dar la pantalla por terminada**, porque
+  `npm run check` no la cubre: es texto, compila igual. La forma más barata de
+  reproducirla es evaluar dos medicamentos con la tabla `Interaccion` vacía.
 
 ---
 
