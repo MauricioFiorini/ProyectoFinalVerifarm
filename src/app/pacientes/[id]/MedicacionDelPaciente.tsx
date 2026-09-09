@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Boton } from "@/components/ui/Boton";
+import { AvisoClinico } from "@/components/ui/AvisoClinico";
 import { Chip } from "@/components/ui/Chip";
 import { Tabla, type Columna } from "@/components/ui/Tabla";
 import { formatearFecha } from "@/lib/fechas";
@@ -260,10 +261,9 @@ export function MedicacionDelPaciente({ pacienteId }: { pacienteId: string }) {
         mensajeVacio="Este paciente todavía no tiene medicación cargada"
       />
 
-      <p className="text-xs text-texto-sutil">
+      <AvisoClinico>
         La evaluación de interacciones se hace solo sobre la medicación vigente.
-        El sistema informa; no reemplaza el criterio profesional.
-      </p>
+      </AvisoClinico>
 
       {modalAbierto ? (
         <ModalAgregarMedicacion

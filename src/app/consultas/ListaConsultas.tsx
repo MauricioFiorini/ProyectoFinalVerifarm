@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Boton } from "@/components/ui/Boton";
+import { AvisoClinico } from "@/components/ui/AvisoClinico";
 import { Chip } from "@/components/ui/Chip";
 import { Tabla, type Columna } from "@/components/ui/Tabla";
 import { formatearFechaHora } from "@/lib/fechas";
@@ -156,6 +157,8 @@ export function ListaConsultas() {
           mensajeVacio="Todavía no se hizo ninguna consulta"
         />
       )}
+
+      <AvisoClinico />
     </div>
   );
 }

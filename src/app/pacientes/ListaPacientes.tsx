@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Boton } from "@/components/ui/Boton";
+import { AvisoClinico } from "@/components/ui/AvisoClinico";
 import { Campo } from "@/components/ui/Campo";
 import { Tabla, type Columna } from "@/components/ui/Tabla";
 import { ModalNuevoPaciente } from "./ModalNuevoPaciente";
@@ -136,6 +137,8 @@ export function ListaPacientes() {
           }
         />
       )}
+
+      <AvisoClinico />
 
       {modalAbierto ? (
         <ModalNuevoPaciente
