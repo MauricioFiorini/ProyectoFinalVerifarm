@@ -11,55 +11,53 @@ Ubicación en el repo: `docs/TRASPASO.md`
 ## Traspaso vigente
 
 **Fecha:** 2026-09-09
-**Entrega:** Juan José Pastorino
-**Rama:** `main` (tarea 6.08 integrada y pusheada).
+**Entrega:** Mauricio Mateo Fiorini
+**Rama:** `main` (la 6.09 es documentación y va directo, según convenciones).
 
-## La tarea 6.08 está completa (Guion de demostración)
+## La tarea 6.09 está completa (Ensayo de la demostración)
 
-Se redactó y verificó el guion oficial en [`docs/GUION_DEMOSTRACION.md`](GUION_DEMOSTRACION.md), estructurado paso a paso en 4 actos cronometrados para una defensa de 5 minutos:
-- **Acto 1 (00:00 - 01:00) — Apertura y Diagnóstico de Farmacia:** Contexto institucional (Colonia Psiquiátrica «Dr. Abelardo Irigoyen Freyre»), simulación de perfiles con el selector de usuario en la barra superior (Farm. Ana Clara Benítez) y lectura ejecutiva de las 3 tarjetas de alarma en `/` (stock bajo mínimo, lote por vencer a 15 días y consultas del día).
-- **Acto 2 (01:00 - 02:45) — Trazabilidad y Dispensación FEFO:** Recorrido a `/stock`, apertura del detalle de `Haloperidol` (120 ampollas distribuidas en Lote `HAL-2026-L1` que vence el 15/11/2026 con 40 unidades y Lote `HAL-2027-L2` que vence el 15/09/2027 con 80 unidades), registro de un egreso de 50 ampollas y comprobación en vivo del reparto automático por FEFO (agota 40 del lote próximo y toma 10 del siguiente).
-- **Acto 3 (02:45 - 04:15) — Módulo Clínico y Soporte a la Decisión:** Cambio de rol al Dr. Gregory House, apertura de `PAC-101` (Sertralina + Tranilcipromina), evaluación precargada de interacciones, alerta visual `<AvisoClinico />` y generación de observación médica de riesgo severo (Síndrome Serotoninérgico e hipertensión). Contraste con `PAC-103` (Clonazepam + Risperidona) para exhibir la distinción clínica de la Decisión 0012 ("sin datos en la fuente" vs. "sin interacciones").
-- **Acto 4 (04:15 - 05:00) — Síntesis de Arquitectura y Cierre:** Justificación de las 3 capas desacopladas, saldos computados en tiempo real, base local determinística de 1150 interacciones ONCHigh (justificando la discontinuación de la API de RxNav) y el principio rector "el sistema asiste, no decide".
-- **Plan de contingencia:** respuestas preparadas ante preguntas frecuentes y comandos de reset rápido (`npm run setup`).
+Se corrió la demostración entera contra el sistema, con la base cargada desde
+cero y a 1366×768, la resolución de la notebook de la defensa.
+
+**Lo sustantivo funciona.** El reparto FEFO de 50 ampollas de Haloperidol dejó
+los lotes en 0 y 70 como promete el guion; el par Sertralina + Tranilcipromina
+se detecta con severidad alta; el contraste de `PAC-103` distingue "sin datos"
+de "sin interacciones"; y el rol elegido en el selector queda asentado en el
+libro mayor —verificado dispensando como Dr. House y leyendo el asiento—.
+
+**El guion, en cambio, tenía doce afirmaciones que no coincidían con la
+pantalla.** Están corregidas, y el registro completo del ensayo quedó al final
+de [`docs/GUION_DEMOSTRACION.md`](GUION_DEMOSTRACION.md). Las tres que más
+costaban:
+
+1. **`npm run setup` no resetea la base**, solo regenera el cliente de Prisma.
+   Estaba escrito como el comando de emergencia durante la defensa: si algo
+   fallaba, el rescate no rescataba. **El comando correcto es
+   `npx prisma db seed`**, que sí limpia todas las tablas antes de cargar.
+2. **La observación no menciona síndrome serotoninérgico ni crisis
+   hipertensiva.** El guion se lo atribuía a la pantalla. ONCHigh no publica
+   descripciones (decisión `0011`) y el sistema no las inventa: decirlo como si
+   estuviera en pantalla es exactamente lo que la regla 6 prohíbe.
+3. **Los usuarios se llaman "Farm. Pérez" y "Dr. House"**, no "Ana Clara
+   Benítez" ni "Gregory House". Leer en voz alta un nombre que no está en
+   pantalla, frente al jurado, es caro.
+
+El resto: no existe el botón "Guardar consulta" (evaluar guarda), el botón es
+"Dispensar" y su modal no tiene campo de motivo, las filas de las tablas no son
+clickeables, la columna de la ficha dice "Se evalúa", el texto del aviso clínico
+citado no era el real, y las consultas del día son 2, no 3.
+
+**El ensayo además agregó** tres momentos que el guion se salteaba y que son de
+lo mejor que tiene la demostración: el **plan de egreso visible antes de
+confirmar**, con el reparto y la razón escrita; la **advertencia de cobertura
+antes de evaluar** en `PAC-103`; y el **asiento del libro mayor** con usuario y
+hora.
 
 ### Lo que se hizo en este bloque
 
 | Tarea | Qué dejó |
 | --- | --- |
-| 6.02 | Selector de usuario simulado en `BarraSuperior` y layout transversal. |
-| 6.06 | `seed.ts` definitivo con 25 fármacos, lotes para FEFO, alertas visuales de stock, 4 pacientes y consultas registradas. |
-| 6.03 | Tablero de inicio con tarjetas de stock bajo mínimo, lotes por vencer y consultas del día (`TableroInicio.tsx`, `page.tsx`, `api/inicio`). |
-| 6.04 | Manejo de errores global: página de error `error.tsx`, `not-found.tsx`, `global-error.tsx` y componente `ErrorSeccion.tsx` integrado en todas las pantallas. |
-| 6.05 | Revisión responsive: tablas con desplazamiento horizontal garantizado (`anchoMinimo`), cabeceras con `flex-wrap` y usabilidad verificada en notebook (1366×768) y móvil (375 px). |
-| 6.07 | `README.md`: qué resuelve, cómo se levanta paso a paso, decisiones de arquitectura, principios clínicos y mapa documental. |
-| 6.08 | `docs/GUION_DEMOSTRACION.md`: guion cronometrado de 5 minutos, acciones y diálogos exactos con FEFO y detección clínica. |
-
-### El recorrido que ya funciona
-
-**Inicio:** entrar a `/` y ver el estado consolidado de la colonia en tres tarjetas interactivas: qué medicamentos están bajo stock mínimo, qué lotes vencen en menos de un mes y cuántas consultas clínicas se evaluaron hoy.
-
-**Stock:** entrar a `/stock`, ver qué está bajo mínimo, abrir un medicamento,
-registrar un ingreso, dispensar una cantidad y ver cómo el sistema reparte entre
-lotes empezando por el que vence antes.
-
-**Clínico:** crear un paciente en `/pacientes`, abrir su ficha, agregarle
-medicación, apretar "Evaluar interacciones" —que abre la consulta con su
-medicación vigente ya cargada—, evaluar, y leer el resultado. Después la
-consulta queda en `/consultas` y se puede volver a abrir.
-
-### Las tres ideas que sostienen el módulo clínico
-
-Conviene tenerlas presentes antes de tocar cualquier cosa:
-
-1. **"Sin interacciones" y "sin datos" no se pueden ver igual.** Es la regla que
-   aparece en cada pantalla del módulo: en la ficha, en la selección, en el
-   resultado y en el listado. Decisión `0012`.
-2. **Una consulta guarda lo que evaluó, no solo lo que encontró.** Sin eso, una
-   consulta sin hallazgos no diría qué revisó. Decisión `0014`.
-3. **El texto de la observación se compone al guardar, no al mostrar.** El
-   registro clínico es lo que se leyó ese día. La cobertura, en cambio, se
-   recalcula al releer.
+| 6.09 | Ensayo completo con base desde cero; guion corregido y registro del ensayo. |
 
 ### Cómo verificarlo
 
@@ -69,7 +67,13 @@ npx prisma db seed
 npm run dev
 ```
 
-`npm run check` da 0.
+`npm run check` da 0. La base queda con 25 medicamentos, 10 lotes, 4 pacientes,
+2 consultas y las 1150 interacciones.
+
+**Ojo con el selector de rol.** Se guarda en el `localStorage` del navegador y
+**no lo resetea ni el seed ni `npm run setup`**: si el ensayo anterior terminó
+como Dr. House, la próxima corrida arranca como Dr. House. Se corrige a mano
+desde la barra superior.
 
 ### Dónde está el proyecto
 
@@ -80,31 +84,39 @@ Fase 2 — modelo de datos ...  11 de 11   ✅
 Fase 3 — catálogo ..........   8 de  8   ✅
 Fase 4 — stock y FEFO ......  17 de 17   ✅
 Fase 5 — módulo clínico ....  20 de 21   ✅ (la 5.03 quedó sin efecto)
-Fase 6 — cierre ............   8 de 10   (6.01, 6.02, 6.03, 6.04, 6.05, 6.06, 6.07 y 6.08 completas)
+Fase 6 — cierre ............   9 de 10
 ```
 
-### Qué sigue: la fase 6
+### Qué sigue
 
-**Dos tareas pendientes.** En orden de conveniencia:
+**Una sola tarea.** La **6.10**: preparar respuestas a las preguntas
+previsibles del jurado —por qué no hay receta, por qué no hay proveedor, por qué
+las interacciones no vienen de una API en vivo, por qué no hay auditoría
+implementada, por qué no hay validación médica registrada—.
 
-| Tarea | Tamaño | Qué es |
-| --- | --- | --- |
-| **6.09** | M | **Ensayo de la demostración en la máquina de la defensa**, con la base cargada desde cero. |
-| **6.10** | M | Respuestas a las preguntas previsibles del jurado |
+### Dos cosas que el ensayo dejó señaladas
 
-### Tres cosas que el equipo debería mirar
+**No hay ningún paciente que muestre "sin interacciones" con cobertura real.**
+`PAC-104` es Amoxicilina + Paracetamol y **las dos tienen cero cobertura en la
+fuente**, así que da "sin datos", igual que `PAC-103`. De los tres estados
+posibles del módulo, la demostración muestra dos. Para el tercero hace falta un
+par cubierto que no interactúe entre sí: sirve **Carbamazepina + Fluoxetina**,
+verificado contra la base. Hoy se arma a mano desde `/consultas/nueva`.
+
+**16 de los 25 medicamentos están en cero**, así que `/stock` se lee como un
+sistema sin cargar y los "17 bajo mínimo" del panel son consecuencia de eso. Hay
+una respuesta preparada en el guion, pero se resuelve mejor en el seed.
+
+### Lo que sigue abierto de antes
 
 **El parche del `setTimeout`.** Todas las pantallas cargan datos con
 `setTimeout(…, 0)` dentro de un `useEffect`, para que la regla
 `react-hooks/set-state-in-effect` no rechace la llamada. **La regla tiene razón**
 y el timeout no lo arregla, solo lo esconde. Está documentado en
-`src/app/stock/TablaDeStock.tsx` desde la fase 4. Con la fase 5 cerrada es un
-buen momento para decidir qué hacer.
+`src/app/stock/TablaDeStock.tsx` desde la fase 4.
 
 **La D8 sigue abierta** desde el 2026-09-01: si se sostiene la regla de "código
 va en rama y otro le pasa el ojo" o se cambia el documento.
-
-**Revisión responsive cerrada (6.05):** el ancho mínimo garantizado (`min-w-[600px]` y `min-w-[700px]`) resolvió la compresión de celdas en 375 px y notebooks, permitiendo scroll horizontal limpio dentro de la tarjeta sin desbordar el viewport global.
 
 ### Antes de arrancar, tener en cuenta
 
@@ -121,8 +133,8 @@ va en rama y otro le pasa el ojo" o se cambia el documento.
   Chip, AvisoClinico y ErrorSeccion. Algo sube ahí cuando **dos o más rutas**
   necesitan lo mismo.
 - **Las fechas se formatean con `src/lib/fechas.ts`.**
-- **Ningún dato clínico se inventa.** Vale también para el seed de la 6.06: los
-  RxCUI se verifican, no se escriben de memoria (decisión `0008`).
+- **Ningún dato clínico se inventa.** Vale también para lo que se le atribuye a
+  la pantalla en el guion: es donde falló la primera versión.
 - **El sistema asiste, no decide.**
 - **El paciente no tiene datos identificatorios.** Solo un seudónimo.
 - **El puerto sigue siendo el 5433** y Docker Desktop no arranca solo.
