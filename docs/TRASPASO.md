@@ -12,7 +12,8 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-09
 **Entrega:** Juan Pablo Malizani
-**Rama:** `fix/6.11-fechas-del-seed-relativas`. La 4.18 **ya está en `main`**.
+**Ramas:** ninguna abierta. **Las dos correcciones están mergeadas a `main`**
+(PR #35 y #36). No queda trabajo a medias en ninguna rama.
 
 # Dos correcciones posteriores al cierre, las dos terminadas
 
@@ -24,7 +25,7 @@ cierre de la fase"**, una en la fase 4 y otra en la fase 6.
 | Tarea | Estado | Qué dejó |
 | --- | --- | --- |
 | 4.18 | `[x]` | El corte del día se calcula en UTC. **Mergeada.** |
-| 6.11 | `[x]` | Seed con fechas relativas, lote vencido y guion alineado. En rama. |
+| 6.11 | `[x]` | Seed con fechas relativas, lote vencido y guion alineado. **Mergeada.** |
 
 ## Lo primero, si vas a ensayar
 
@@ -178,23 +179,92 @@ indicador rojo, y recién después los dos vigentes.
   descarta lo vencido.
 - El total sigue diciendo **120 disponibles**, con el renglón rojo aparte.
 
-# Qué sigue después
+# Qué queda pendiente
 
-Las correcciones que quedan de la misma revisión, en el orden acordado:
+**Cuatro cosas, en este orden.** Salieron todas de la misma revisión del sistema
+contra su documentación, con las seis fases ya cerradas. Ninguna es alcance
+nuevo.
 
-1. **El orden por severidad al releer una consulta guardada.**
-   `obtenerConsulta` ordena por `createdAt`, y todas las observaciones de una
-   consulta se escriben en la misma transacción, así que comparten timestamp y el
-   orden lo termina decidiendo Postgres. La 5.18 pide orden por severidad. Hoy no
-   se nota porque las 1150 filas de la fuente son todas de severidad alta.
-2. **Dos menores.** La validación de lote escrita dos veces:
-   `validarDatosDeLote` dice existir para que la compartan `crearLote` y
-   `crearLoteConIngreso`, pero `crearLote` conserva su propia copia en línea. Y
-   los mensajes de error de los servicios, que llegan a la pantalla sin tildes.
+## Van sobre `main`, una por vez, y NO encadenadas
 
-Y después de todo eso, **ensayar el guion completo con la base sembrada y
-cronometrar el recorrido**. El ensayo de la 6.09 verificó que el sistema hace lo
-que el guion dice, no que entre en cinco minutos.
+Las dos que ya entraron sí estuvieron encadenadas —la 6.11 se abrió sobre la
+rama de la 4.18, porque el seed necesitaba las primitivas de fecha que esa tarea
+agregaba— y **costó dos resoluciones de conflicto**, una en cada PR, las dos
+sobre `docs/ROADMAP.md` y `docs/TRASPASO.md`. Es el precio de encadenar: la
+segunda rama arrastra el estado del roadmap de la primera, que para entonces ya
+cambió.
+
+**Ninguna de las cuatro que quedan depende de otra**, así que cada una sale de
+`main` actualizado y vuelve por su PR. Si dos tocaran el mismo archivo, se hacen
+una después de la otra, no en paralelo: **la primera y la segunda tocan las dos
+`prisma/seed.ts`**, así que la segunda arranca recién cuando la primera esté
+mergeada.
+
+Y el recordatorio que dejó cara la última vez: **los conflictos se resuelven en
+local**, nunca desde la web. Resolver desde GitHub deja commits con un bot como
+autor y viola la regla de autoría, que es innegociable. Está en la sección 14 de
+`docs/CONVENCIONES.md`.
+
+## 1. El paciente que falta, para el tercer estado del módulo clínico
+
+**Es la más importante de las cuatro**, y la que más se nota en la defensa.
+
+El módulo clínico tiene tres respuestas posibles y **hoy la demostración solo
+puede mostrar dos**: "se encontraron interacciones" con `PAC-101` y `PAC-102`, y
+"sin datos en la fuente" con `PAC-103`. Falta la tercera, **"se revisó y no hay
+interacciones"**, que es justamente la que prueba que el sistema distingue entre
+haber revisado y no haber podido revisar.
+
+`PAC-104` no sirve: es Amoxicilina más Paracetamol y **las dos tienen cero
+cobertura en ONCHigh**, así que da "sin datos", igual que `PAC-103`.
+
+**Hace falta un paciente con dos drogas que estén en la fuente y no interactúen
+entre sí.** Verificado contra la base: **Carbamazepina y Fluoxetina** cumplen.
+Hoy ese caso se arma a mano desde `/consultas/nueva`, y armarlo a mano delante
+del jurado es exactamente lo que el guion existe para evitar.
+
+Toca `prisma/seed.ts`, y hay que **verificar contra la base sembrada** que el par
+elegido no dispara ninguna observación, no alcanza con suponerlo. También hay que
+sumar el caso al guion, que hoy no lo recorre.
+
+## 2. El orden por severidad al releer una consulta guardada
+
+`obtenerConsulta` en `src/services/consultas.ts` ordena las observaciones por
+`createdAt`. Todas las de una consulta se escriben en la misma transacción, así
+que **comparten timestamp** y el orden lo termina decidiendo Postgres. La tarea
+5.18 pide orden por severidad.
+
+**Hoy no se ve**, porque las 1150 filas de ONCHigh son todas de severidad alta.
+Se va a ver el día que entre una fuente con grados, y entonces va a ser un
+defecto intermitente y difícil de reproducir. El motor ya devuelve la lista
+ordenada al crear la consulta; lo que falta es imponer ese mismo orden al
+releerla.
+
+## 3. Los dos menores
+
+**La validación de lote, escrita dos veces.** `validarDatosDeLote` en
+`src/services/lotes.ts` dice en su comentario que existe para que la compartan
+`crearLote` y `crearLoteConIngreso`, pero **`crearLote` conserva su propia copia
+en línea**. Hoy las dos copias son idénticas, así que no hay diferencia de
+comportamiento; el problema es el día que alguien corrija una sola.
+
+**Los mensajes de los servicios llegan a la pantalla sin tildes.** "El numero de
+lote no puede estar vacio", "Ocurrio un error inesperado". Los comentarios del
+código van sin tildes por convención y está bien, pero estos son texto que ve el
+usuario, y el resto de la interfaz sí las lleva.
+
+## 4. La línea 13 de `CLAUDE.md`
+
+Dice **"Estado: en construcción del prototipo"**, siete líneas antes de decir que
+las seis fases están cerradas. Es una línea y es el primer archivo que lee
+cualquiera que abra el repositorio, asistente incluido.
+
+# Y después de las cuatro
+
+**Ensayar el guion completo con la base sembrada y cronometrar el recorrido.** El
+ensayo de la 6.09 verificó que el sistema hace lo que el guion dice, no que entre
+en cinco minutos. Y **repartir `docs/PREGUNTAS_PREVISIBLES.md`** para que los tres
+respondan lo mismo.
 
 ## Lo que sigue abierto de antes
 
@@ -232,6 +302,7 @@ va en rama y otro le pasa el ojo" o se cambia el documento.
 
 **Ninguno.** D8 sigue abierta y no bloquea ninguna tarea.
 
-**Ojo con el orden de merge.** La 6.11 se abrió sobre la rama de la 4.18, porque
-el seed usa las primitivas que esa tarea agregó. **La 4.18 se mergea primero**;
-si entra sola la 6.11, el seed no compila.
+**Ya no hay orden de merge que respetar.** Las dos ramas entraron, en su orden:
+primero la 4.18 y después la 6.11, que dependía de sus primitivas de fecha. Lo
+que queda pendiente **no está encadenado**, y el porqué está arriba, en "Van
+sobre `main`, una por vez".
