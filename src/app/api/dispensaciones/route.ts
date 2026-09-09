@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     return respuestaDeValidacion(entrada.error.issues);
   }
 
-  const { medicamentoId, cantidad, ejecutar } = entrada.data;
+  const { medicamentoId, cantidad, ejecutar, usuarioId } = entrada.data;
 
   try {
     if (!ejecutar) {
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
       return Response.json({ ejecutado: false, plan });
     }
 
-    const plan = await dispensar(medicamentoId, cantidad);
+    const plan = await dispensar(medicamentoId, cantidad, usuarioId);
     return Response.json({ ejecutado: true, plan }, { status: 201 });
   } catch (error) {
     return respuestaDeError(error, "POST /api/dispensaciones");

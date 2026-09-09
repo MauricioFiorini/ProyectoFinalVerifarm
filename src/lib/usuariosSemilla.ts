@@ -54,3 +54,47 @@ export const USUARIO_PROVISORIO_ID = USUARIO_FARMACEUTICO_ID;
  * primero.
  */
 export const USUARIO_CLINICO_PROVISORIO_ID = USUARIO_MEDICO_ID;
+
+export type RolUsuarioSimulado = "ADMINISTRADOR" | "FARMACEUTICO" | "MEDICO";
+
+export type UsuarioSimulado = {
+  id: string;
+  nombre: string;
+  email: string;
+  rol: RolUsuarioSimulado;
+  etiquetaRol: string;
+  descripcion: string;
+};
+
+/**
+ * Los tres usuarios del seed disponibles para simulación en la interfaz (tarea 6.02).
+ * Reemplazan la autenticación real en el prototipo.
+ */
+export const USUARIOS_SIMULADOS = [
+  {
+    id: USUARIO_FARMACEUTICO_ID,
+    nombre: "Farm. Pérez",
+    email: "farmacia@verifarm.com",
+    rol: "FARMACEUTICO",
+    etiquetaRol: "Farmacéutico",
+    descripcion: "Gestión de stock, lotes, ingresos y dispensación FEFO",
+  },
+  {
+    id: USUARIO_MEDICO_ID,
+    nombre: "Dr. House",
+    email: "medico@verifarm.com",
+    rol: "MEDICO",
+    etiquetaRol: "Médico",
+    descripcion: "Evaluación clínica de pacientes e interacciones",
+  },
+  {
+    id: USUARIO_ADMIN_ID,
+    nombre: "Admin Sistema",
+    email: "admin@verifarm.com",
+    rol: "ADMINISTRADOR",
+    etiquetaRol: "Administrador",
+    descripcion: "Gestión del catálogo y configuración general",
+  },
+] as const satisfies readonly [UsuarioSimulado, ...UsuarioSimulado[]];
+
+export const USUARIO_DEFECTO: UsuarioSimulado = USUARIOS_SIMULADOS[0];

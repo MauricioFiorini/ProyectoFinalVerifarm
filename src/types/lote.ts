@@ -42,6 +42,11 @@ export const esquemaCrearLote = z.object({
     .int("La cantidad tiene que ser un numero entero.")
     .positive("La cantidad tiene que ser mayor que cero.")
     .optional(),
+  /**
+   * Opcional. Sin autenticacion, el usuario lo indica el selector simulado (tarea 6.02).
+   * Si no viene, se usa el farmaceutico por defecto.
+   */
+  usuarioId: identificador.optional(),
 });
 
 export type CrearLoteEntrada = z.infer<typeof esquemaCrearLote>;
@@ -67,6 +72,10 @@ export const esquemaRegistrarMovimiento = z.object({
     message: "El tipo de movimiento tiene que ser INGRESO o EGRESO.",
   }),
   cantidad,
+  /**
+   * Opcional. Proviene del selector simulado (tarea 6.02).
+   */
+  usuarioId: identificador.optional(),
 });
 
 export type RegistrarMovimientoEntrada = z.infer<
@@ -83,6 +92,10 @@ export const esquemaDispensar = z.object({
    * historial lo tiene que pedir explicitamente, y no por olvidarse un campo.
    */
   ejecutar: z.boolean().default(false),
+  /**
+   * Opcional. Proviene del selector simulado (tarea 6.02).
+   */
+  usuarioId: identificador.optional(),
 });
 
 export type DispensarEntrada = z.infer<typeof esquemaDispensar>;

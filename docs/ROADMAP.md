@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| 6.02 | Juan José | feat/6.02-selector-usuario-simulado | activa | — | 2026-09-09 |
+| — | — | — | — | — | — |
 
 ### Migraciones pendientes de aplicar
 
@@ -481,7 +481,7 @@ queda fuera del prototipo (el RxCUI se carga a mano).
 | # | Tarea | Estado | Tamaño | Depende |
 |---|---|---|---|---|
 | 6.01 | Layout general: barra lateral con navegación a Inicio, Medicamentos, Stock, Pacientes y Consultas. | `[x]` | M | 3.05 |
-| 6.02 | Selector de usuario simulado en la barra superior (reemplaza al login, que está fuera del prototipo). | `[~]` | M | 6.01 |
+| 6.02 | Selector de usuario simulado en la barra superior (reemplaza al login, que está fuera del prototipo). | `[x]` | M | 6.01 |
 | 6.03 | **Pantalla de inicio**: tarjetas con medicamentos bajo mínimo, lotes por vencer y consultas del día. Cada una lleva a su pantalla. | `[ ]` | L | 4.11, 5.20 |
 | 6.04 | Manejo de errores global: página de error y componente de error por sección. | `[ ]` | M | 6.01 |
 | 6.05 | Revisión responsive: usable en la notebook con la que se hace la defensa. | `[ ]` | M | 6.03 |

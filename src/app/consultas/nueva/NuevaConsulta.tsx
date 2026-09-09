@@ -7,6 +7,7 @@ import { AvisoClinico } from "@/components/ui/AvisoClinico";
 import { Campo } from "@/components/ui/Campo";
 import { Chip } from "@/components/ui/Chip";
 import type { Evaluabilidad } from "@/services/interacciones";
+import { useUsuarioSimulado } from "@/context/UsuarioSimuladoContext";
 
 // Pantalla de consulta de interacciones (tarea 5.16).
 //
@@ -69,6 +70,7 @@ export function NuevaConsulta() {
   const router = useRouter();
   const parametros = useSearchParams();
   const pacienteDeLaUrl = parametros.get("pacienteId");
+  const { usuario } = useUsuarioSimulado();
 
   const [paciente, setPaciente] = useState<PacienteDeApi | null>(null);
   const [buscarPaciente, setBuscarPaciente] = useState("");
@@ -227,6 +229,7 @@ export function NuevaConsulta() {
         body: JSON.stringify({
           medicamentoIds: elegidos.map((m) => m.id),
           pacienteId: paciente?.id,
+          usuarioId: usuario.id,
         }),
       });
 

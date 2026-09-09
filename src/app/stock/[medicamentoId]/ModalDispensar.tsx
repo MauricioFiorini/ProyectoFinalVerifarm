@@ -5,6 +5,7 @@ import { Boton } from "@/components/ui/Boton";
 import { Campo } from "@/components/ui/Campo";
 import { Modal } from "@/components/ui/Modal";
 import { formatearFecha } from "@/lib/fechas";
+import { useUsuarioSimulado } from "@/context/UsuarioSimuladoContext";
 
 // Modal de dispensación con FEFO (tareas 4.14 y 4.15).
 //
@@ -53,6 +54,7 @@ export function ModalDispensar({
   alCerrar,
   alDispensar,
 }: Props) {
+  const { usuario } = useUsuarioSimulado();
   const [cantidad, setCantidad] = useState("");
   const [previa, setPrevia] = useState<Previsualizacion>({ estado: "vacio" });
   const [confirmando, setConfirmando] = useState(false);
@@ -116,6 +118,7 @@ export function ModalDispensar({
           medicamentoId,
           cantidad: Number(cantidad),
           ejecutar: true,
+          usuarioId: usuario.id,
         }),
       });
 

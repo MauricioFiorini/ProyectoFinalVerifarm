@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { BarraLateral } from "@/components/layout/BarraLateral";
+import { BarraSuperior } from "@/components/layout/BarraSuperior";
+import { UsuarioSimuladoProvider } from "@/context/UsuarioSimuladoContext";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -33,17 +35,23 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        {/* Estructura de toda la aplicacion (tarea 6.01): la barra a la
-            izquierda y el contenido de la pagina a la derecha. En pantalla
-            angosta se apilan.
+        {/* Estructura de toda la aplicacion (tareas 6.01 y 6.02):
+            - UsuarioSimuladoProvider provee el usuario activo al selector y pantallas.
+            - La barra lateral a la izquierda (o arriba en mobile).
+            - La columna derecha con la barra superior y el contenido de la pagina.
 
             `min-w-0` en la columna de contenido no es decorativo: sin el, una
             tabla ancha estira el contenedor flex y empuja la barra fuera de la
             pantalla en vez de desplazarse dentro de su propia caja. */}
-        <div className="flex min-h-screen flex-col md:flex-row">
-          <BarraLateral />
-          <div className="flex min-w-0 flex-1 flex-col">{children}</div>
-        </div>
+        <UsuarioSimuladoProvider>
+          <div className="flex min-h-screen flex-col md:flex-row">
+            <BarraLateral />
+            <div className="flex min-w-0 flex-1 flex-col">
+              <BarraSuperior />
+              <div className="min-w-0 flex-1">{children}</div>
+            </div>
+          </div>
+        </UsuarioSimuladoProvider>
       </body>
     </html>
   );

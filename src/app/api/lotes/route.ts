@@ -96,13 +96,13 @@ export async function POST(request: Request) {
     return respuestaDeValidacion(entrada.error.issues);
   }
 
-  const { cantidad, ...datosDelLote } = entrada.data;
+  const { cantidad, usuarioId, ...datosDelLote } = entrada.data;
 
   try {
     // Con cantidad, el lote y su ingreso entran juntos o no entra ninguno. Sin
     // cantidad, el lote queda en cero y se carga despues.
     const lote = cantidad
-      ? await crearLoteConIngreso(datosDelLote, cantidad)
+      ? await crearLoteConIngreso(datosDelLote, cantidad, usuarioId)
       : await crearLote(datosDelLote);
 
     return Response.json(lote, { status: 201 });

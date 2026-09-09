@@ -5,6 +5,7 @@ import { Boton } from "@/components/ui/Boton";
 import { Campo } from "@/components/ui/Campo";
 import { Modal } from "@/components/ui/Modal";
 import { hoyComoTexto } from "@/lib/fechas";
+import { useUsuarioSimulado } from "@/context/UsuarioSimuladoContext";
 
 // Modal de registro de ingreso (tarea 4.13).
 //
@@ -31,6 +32,7 @@ export function ModalIngreso({
   alCerrar,
   alRegistrar,
 }: Props) {
+  const { usuario } = useUsuarioSimulado();
   // La fecha de ingreso viene con hoy puesto: es lo que va a ser casi siempre, y
   // se puede cambiar si el lote llego antes y se carga con retraso.
   const [valores, setValores] = useState({
@@ -65,6 +67,7 @@ export function ModalIngreso({
           fechaVencimiento: valores.fechaVencimiento,
           cantidad:
             valores.cantidad === "" ? undefined : Number(valores.cantidad),
+          usuarioId: usuario.id,
         }),
       });
 

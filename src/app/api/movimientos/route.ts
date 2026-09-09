@@ -63,13 +63,13 @@ export async function POST(request: Request) {
     return respuestaDeValidacion(entrada.error.issues);
   }
 
-  const { tipo, loteId, cantidad } = entrada.data;
+  const { tipo, loteId, cantidad, usuarioId } = entrada.data;
 
   try {
     const movimiento =
       tipo === "INGRESO"
-        ? await registrarIngreso({ loteId, cantidad })
-        : await registrarEgreso({ loteId, cantidad });
+        ? await registrarIngreso({ loteId, cantidad, usuarioId })
+        : await registrarEgreso({ loteId, cantidad, usuarioId });
 
     return Response.json(movimiento, { status: 201 });
   } catch (error) {

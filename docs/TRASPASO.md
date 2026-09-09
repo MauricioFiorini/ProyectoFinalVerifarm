@@ -13,28 +13,18 @@ Ubicación en el repo: `docs/TRASPASO.md`
 ## Traspaso vigente
 
 **Fecha:** 2026-09-09
-**Entrega:** Mauricio Mateo Fiorini
-**Todo mergeado a `main`.** PR #27 a #34. No queda nada sin integrar.
+**Entrega:** Juan José Pastorino
+**Rama:** `feat/6.02-selector-usuario-simulado` lista para revisión y merge a `main`.
 
-## La fase 5 está cerrada
+## La tarea 6.02 está completa
 
-**20 de 21**, y la que falta —la 5.03— quedó sin efecto por la decisión `0012`.
-
-**Los dos módulos del proyecto están completos.** El de stock desde la fase 4, el
-clínico desde ahora. El recorrido se puede hacer entero en las dos mitades.
+Se implementó el selector de usuario simulado en la barra superior transversal de la aplicación, reemplazando la necesidad de un sistema de login para el prototipo y permitiendo alternar entre los tres roles del dominio (Farmacéutico, Médico y Administrador) en un solo clic.
 
 ### Lo que se hizo en este bloque
 
 | Tarea | Qué dejó |
 | --- | --- |
-| 5.13 | Ficha del paciente, con la marca de cobertura por fila |
-| 5.14 | Modal para agregar medicación, con buscador |
-| 5.15 | Suspender una medicación, con motivo obligatorio |
-| 5.16 | Pantalla de consulta, con la cobertura avisada **antes** de evaluar |
-| 5.18 | Pantalla de resultado |
-| 5.20 | Listado de consultas |
-| 5.17 | Precarga de la medicación vigente del paciente |
-| 5.19 | Aviso clínico obligatorio, en las cinco pantallas |
+| 6.02 | Selector de usuario simulado en `BarraSuperior`, integrado en `RootLayout` con `UsuarioSimuladoContext` (usando `useSyncExternalStore` con persistencia en `localStorage`), y propagación del `usuarioId` activo a los endpoints y modales de ingreso de lotes, dispensación FEFO y consultas clínicas. |
 
 También se **actualizó la documentación que había quedado vieja**: la sección 1
 de `docs/ARQUITECTURA.md` decía que no existía ninguna pantalla ni route
@@ -98,17 +88,16 @@ Fase 2 — modelo de datos ...  11 de 11   ✅
 Fase 3 — catálogo ..........   8 de  8   ✅
 Fase 4 — stock y FEFO ......  17 de 17   ✅
 Fase 5 — módulo clínico ....  20 de 21   ✅ (la 5.03 quedó sin efecto)
-Fase 6 — cierre ............   1 de 10
+Fase 6 — cierre ............   2 de 10   (6.01 y 6.02 completas)
 ```
 
 ### Qué sigue: la fase 6
 
-**Nueve tareas.** En orden de conveniencia, no de dependencia:
+**Ocho tareas pendientes.** En orden de conveniencia, no de dependencia:
 
 | Tarea | Tamaño | Qué es |
 | --- | --- | --- |
 | **6.06** | L | **Seed definitivo.** Lo más importante que queda |
-| **6.02** | M | Selector de usuario simulado en la barra superior |
 | **6.03** | L | Pantalla de inicio con tarjetas. Reemplaza la provisoria |
 | **6.04** | M | Manejo de errores global |
 | **6.05** | M | Revisión responsive |
