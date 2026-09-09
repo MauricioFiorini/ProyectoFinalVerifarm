@@ -51,6 +51,7 @@ type ConsultaDeApi = {
   consultaId: string;
   fecha: string;
   pacienteId: string | null;
+  seudonimo: string | null;
   medicamentos: MedicamentoDeLaConsulta[];
   observaciones: ObservacionDeLaConsulta[];
 };
@@ -171,6 +172,17 @@ export function ResultadoDeConsulta({ consultaId }: { consultaId: string }) {
         <p className="mt-1 text-sm text-texto-tenue">
           {formatearFechaHora(consulta.fecha)} · {consulta.medicamentos.length}{" "}
           medicamentos evaluados
+          {/* De quien era la consulta. Se agrego con el listado (5.20): desde
+              ahi se entra a una consulta, y sin esto la pantalla no decia a que
+              paciente correspondia. */}
+          {consulta.seudonimo ? (
+            <>
+              {" · "}
+              <span className="font-mono">{consulta.seudonimo}</span>
+            </>
+          ) : (
+            " · consulta suelta"
+          )}
         </p>
       </header>
 

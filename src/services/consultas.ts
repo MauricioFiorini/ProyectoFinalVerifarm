@@ -63,6 +63,14 @@ export type ResultadoDeConsulta = {
   consultaId: string;
   fecha: Date;
   pacienteId: string | null;
+  /**
+   * El seudonimo, cuando la consulta es de un paciente (tarea 5.20).
+   *
+   * Viene resuelto y no solo el id: desde el listado se entra a una consulta, y
+   * la pantalla de resultado tiene que poder decir de quien era sin pedirlo
+   * aparte.
+   */
+  seudonimo: string | null;
   /** Todos los que entraron, con o sin RxCUI, hayan dado interaccion o no. */
   medicamentos: MedicamentoDeLaConsulta[];
   /** Ordenadas de mas grave a menos, como las devuelve el motor. */
@@ -89,6 +97,8 @@ export async function crearConsulta(
   // 1. La regla `2..*` primero, antes de tocar la base. Tarea 5.07.
   const medicamentoIds = validarMedicamentosDeConsulta(input.medicamentoIds);
 
+  let seudonimo: string | null = null;
+
   if (input.pacienteId) {
     const paciente = await db.paciente.findUnique({
       where: { id: input.pacienteId, activo: true },
@@ -100,6 +110,7 @@ export async function crearConsulta(
         "pacienteId",
       );
     }
+    seudonimo = paciente.seudonimo;
   }
 
   // 2. Los medicamentos, con su nombre y su RxCUI.
@@ -233,6 +244,7 @@ export async function crearConsulta(
     consultaId: consulta.id,
     fecha: consulta.createdAt,
     pacienteId: input.pacienteId ?? null,
+    seudonimo,
     medicamentos: medicamentosDeLaConsulta,
     observaciones: [...consulta.observaciones].sort(
       (a, b) =>
@@ -259,6 +271,7 @@ export async function obtenerConsulta(
       id: true,
       createdAt: true,
       pacienteId: true,
+      paciente: { select: { seudonimo: true } },
       medicamentosEvaluados: {
         select: {
           medicamento: { select: { id: true, nombre: true, rxcui: true } },
@@ -289,10 +302,56 @@ export async function obtenerConsulta(
     consultaId: consulta.id,
     fecha: consulta.createdAt,
     pacienteId: consulta.pacienteId,
+    seudonimo: consulta.paciente?.seudonimo ?? null,
     medicamentos: medicamentos.map((m) => ({
       ...m,
       evaluabilidad: calcularEvaluabilidad(m.rxcui, enLaFuente),
     })),
     observaciones: consulta.observaciones,
   };
+}
+
+// --- Listado de consultas (tarea 5.20) --------------------------------------
+//
+// Sin filtros y ordenado por fecha, de la mas reciente a la mas vieja. Es lo que
+// pide la tarea y alcanza: en el prototipo el volumen es chico, y un filtro que
+// nadie uso todavia es una decision tomada sin datos.
+//
+// LO QUE TRAE CADA FILA, Y POR QUE
+//
+// La fecha y el seudonimo dicen de que consulta se trata. **Las dos cuentas
+// dicen algo mas dificil de reponer:** cuantos medicamentos entraron y cuantas
+// interacciones salieron. Sin la primera, una consulta sin hallazgos se lee como
+// vacia; con ella se ve que se evaluaron cuatro drogas y no salio nada, que es
+// un resultado, no una fila rota.
+
+export type ConsultaEnLista = {
+  id: string;
+  fecha: Date;
+  /** El seudonimo, o null si fue una consulta suelta. */
+  seudonimo: string | null;
+  cantidadDeMedicamentos: number;
+  cantidadDeObservaciones: number;
+};
+
+export async function listarConsultas(): Promise<ConsultaEnLista[]> {
+  const filas = await db.consultaInteraccion.findMany({
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      createdAt: true,
+      paciente: { select: { seudonimo: true } },
+      // Las dos cuentas se resuelven en la misma consulta. Pedirlas por fila
+      // seria una consulta por consulta, valga la redundancia.
+      _count: { select: { medicamentosEvaluados: true, observaciones: true } },
+    },
+  });
+
+  return filas.map((f) => ({
+    id: f.id,
+    fecha: f.createdAt,
+    seudonimo: f.paciente?.seudonimo ?? null,
+    cantidadDeMedicamentos: f._count.medicamentosEvaluados,
+    cantidadDeObservaciones: f._count.observaciones,
+  }));
 }
