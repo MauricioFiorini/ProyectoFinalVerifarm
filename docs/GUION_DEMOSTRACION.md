@@ -13,6 +13,12 @@
 > puede escribirse de memoria. Si se agrega un paso, se verifica corriendo el
 > sistema. Es la regla 6 del proyecto —no inventar— aplicada al guion, y es
 > exactamente donde falló la primera versión.
+>
+> **Segunda regla, desde la tarea 6.11: este guion nombra PLAZOS, no fechas.**
+> Las fechas del seed son relativas al día en que se siembra, así que "vence en
+> 15 días" es cierto siempre y "vence el 24/09/2026" deja de serlo a la semana.
+> La versión anterior daba fechas fijas y envejecía sola. Lo mismo con los
+> números de lote: `HAL-L1`, no `HAL-2026-L1`.
 
 ---
 
@@ -76,7 +82,7 @@ Tener todo levantado y verificado en la notebook:
      bajo mínimo **con stock real** (10 de 30). Es el caso interesante: hay
      existencia y aun así no alcanza.
    - **Lotes por vencer: 1.** Tarjeta ámbar, *Clonazepam*, lote
-     `CLO-2026-VENCE`, vence el **24/09/2026, en 15 días**.
+     `CLO-POR-VENCER`, **vence en 15 días**.
    - **Consultas del día: 2.** `PAC-101` y `PAC-102`, una interacción cada una.
 3. Hacer clic en **"Ir a control de stock →"**, al pie de la primera tarjeta.
 
@@ -101,19 +107,27 @@ Tener todo levantado y verificado en la notebook:
    URL del medicamento.
 2. Clic en **"Ver lotes"**, el botón al final de la fila. **La fila en sí no es
    clickeable**; hacer clic sobre el nombre no hace nada.
-3. Se abre `/stock/[id]` (*Lotes de Haloperidol*). Mostrar la tabla:
-   - **Lote `HAL-2026-L1`:** 40 ampollas, vence el **15/11/2026**.
-   - **Lote `HAL-2027-L2`:** 80 ampollas, vence el **15/09/2027**.
-   - **Total disponible:** 120 ampollas.
+3. Se abre `/stock/[id]` (*Lotes de Haloperidol*). Mostrar la tabla, que tiene
+   **tres** lotes ordenados por vencimiento:
+   - **Lote `HAL-VENCIDO`:** 25 ampollas, **vencido**, con su indicador rojo.
+   - **Lote `HAL-L1`:** 40 ampollas, vence **dentro de unos dos meses**.
+   - **Lote `HAL-L2`:** 80 ampollas, vence **el año que viene**.
+   - **Encabezado:** **120 disponibles en lotes vigentes**, y al lado, en rojo,
+     **25 en lotes vencidos**.
 
-> **Los dos lotes figuran como "Vigente".** No decir que el primero está
+> **Detenerse en el encabezado un segundo.** Hay 145 ampollas en el depósito y
+> solo 120 se pueden usar. Ese es el problema que el proyecto viene a resolver,
+> visible en una línea: la medicación vencida existe físicamente, ocupa lugar y
+> no sirve. El sistema la muestra aparte en vez de sumarla.
+
+> **`HAL-L1` y `HAL-L2` figuran como "Vigente".** No decir que el primero está
 > "próximo a vencer": el indicador reserva ese estado para los que vencen dentro
 > de los 30 días, y este vence dentro de dos meses. Lo que importa acá no es que
 > esté por vencer, sino que **vence antes que el otro**.
 
 #### Qué decir:
-> *"Haloperidol tiene 120 ampollas disponibles repartidas en dos lotes de distinto vencimiento. En un sistema tradicional o FIFO saldría el que primero se compró, o el que el operador tenga más a mano.*  
-> *En Verifarm la regla es FEFO: First Expired, First Out. Supongamos que sala 4 solicita una dispensación de 50 ampollas. El primer lote solo tiene 40; el sistema debe agotar esas 40 y tomar las 10 restantes del segundo lote automáticamente."*
+> *"Haloperidol tiene 120 ampollas disponibles repartidas en dos lotes vigentes de distinto vencimiento, más un tercer lote vencido que el sistema no cuenta. En un sistema tradicional o FIFO saldría el que primero se compró, o el que el operador tenga más a mano.*  
+> *En Verifarm la regla es FEFO: First Expired, First Out. Supongamos que sala 4 solicita una dispensación de 50 ampollas. El primer lote vigente solo tiene 40; el sistema debe agotar esas 40 y tomar las 10 restantes del segundo lote automáticamente. Y el lote vencido, que es el que vence antes que todos, no se toca."*
 
 #### Qué hacer en pantalla:
 4. Clic en **"Dispensar"** (el botón azul, arriba a la derecha).
@@ -123,24 +137,29 @@ Tener todo levantado y verificado en la notebook:
    egreso**, y es la mejor prueba visual que tiene la demostración:
 
    > **Plan de egreso**
-   > **40** del lote HAL-2026-L1, vence 15/11/2026
-   > **10** del lote HAL-2027-L2, vence 15/09/2027
+   > **40** del lote HAL-L1
+   > **10** del lote HAL-L2
    > *Se reparte entre 2 lotes porque el primero no alcanza.*
+
+   **El lote vencido no aparece en el plan, y eso hay que señalarlo.** Es el
+   que vence antes que todos: si la regla fuera solo "el que vence primero",
+   saldría de ahí. FEFO lo excluye porque no se puede dispensar.
 
 #### Qué decir (con el plan a la vista, sin confirmar todavía):
 > *"El sistema ya resolvió el reparto y lo muestra antes de ejecutarlo: cuánto sale de cada lote y por qué. El farmacéutico confirma una decisión que puede leer, no una caja negra."*
 
 #### Qué hacer en pantalla:
 7. Clic en **"Confirmar egreso"**. La tabla se actualiza sola:
-   - **`HAL-2026-L1`:** **0** ampollas (agotado).
-   - **`HAL-2027-L2`:** **70** ampollas.
-   - **Encabezado:** 70 disponibles en lotes vigentes.
-8. Clic en **"Movimientos"** en la fila de `HAL-2026-L1`. Se ve el asiento
+   - **`HAL-L1`:** **0** ampollas (agotado).
+   - **`HAL-L2`:** **70** ampollas.
+   - **`HAL-VENCIDO`:** sigue con sus **25**, intactas.
+   - **Encabezado:** 70 disponibles en lotes vigentes, 25 en lotes vencidos.
+8. Clic en **"Movimientos"** en la fila de `HAL-L1`. Se ve el asiento
    recién generado: **Egreso, −40, Farm. Pérez**, con su fecha y hora, encima
    del ingreso original de +40.
 
 #### Qué decir:
-> *"El sistema fraccionó el pedido sin intervención manual: 40 salieron del lote que vence antes y 10 del siguiente. Cada fracción generó un asiento con su usuario, su hora y su lote de origen. Y el historial no se edita ni se borra: un error se corrige con un movimiento nuevo, como en cualquier libro mayor."*
+> *"El sistema fraccionó el pedido sin intervención manual: 40 salieron del lote vigente que vence antes y 10 del siguiente, y salteó el vencido sin que nadie se lo indicara. Cada fracción generó un asiento con su usuario, su hora y su lote de origen. Y el historial no se edita ni se borra: un error se corrige con un movimiento nuevo, como en cualquier libro mayor."*
 
 ---
 
@@ -159,8 +178,8 @@ Tener todo levantado y verificado en la notebook:
 1. Clic en **"Ver ficha"** en la fila de `PAC-101`. **La fila tampoco es
    clickeable acá.**
 2. En la ficha (`/pacientes/[id]`):
-   - **Medicación de PAC-101:** `Tranilcipromina` (IMAO, desde 15/08/2026) y
-     `Sertralina` (ISRS, desde 01/06/2026), ambas **Vigente**.
+   - **Medicación de PAC-101:** `Tranilcipromina` (IMAO) y `Sertralina`
+     (ISRS), ambas **Vigente**, con su fecha de inicio en pantalla.
    - En la columna **INTERACCIONES**, las dos dicen **"Se evalúa"**. Esa columna
      no anticipa hallazgos: dice si la droga **se puede cruzar** contra la
      fuente. Es la distinción de la decisión `0012`, y conviene nombrarla ya acá.

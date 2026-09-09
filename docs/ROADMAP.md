@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| 6.11 | Juan Pablo | `fix/6.11-fechas-del-seed-relativas` | activa | — | 2026-09-09 |
+| — | — | — | — | — | — |
 
 
 ### Reserva de tareas
@@ -483,7 +483,7 @@ verificar el sistema contra su documentación. No son alcance nuevo.
 
 | # | Tarea | Estado | Tamaño | Depende |
 |---|---|---|---|---|
-| 6.11 | **Las fechas del seed, relativas a la fecha de ejecución.** Hoy son absolutas —el lote de Clonazepam vence el 24/09/2026— así que el seed envejece: pasada esa fecha la tarjeta de lotes por vencer se va a cero y se cae un momento de la demostración. Se calculan como desplazamientos desde el día en que se siembra. **Incluye garantizar que los tres estados de vencimiento se vean siempre**, sin depender de cuándo se siembre: hoy no hay ningún lote VENCIDO en el seed, así que ese estado —el que justifica el indicador de la 4.17— no se puede mostrar. **Y alinear `docs/GUION_DEMOSTRACION.md`**, que afirma fechas y plazos concretos que van a dejar de coincidir con la pantalla. | `[~]` | M | 6.06, 6.09 |
+| 6.11 | **Las fechas del seed, relativas a la fecha de ejecución.** Hoy son absolutas —el lote de Clonazepam vence el 24/09/2026— así que el seed envejece: pasada esa fecha la tarjeta de lotes por vencer se va a cero y se cae un momento de la demostración. Se calculan como desplazamientos desde el día en que se siembra. **Incluye garantizar que los tres estados de vencimiento se vean siempre**, sin depender de cuándo se siembre: hoy no hay ningún lote VENCIDO en el seed, así que ese estado —el que justifica el indicador de la 4.17— no se puede mostrar. **Y alinear `docs/GUION_DEMOSTRACION.md`**, que afirma fechas y plazos concretos que van a dejar de coincidir con la pantalla. | `[x]` | M | 6.06, 6.09 |
 
 ---
 
