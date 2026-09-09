@@ -255,6 +255,7 @@ export function MedicacionDelPaciente({ pacienteId }: { pacienteId: string }) {
         claveDeFila={(m) => m.id}
         descripcion={`Medicación de ${paciente?.seudonimo ?? "el paciente"}`}
         mensajeVacio="Este paciente todavía no tiene medicación cargada"
+        anchoMinimo="min-w-[700px]"
       />
 
       <AvisoClinico>

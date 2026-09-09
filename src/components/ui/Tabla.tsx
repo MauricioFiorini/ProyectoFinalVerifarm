@@ -37,6 +37,11 @@ type Props<T> = {
   mensajeVacio?: ReactNode;
   /** Descripcion de la tabla para lectores de pantalla. */
   descripcion?: string;
+  /**
+   * Ancho mínimo de la tabla para evitar compresión de celdas y garantizar
+   * desplazamiento horizontal limpio en dispositivos reducidos o notebooks (tarea 6.05).
+   */
+  anchoMinimo?: string;
 };
 
 export function Tabla<T>({
@@ -45,6 +50,7 @@ export function Tabla<T>({
   claveDeFila,
   mensajeVacio = "No hay datos para mostrar.",
   descripcion,
+  anchoMinimo = "min-w-[600px]",
 }: Props<T>) {
   const alinear = (c: Columna<T>) =>
     c.alineacion === "derecha" ? "text-right" : "text-left";
@@ -53,7 +59,7 @@ export function Tabla<T>({
     // El contenedor scrollea solo la tabla. Sin esto, una tabla ancha empuja el
     // ancho de toda la pagina y aparece scroll horizontal en el body.
     <div className="w-full overflow-x-auto rounded-lg border border-borde bg-superficie">
-      <table className="w-full border-collapse text-sm">
+      <table className={`w-full border-collapse text-sm ${anchoMinimo}`}>
         {descripcion ? (
           <caption className="sr-only">{descripcion}</caption>
         ) : null}

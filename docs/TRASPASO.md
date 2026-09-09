@@ -12,16 +12,15 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-09
 **Entrega:** Juan José Pastorino
-**Rama:** `feat/6.04-manejo-errores-global` lista para merge a `main`.
+**Rama:** `feat/6.05-revision-responsive` lista para merge a `main`.
 
-## La tarea 6.04 está completa (Manejo de errores global)
+## La tarea 6.05 está completa (Revisión responsive)
 
-Se implementó la infraestructura transversal para captura y visualización de errores:
-- **Página de error global (`src/app/error.tsx`):** captura excepciones no controladas en el árbol de componentes sin romper el layout transversal (la barra lateral y superior continúan operativas), permitiendo reintentar (`reset()`) o regresar a inicio.
-- **Página 404 (`src/app/not-found.tsx`):** diseño institucional para URLs inexistentes con accesos directos a inicio, stock y consultas.
-- **Manejador crítico (`src/app/global-error.tsx`):** red de seguridad con estructura HTML propia para fallos críticos en el layout raíz.
-- **Componente `ErrorSeccion` (`src/components/ui/ErrorSeccion.tsx`):** componente accesible (`role="alert"`, `aria-live="assertive"`) que unifica la presentación de errores de red o carga en tablas y secciones de datos, con soporte para título, mensaje y botón "Reintentar".
-- **Unificación transversal:** se reemplazaron las implementaciones locales de error en `TableroInicio`, `ListaMedicamentos`, `TablaDeStock`, `LotesDelMedicamento`, `ListaPacientes`, `MedicacionDelPaciente`, `ListaConsultas` y `ResultadoDeConsulta`.
+Se verificó y aseguró la usabilidad de todo el sistema tanto en la notebook de la defensa (1366×768 y 1280×800) como en pantallas reducidas (375 px):
+- **Tablas con scroll horizontal contenido y ancho mínimo garantizado (`src/components/ui/Tabla.tsx`):** se añadió la prop `anchoMinimo` (con valor por defecto `min-w-[600px]`) manteniendo el contenedor `overflow-x-auto`. Esto evita que las columnas se compriman ilegiblemente o que se desborde el ancho global del viewport.
+- **Ficha del paciente optimizada (`src/app/pacientes/[id]/MedicacionDelPaciente.tsx`):** se definió `anchoMinimo="min-w-[700px]"` para que las columnas críticas "Interacciones" y "Suspender" mantengan su espaciado, chips legibles y botones operativos mediante desplazamiento horizontal limpio.
+- **Acciones y cabeceras elásticas (`src/app/stock/[medicamentoId]/LotesDelMedicamento.tsx`):** se aplicó `flex-wrap gap-2 sm:gap-3` en los grupos de botones de acción para que se reordenen fluidamente sin desbordar ni solaparse.
+- **Comprobación visual y funcional:** verificado en notebook (1366×768) y móvil (375×667), comprobando navegación lateral, modales, alertas y lectura de interacciones.
 
 ### Lo que se hizo en este bloque
 
@@ -31,6 +30,7 @@ Se implementó la infraestructura transversal para captura y visualización de e
 | 6.06 | `seed.ts` definitivo con 25 fármacos, lotes para FEFO, alertas visuales de stock, 4 pacientes y consultas registradas. |
 | 6.03 | Tablero de inicio con tarjetas de stock bajo mínimo, lotes por vencer y consultas del día (`TableroInicio.tsx`, `page.tsx`, `api/inicio`). |
 | 6.04 | Manejo de errores global: página de error `error.tsx`, `not-found.tsx`, `global-error.tsx` y componente `ErrorSeccion.tsx` integrado en todas las pantallas. |
+| 6.05 | Revisión responsive: tablas con desplazamiento horizontal garantizado (`anchoMinimo`), cabeceras con `flex-wrap` y usabilidad verificada en notebook (1366×768) y móvil (375 px). |
 
 ### El recorrido que ya funciona
 
@@ -77,17 +77,16 @@ Fase 2 — modelo de datos ...  11 de 11   ✅
 Fase 3 — catálogo ..........   8 de  8   ✅
 Fase 4 — stock y FEFO ......  17 de 17   ✅
 Fase 5 — módulo clínico ....  20 de 21   ✅ (la 5.03 quedó sin efecto)
-Fase 6 — cierre ............   5 de 10   (6.01, 6.02, 6.03, 6.04 y 6.06 completas)
+Fase 6 — cierre ............   6 de 10   (6.01, 6.02, 6.03, 6.04, 6.05 y 6.06 completas)
 ```
 
 ### Qué sigue: la fase 6
 
-**Cinco tareas pendientes.** En orden de conveniencia:
+**Cuatro tareas pendientes.** En orden de conveniencia:
 
 | Tarea | Tamaño | Qué es |
 | --- | --- | --- |
-| **6.05** | M | **Revisión responsive:** usable en la notebook con la que se hace la defensa. |
-| **6.07** | M | `README.md` |
+| **6.07** | M | `README.md`: qué resuelve, cómo se levanta, decisiones de arquitectura. |
 | **6.08** | M | Guion de demostración |
 | **6.09** | M | Ensayo en la máquina de la defensa |
 | **6.10** | M | Respuestas a las preguntas previsibles |
@@ -104,9 +103,7 @@ buen momento para decidir qué hacer.
 **La D8 sigue abierta** desde el 2026-09-01: si se sostiene la regla de "código
 va en rama y otro le pasa el ojo" o se cambia el documento.
 
-**En 375 px las tablas necesitan desplazamiento horizontal**, y en la ficha del
-paciente quedan fuera de vista las dos columnas que importan: "Interacciones" y
-"Suspender". Es la 6.05, pero conviene mirarlo ahí en serio.
+**Revisión responsive cerrada (6.05):** el ancho mínimo garantizado (`min-w-[600px]` y `min-w-[700px]`) resolvió la compresión de celdas en 375 px y notebooks, permitiendo scroll horizontal limpio dentro de la tarjeta sin desbordar el viewport global.
 
 ### Antes de arrancar, tener en cuenta
 
