@@ -7,6 +7,7 @@ import { Tabla, type Columna } from "@/components/ui/Tabla";
 import { formatearFecha } from "@/lib/fechas";
 import type { EstadoDeMedicacion } from "@/services/medicacion";
 import type { Evaluabilidad } from "@/services/interacciones";
+import { ModalAgregarMedicacion } from "./ModalAgregarMedicacion";
 
 // Ficha del paciente (tarea 5.13).
 //
@@ -115,6 +116,7 @@ export function MedicacionDelPaciente({ pacienteId }: { pacienteId: string }) {
   const [paciente, setPaciente] = useState<PacienteDeApi | null>(null);
   const [medicacion, setMedicacion] = useState<MedicacionDeApi[]>([]);
   const [estado, setEstado] = useState<Estado>("cargando");
+  const [modalAbierto, setModalAbierto] = useState(false);
 
   const cargar = useCallback(async () => {
     try {
@@ -214,12 +216,12 @@ export function MedicacionDelPaciente({ pacienteId }: { pacienteId: string }) {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {/* Las dos son tareas que todavia no existen: el modal de alta es la
-              5.14 y la pantalla de consulta la 5.16. Van deshabilitados en vez
-              de no estar, para que la ficha ya muestre que se puede hacer desde
-              aca y un clic no se quede sin respuesta. Mismo criterio que el
-              boton "Nuevo paciente" en la 5.11. */}
-          <Boton disabled title="Todavía no implementado (tarea 5.14)">
+          {/* "Evaluar interacciones" lleva a la pantalla de la 5.16, que
+              todavia no existe. Va deshabilitado en vez de no estar, para que la
+              ficha ya muestre que se puede hacer desde aca y un clic no se quede
+              sin respuesta. Mismo criterio que el boton "Nuevo paciente" en la
+              5.11. */}
+          <Boton onClick={() => setModalAbierto(true)}>
             Agregar medicamento
           </Boton>
           <Boton
@@ -244,6 +246,14 @@ export function MedicacionDelPaciente({ pacienteId }: { pacienteId: string }) {
         La evaluación de interacciones se hace solo sobre la medicación vigente.
         El sistema informa; no reemplaza el criterio profesional.
       </p>
+
+      {modalAbierto ? (
+        <ModalAgregarMedicacion
+          pacienteId={pacienteId}
+          alCerrar={() => setModalAbierto(false)}
+          alAgregar={() => void cargar()}
+        />
+      ) : null}
     </div>
   );
 }
