@@ -14,17 +14,23 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-09
 **Entrega:** Juan José Pastorino
-**Rama:** `feat/6.02-selector-usuario-simulado` lista para revisión y merge a `main`.
+**Rama:** `feat/6.06-seed-definitivo` lista para merge a `main`.
 
-## La tarea 6.02 está completa
+## La tarea 6.06 está completa (Seed definitivo)
 
-Se implementó el selector de usuario simulado en la barra superior transversal de la aplicación, reemplazando la necesidad de un sistema de login para el prototipo y permitiendo alternar entre los tres roles del dominio (Farmacéutico, Médico y Administrador) en un solo clic.
+El seed definitivo quedó cargado y probado en toda la aplicación:
+- **Catálogo de 25 medicamentos** alineados con ONCHigh (57 interacciones detectables).
+- **Lotes para FEFO:** Haloperidol con dos lotes de distinto vencimiento que demuestran el reparto proporcional (40 de uno + 20 de otro para 60 unidades).
+- **Alertas de stock:** Clonazepam ("Lote por vencer", < 30 días) y Risperidona ("Bajo mínimo").
+- **Pacientes sintéticos:** PAC-101 (ISRS + IMAO), PAC-102 (riesgo QT concomitante), PAC-103 (sin cobertura en ONCHigh, Decisión 0012) y PAC-104 (sin interacciones).
+- **Consultas iniciales registradas:** PAC-101 y PAC-102 evaluados por Dr. House.
 
 ### Lo que se hizo en este bloque
 
 | Tarea | Qué dejó |
 | --- | --- |
-| 6.02 | Selector de usuario simulado en `BarraSuperior`, integrado en `RootLayout` con `UsuarioSimuladoContext` (usando `useSyncExternalStore` con persistencia en `localStorage`), y propagación del `usuarioId` activo a los endpoints y modales de ingreso de lotes, dispensación FEFO y consultas clínicas. |
+| 6.02 | Selector de usuario simulado en `BarraSuperior` y layout transversal. |
+| 6.06 | `seed.ts` definitivo con 25 fármacos, lotes para FEFO, alertas visuales de stock, 4 pacientes y consultas registradas. |
 
 También se **actualizó la documentación que había quedado vieja**: la sección 1
 de `docs/ARQUITECTURA.md` decía que no existía ninguna pantalla ni route
@@ -88,17 +94,16 @@ Fase 2 — modelo de datos ...  11 de 11   ✅
 Fase 3 — catálogo ..........   8 de  8   ✅
 Fase 4 — stock y FEFO ......  17 de 17   ✅
 Fase 5 — módulo clínico ....  20 de 21   ✅ (la 5.03 quedó sin efecto)
-Fase 6 — cierre ............   2 de 10   (6.01 y 6.02 completas)
+Fase 6 — cierre ............   3 de 10   (6.01, 6.02 y 6.06 completas)
 ```
 
 ### Qué sigue: la fase 6
 
-**Ocho tareas pendientes.** En orden de conveniencia, no de dependencia:
+**Siete tareas pendientes.** En orden de conveniencia:
 
 | Tarea | Tamaño | Qué es |
 | --- | --- | --- |
-| **6.06** | L | **Seed definitivo.** Lo más importante que queda |
-| **6.03** | L | Pantalla de inicio con tarjetas. Reemplaza la provisoria |
+| **6.03** | L | **Pantalla de inicio definitiva con tarjetas.** Ahora que el seed tiene stock bajo mínimo, lotes por vencer y consultas del día, las tarjetas se pueden implementar completas. |
 | **6.04** | M | Manejo de errores global |
 | **6.05** | M | Revisión responsive |
 | **6.07** | M | `README.md` |
