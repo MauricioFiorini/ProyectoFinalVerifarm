@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| — | — | — | — | — | — |
+| 6.06 | Juan José | feat/6.06-seed-definitivo | activa | — | 2026-09-09 |
 
 ### Migraciones pendientes de aplicar
 
@@ -485,7 +485,7 @@ queda fuera del prototipo (el RxCUI se carga a mano).
 | 6.03 | **Pantalla de inicio**: tarjetas con medicamentos bajo mínimo, lotes por vencer y consultas del día. Cada una lleva a su pantalla. | `[ ]` | L | 4.11, 5.20 |
 | 6.04 | Manejo de errores global: página de error y componente de error por sección. | `[ ]` | M | 6.01 |
 | 6.05 | Revisión responsive: usable en la notebook con la que se hace la defensa. | `[ ]` | M | 6.03 |
-| 6.06 | `seed.ts` **definitivo**: psicofármacos reales con RxCUI, **un medicamento con dos lotes de distinto vencimiento** (para poder mostrar FEFO repartiendo) y pacientes cuya medicación **efectivamente dispara interacciones**. | `[ ]` | L | 5.09 |
+| 6.06 | `seed.ts` **definitivo**: psicofármacos reales con RxCUI, **un medicamento con dos lotes de distinto vencimiento** (para poder mostrar FEFO repartiendo) y pacientes cuya medicación **efectivamente dispara interacciones**. | `[~]` | L | 5.09 |
 | 6.07 | `README.md`: qué resuelve, cómo se levanta, decisiones de arquitectura. | `[ ]` | M | 6.05 |
 | 6.08 | Guion de demostración: recorrido de cinco minutos con trazabilidad de lote, un egreso FEFO que reparte entre dos lotes y una detección de interacción. | `[ ]` | M | 6.06 |
 | 6.09 | Ensayo de la demostración en la máquina de la defensa, con la base cargada desde cero. | `[ ]` | M | 6.08 |
