@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import type { UnidadMedida } from "@prisma/client";
 import type { EstadoDeStock } from "@/services/stock";
-import { Boton } from "@/components/ui/Boton";
+import { ErrorSeccion } from "@/components/ui/ErrorSeccion";
 import { Tabla, type Columna } from "@/components/ui/Tabla";
 import { NOMBRE_DE_UNIDAD } from "@/lib/unidades";
 import { ChipDeEstado } from "./indicadores";
@@ -137,15 +137,10 @@ export function TablaDeStock() {
 
   if (estado === "error") {
     return (
-      <div
-        role="alert"
-        className="flex flex-col items-center gap-4 rounded-lg border border-critico-borde bg-critico-fondo px-4 py-12 text-center"
-      >
-        <p className="text-sm text-critico-texto">
-          No se pudo cargar el estado del stock.
-        </p>
-        <Boton onClick={() => void cargar()}>Reintentar</Boton>
-      </div>
+      <ErrorSeccion
+        mensaje="No se pudo cargar el estado del stock."
+        alReintentar={() => void cargar()}
+      />
     );
   }
 

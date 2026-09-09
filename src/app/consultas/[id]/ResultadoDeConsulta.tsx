@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { Severidad } from "@prisma/client";
-import { Boton } from "@/components/ui/Boton";
 import { AvisoClinico } from "@/components/ui/AvisoClinico";
 import { Chip } from "@/components/ui/Chip";
+import { ErrorSeccion } from "@/components/ui/ErrorSeccion";
 import { formatearFechaHora } from "@/lib/fechas";
 import type { Evaluabilidad } from "@/services/interacciones";
 
@@ -145,15 +145,10 @@ export function ResultadoDeConsulta({ consultaId }: { consultaId: string }) {
 
   if (estado === "error" || !consulta) {
     return (
-      <div
-        role="alert"
-        className="flex flex-col items-center gap-4 rounded-lg border border-critico-borde bg-critico-fondo px-4 py-12 text-center"
-      >
-        <p className="text-sm text-critico-texto">
-          No se pudo cargar el resultado de la consulta.
-        </p>
-        <Boton onClick={() => void cargar()}>Reintentar</Boton>
-      </div>
+      <ErrorSeccion
+        mensaje="No se pudo cargar el resultado de la consulta."
+        alReintentar={() => void cargar()}
+      />
     );
   }
 

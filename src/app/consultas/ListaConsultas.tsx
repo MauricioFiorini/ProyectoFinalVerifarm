@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Boton } from "@/components/ui/Boton";
 import { AvisoClinico } from "@/components/ui/AvisoClinico";
 import { Chip } from "@/components/ui/Chip";
+import { ErrorSeccion } from "@/components/ui/ErrorSeccion";
 import { Tabla, type Columna } from "@/components/ui/Tabla";
 import { formatearFechaHora } from "@/lib/fechas";
 
@@ -139,15 +139,10 @@ export function ListaConsultas() {
           Cargando consultas…
         </div>
       ) : estado === "error" ? (
-        <div
-          role="alert"
-          className="flex flex-col items-center gap-4 rounded-lg border border-critico-borde bg-critico-fondo px-4 py-12 text-center"
-        >
-          <p className="text-sm text-critico-texto">
-            No se pudo cargar el listado de consultas.
-          </p>
-          <Boton onClick={() => void cargar()}>Reintentar</Boton>
-        </div>
+        <ErrorSeccion
+          mensaje="No se pudo cargar el listado de consultas."
+          alReintentar={() => void cargar()}
+        />
       ) : (
         <Tabla
           columnas={COLUMNAS}

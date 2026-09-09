@@ -8,22 +8,20 @@ Quien retoma el proyecto lee **primero este archivo**, después `docs/ROADMAP.md
 
 Ubicación en el repo: `docs/TRASPASO.md`
 
----
-
 ## Traspaso vigente
 
 **Fecha:** 2026-09-09
 **Entrega:** Juan José Pastorino
-**Rama:** `feat/6.03-pantalla-inicio` lista para merge a `main`.
+**Rama:** `feat/6.04-manejo-errores-global` lista para merge a `main`.
 
-## La tarea 6.03 está completa (Pantalla de inicio definitiva con tarjetas)
+## La tarea 6.04 está completa (Manejo de errores global)
 
-La pantalla de inicio provisoria fue reemplazada por el tablero definitivo:
-- **Endpoint `GET /api/inicio`:** consolida en una sola llamada los tres conjuntos de indicadores respetando la arquitectura de capas (las pantallas consumen la API, no importan servicios directamente).
-- **Tarjeta 1 — Stock bajo mínimo:** muestra la cuenta de medicamentos con existencias por debajo del umbral mínimo configurado, el desglose de los faltantes más críticos y enlace directo a `/stock`.
-- **Tarjeta 2 — Lotes por vencer:** visualiza los lotes vigentes cuya fecha de vencimiento cae dentro de los próximos 30 días (FEFO), indicando días restantes y enlace a `/stock`.
-- **Tarjeta 3 — Consultas del día:** cuenta las consultas de interacciones realizadas en la fecha, resume los hallazgos y enlaza al listado `/consultas` y al acceso directo `+ Nueva`.
-- **Módulos del Sistema:** accesos directos rápidos a Control de Stock, Evaluar Interacciones, Pacientes y Catálogo Farmacológico.
+Se implementó la infraestructura transversal para captura y visualización de errores:
+- **Página de error global (`src/app/error.tsx`):** captura excepciones no controladas en el árbol de componentes sin romper el layout transversal (la barra lateral y superior continúan operativas), permitiendo reintentar (`reset()`) o regresar a inicio.
+- **Página 404 (`src/app/not-found.tsx`):** diseño institucional para URLs inexistentes con accesos directos a inicio, stock y consultas.
+- **Manejador crítico (`src/app/global-error.tsx`):** red de seguridad con estructura HTML propia para fallos críticos en el layout raíz.
+- **Componente `ErrorSeccion` (`src/components/ui/ErrorSeccion.tsx`):** componente accesible (`role="alert"`, `aria-live="assertive"`) que unifica la presentación de errores de red o carga en tablas y secciones de datos, con soporte para título, mensaje y botón "Reintentar".
+- **Unificación transversal:** se reemplazaron las implementaciones locales de error en `TableroInicio`, `ListaMedicamentos`, `TablaDeStock`, `LotesDelMedicamento`, `ListaPacientes`, `MedicacionDelPaciente`, `ListaConsultas` y `ResultadoDeConsulta`.
 
 ### Lo que se hizo en este bloque
 
@@ -32,6 +30,7 @@ La pantalla de inicio provisoria fue reemplazada por el tablero definitivo:
 | 6.02 | Selector de usuario simulado en `BarraSuperior` y layout transversal. |
 | 6.06 | `seed.ts` definitivo con 25 fármacos, lotes para FEFO, alertas visuales de stock, 4 pacientes y consultas registradas. |
 | 6.03 | Tablero de inicio con tarjetas de stock bajo mínimo, lotes por vencer y consultas del día (`TableroInicio.tsx`, `page.tsx`, `api/inicio`). |
+| 6.04 | Manejo de errores global: página de error `error.tsx`, `not-found.tsx`, `global-error.tsx` y componente `ErrorSeccion.tsx` integrado en todas las pantallas. |
 
 ### El recorrido que ya funciona
 
@@ -78,22 +77,20 @@ Fase 2 — modelo de datos ...  11 de 11   ✅
 Fase 3 — catálogo ..........   8 de  8   ✅
 Fase 4 — stock y FEFO ......  17 de 17   ✅
 Fase 5 — módulo clínico ....  20 de 21   ✅ (la 5.03 quedó sin efecto)
-Fase 6 — cierre ............   4 de 10   (6.01, 6.02, 6.03 y 6.06 completas)
+Fase 6 — cierre ............   5 de 10   (6.01, 6.02, 6.03, 6.04 y 6.06 completas)
 ```
 
 ### Qué sigue: la fase 6
 
-**Seis tareas pendientes.** En orden de conveniencia:
+**Cinco tareas pendientes.** En orden de conveniencia:
 
 | Tarea | Tamaño | Qué es |
 | --- | --- | --- |
-| **6.04** | M | **Manejo de errores global:** página de error y componente de error por sección. |
-| **6.05** | M | Revisión responsive |
+| **6.05** | M | **Revisión responsive:** usable en la notebook con la que se hace la defensa. |
 | **6.07** | M | `README.md` |
 | **6.08** | M | Guion de demostración |
 | **6.09** | M | Ensayo en la máquina de la defensa |
 | **6.10** | M | Respuestas a las preguntas previsibles |
-
 
 ### Tres cosas que el equipo debería mirar
 
@@ -122,9 +119,9 @@ paciente quedan fuera de vista las dos columnas que importan: "Interacciones" y
 - **La `evaluabilidad` viene resuelta del servidor.**
 - **`ordenarParRxcui` es obligatorio** en cualquier lectura o escritura de
   `Interaccion`.
-- **`src/components/ui/` tiene seis componentes**: Boton, Campo, Tabla, Modal,
-  Chip y AvisoClinico. Algo sube ahí cuando **dos o más rutas** necesitan lo
-  mismo.
+- **`src/components/ui/` tiene siete componentes**: Boton, Campo, Tabla, Modal,
+  Chip, AvisoClinico y ErrorSeccion. Algo sube ahí cuando **dos o más rutas**
+  necesitan lo mismo.
 - **Las fechas se formatean con `src/lib/fechas.ts`.**
 - **Ningún dato clínico se inventa.** Vale también para el seed de la 6.06: los
   RxCUI se verifican, no se escriben de memoria (decisión `0008`).

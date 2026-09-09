@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Boton } from "@/components/ui/Boton";
 import { AvisoClinico } from "@/components/ui/AvisoClinico";
 import { Campo } from "@/components/ui/Campo";
+import { ErrorSeccion } from "@/components/ui/ErrorSeccion";
 import { Tabla, type Columna } from "@/components/ui/Tabla";
 import { ModalNuevoPaciente } from "./ModalNuevoPaciente";
 
@@ -123,7 +124,10 @@ export function ListaPacientes() {
       {estado === "cargando" ? (
         <EstadoCargando />
       ) : estado === "error" ? (
-        <EstadoError alReintentar={() => void cargar(buscar)} />
+        <ErrorSeccion
+          mensaje="No se pudo cargar el listado de pacientes."
+          alReintentar={() => void cargar(buscar)}
+        />
       ) : (
         <Tabla
           columnas={COLUMNAS}
@@ -164,20 +168,6 @@ function EstadoCargando() {
         className="size-4 animate-spin rounded-full border-2 border-borde border-t-marca-600"
       />
       Cargando pacientes…
-    </div>
-  );
-}
-
-function EstadoError({ alReintentar }: { alReintentar: () => void }) {
-  return (
-    <div
-      role="alert"
-      className="flex flex-col items-center gap-4 rounded-lg border border-critico-borde bg-critico-fondo px-4 py-12 text-center"
-    >
-      <p className="text-sm text-critico-texto">
-        No se pudo cargar el listado de pacientes.
-      </p>
-      <Boton onClick={alReintentar}>Reintentar</Boton>
     </div>
   );
 }

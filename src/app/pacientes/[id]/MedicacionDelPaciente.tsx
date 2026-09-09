@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Boton } from "@/components/ui/Boton";
 import { AvisoClinico } from "@/components/ui/AvisoClinico";
 import { Chip } from "@/components/ui/Chip";
+import { ErrorSeccion } from "@/components/ui/ErrorSeccion";
 import { Tabla, type Columna } from "@/components/ui/Tabla";
 import { formatearFecha } from "@/lib/fechas";
 import type { EstadoDeMedicacion } from "@/services/medicacion";
@@ -206,15 +207,10 @@ export function MedicacionDelPaciente({ pacienteId }: { pacienteId: string }) {
 
   if (estado === "error") {
     return (
-      <div
-        role="alert"
-        className="flex flex-col items-center gap-4 rounded-lg border border-critico-borde bg-critico-fondo px-4 py-12 text-center"
-      >
-        <p className="text-sm text-critico-texto">
-          No se pudo cargar la ficha del paciente.
-        </p>
-        <Boton onClick={() => void cargar()}>Reintentar</Boton>
-      </div>
+      <ErrorSeccion
+        mensaje="No se pudo cargar la ficha del paciente."
+        alReintentar={() => void cargar()}
+      />
     );
   }
 

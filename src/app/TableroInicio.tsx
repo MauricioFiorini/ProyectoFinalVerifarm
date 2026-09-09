@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import type { UnidadMedida } from "@prisma/client";
-import { Boton } from "@/components/ui/Boton";
 import { Chip } from "@/components/ui/Chip";
+import { ErrorSeccion } from "@/components/ui/ErrorSeccion";
 import { formatearFecha, formatearFechaHora } from "@/lib/fechas";
 import { NOMBRE_DE_UNIDAD } from "@/lib/unidades";
 
@@ -96,18 +96,11 @@ export function TableroInicio() {
 
   if (estado === "error" || !datos) {
     return (
-      <div className="rounded-lg border border-critico-borde bg-critico-fondo p-6 text-critico-texto">
-        <h2 className="text-base font-semibold">
-          No se pudieron cargar los indicadores de inicio
-        </h2>
-        <p className="mt-1 text-sm">
-          Ocurrió un error al consultar el estado de stock y las consultas
-          clínicas.
-        </p>
-        <div className="mt-4">
-          <Boton onClick={() => void cargar()}>Reintentar</Boton>
-        </div>
-      </div>
+      <ErrorSeccion
+        titulo="No se pudieron cargar los indicadores de inicio"
+        mensaje="Ocurrió un error al consultar el estado de stock y las consultas clínicas."
+        alReintentar={() => void cargar()}
+      />
     );
   }
 

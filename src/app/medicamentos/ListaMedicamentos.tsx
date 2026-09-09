@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { UnidadMedida } from "@prisma/client";
 import { Boton } from "@/components/ui/Boton";
 import { Campo } from "@/components/ui/Campo";
+import { ErrorSeccion } from "@/components/ui/ErrorSeccion";
 import { Tabla, type Columna } from "@/components/ui/Tabla";
 import { NOMBRE_DE_UNIDAD } from "@/lib/unidades";
 import { ModalNuevoMedicamento } from "./ModalNuevoMedicamento";
@@ -124,7 +125,10 @@ export function ListaMedicamentos() {
       {estado === "cargando" ? (
         <EstadoCargando />
       ) : estado === "error" ? (
-        <EstadoError alReintentar={() => void cargar(buscar)} />
+        <ErrorSeccion
+          mensaje="No se pudo cargar el listado de medicamentos."
+          alReintentar={() => void cargar(buscar)}
+        />
       ) : (
         <Tabla
           columnas={COLUMNAS}
@@ -165,20 +169,6 @@ function EstadoCargando() {
         className="size-4 animate-spin rounded-full border-2 border-borde border-t-marca-600"
       />
       Cargando medicamentos…
-    </div>
-  );
-}
-
-function EstadoError({ alReintentar }: { alReintentar: () => void }) {
-  return (
-    <div
-      role="alert"
-      className="flex flex-col items-center gap-4 rounded-lg border border-critico-borde bg-critico-fondo px-4 py-12 text-center"
-    >
-      <p className="text-sm text-critico-texto">
-        No se pudo cargar el listado de medicamentos.
-      </p>
-      <Boton onClick={alReintentar}>Reintentar</Boton>
     </div>
   );
 }
