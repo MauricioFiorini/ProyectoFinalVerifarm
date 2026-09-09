@@ -12,83 +12,69 @@ Ubicación en el repo: `docs/TRASPASO.md`
 
 **Fecha:** 2026-09-09
 **Entrega:** Juan Pablo Malizani
-**Rama:** `fix/4.18-corte-de-vencimiento-en-utc`.
+**Ramas:** `fix/4.18-corte-de-vencimiento-en-utc` y
+`fix/6.11-fechas-del-seed-relativas`, las dos pusheadas y **sin mergear**.
 
-# La 4.18: un lote figuraba vencido el día en que vencía
+# Dos correcciones posteriores al cierre. La 6.11 quedó a medias
 
-**El prototipo sigue completo.** Esta no es una tarea de alcance nuevo: es la
-primera de una serie de correcciones que salieron de revisar el sistema contra su
-propia documentación, con las seis fases ya cerradas. Viven en una sección nueva
-del roadmap, **"Correcciones posteriores al cierre de la fase"**, para que no se
-confundan con el alcance del prototipo.
+**El prototipo sigue completo.** Nada de esto es alcance nuevo: son defectos del
+trabajo ya hecho, encontrados al verificar el sistema contra su documentación.
+Viven en secciones nuevas del roadmap llamadas **"Correcciones posteriores al
+cierre de la fase"**, una en la fase 4 y otra en la fase 6.
 
-## Qué estaba mal
+| Tarea | Estado | Qué dejó |
+| --- | --- | --- |
+| 4.18 | `[x]` | El corte del día se calcula en UTC. Lista para revisar y mergear. |
+| 6.11 | `[!]` | Seed con fechas relativas, hecho y verificado. **Falta alinear el guion.** |
 
-Las fechas sin hora —`Lote.fechaVencimiento` y `Lote.fechaIngreso`— se guardan
-como **medianoche UTC**, porque así las manda un `<input type="date">` y así las
-deja Postgres. Pero `src/services/stock.ts` armaba el corte del día con
-`setHours(0,0,0,0)`, que es **medianoche local**. En UTC-3 esas dos medianoches
-están a tres horas de distancia, y la del servicio caía después.
+## Lo primero, si vas a ensayar
 
-El efecto: **un lote que vencía el 24/09 figuraba vencido durante todo el 24/09**,
-desde el primer minuto. Contradecía el criterio escrito en el comentario de la
-propia función, que dice que un lote que vence hoy todavía sirve. Y no era
-cosmético: FEFO excluye los lotes vencidos, así que el motor se salteaba un lote
-todavía utilizable y dispensaba del siguiente.
+**La base de esta máquina ya está sembrada** con el seed nuevo: 25 medicamentos,
+11 lotes, 4 pacientes, 2 consultas y las 1150 interacciones. Pero **cualquier
+ensayo tiene que arrancar sembrando de nuevo**, porque el guion afirma números
+que se mueven en cuanto alguien dispensa o evalúa:
 
-**La misma causa tenía una cara opuesta**, en `src/services/lotes.ts`: la
-validación de "la fecha de ingreso no puede ser futura" comparaba contra el fin
-del día local, que en UTC son las 02:59 del día siguiente. La medianoche UTC de
-**mañana** quedaba por debajo de ese límite y pasaba la validación. Se podía
-cargar un lote con fecha de ingreso de mañana.
+```bash
+docker compose up -d
+npx prisma db seed
+npm run dev
+```
 
-## Cómo se arregló
+**Ojo con el selector de rol.** Vive en el `localStorage` del navegador y no lo
+resetea ni el seed ni `npm run setup`. Se corrige a mano desde la barra superior.
 
-**Se comparte la convención, no la regla.** La discusión al plantear la tarea fue
-si el servicio y la pantalla debían compartir una función. La respuesta es que no
-hay ninguna regla de negocio para compartir: **ninguna pantalla calcula
-vencimientos**, el estado le llega resuelto del servidor y ella solo lo pinta.
-Eso ya estaba bien y no se tocó.
+## La 4.18 — un lote figuraba vencido el día en que vencía
 
-Lo que sí estaba escrito dos veces era algo más chico: **qué significa "el día" de
-una fecha sin hora**. `src/lib/fechas.ts` lo resolvía en UTC y `stock.ts` en hora
-local. Esas tres horas eran todo el error.
+Las fechas sin hora se guardan como **medianoche UTC**, pero `stock.ts` armaba el
+corte del día con `setHours` local. En UTC-3 esas medianoches están a tres horas,
+y la del servicio caía después: **un lote que vencía el 24/09 figuraba vencido
+todo el 24/09**. FEFO excluye lo vencido, así que el motor se salteaba un lote
+todavía utilizable.
 
-Así que las primitivas van a `src/lib/fechas.ts`, que ya era el dueño de la
-convención y ya explicaba por qué es UTC:
+La misma causa tenía una cara opuesta en `lotes.ts`: la validación de "fecha de
+ingreso no futura" **aceptaba la de mañana**.
 
-- **`inicioDelDiaUtc(referencia)`** — el piso contra el que se compara.
-- **`finDelDiaUtc(referencia)`** — el techo, para que la comparación siga siendo
-  inclusiva si la fecha trae hora. No es hipotético: `esquemaCrearLote` acepta
-  tanto `"2026-09-24"` como una cadena ISO completa.
-- **`sumarDias(referencia, dias)`** — para el límite de la ventana de 30 días.
+**Se comparte la convención, no la regla.** Ninguna pantalla calcula
+vencimientos, así que no había regla de negocio que compartir. Lo que estaba
+escrito dos veces era qué significa "el día" de una fecha sin hora:
+`src/lib/fechas.ts` lo resolvía en UTC y `stock.ts` en local. Las primitivas
+—`inicioDelDiaUtc`, `finDelDiaUtc`, `sumarDias`— quedaron en `fechas.ts`, que ya
+era el dueño de la convención. La decisión de si un lote está vencido se quedó en
+el servicio.
 
-**Las tres leen el día calendario en hora local y devuelven el borde en UTC.** Esa
-mezcla es deliberada y está explicada en el archivo: el día es el que la persona
-ve en su calendario, y el borde tiene que estar en la zona en la que están
-guardadas las fechas. `referencia` es siempre un instante, nunca una fecha ya
-normalizada: pasarle el resultado de `inicioDelDiaUtc` la haría retroceder un día.
+**El `setHours` de `consultas.ts` NO se tocó y es correcto.** Es el único que
+queda en el repositorio, así que va a llamar la atención del próximo que busque
+esa cadena. Hay un comentario en el archivo explicando por qué sobrevivió: ahí el
+dato es `createdAt`, un instante real, y el día local es el criterio adecuado.
 
-La decisión de si un lote está vencido **se quedó en el servicio**, donde estaba.
+El arreglo de fondo es del esquema y quedó anotado como **P.8.08** en
+`docs/ROADMAP_PRODUCTO.md`: con esas columnas en `date` en vez de `timestamp`, el
+problema no podría volver.
 
-## El `setHours` que NO se tocó
+### Lo que se verificó de la 4.18
 
-`src/services/consultas.ts` tiene un `setHours(0,0,0,0)` local y **es correcto**.
-Es el único que quedó después de esta tarea, así que va a llamar la atención del
-próximo que busque `setHours` en el repositorio. Quedó un comentario en el propio
-archivo explicando por qué sobrevivió.
-
-La diferencia es el dato, no el criterio: ahí se filtra por `createdAt`, que es un
-**instante real** —cuándo se registró la consulta—, y "las consultas de hoy" son
-las del día de quien mira la pantalla. Pasarlo a UTC haría que a las 21 apareciera
-una consulta de mañana. **Un arreglo aplicado en barrido lo rompe.**
-
-## Qué se verificó
-
-Sin pruebas automatizadas, a mano. `npm run check` da 0.
-
-**El borde del vencimiento**, con un lote que vence el 24/09 y la fecha de
-referencia movida a mano:
+A mano, sin pruebas automatizadas. El borde del vencimiento, con un lote que
+vence el 24/09 y la fecha de referencia movida:
 
 ```
 23/09 10:00   vencido: false   POR_VENCER   dias: 1
@@ -97,65 +83,115 @@ referencia movida a mano:
 25/09 00:30   vencido: true    VENCIDO      dias: -1
 ```
 
-El día del vencimiento ahora da **0 y no `-0`**, que era lo que devolvía
-`Math.round` de un negativo chico.
+El día del vencimiento da **0 y no `-0`**. La ventana de 30 días sigue inclusiva:
+a 30 días avisa, a 31 no. La fecha de ingreso de hoy con hora completa se acepta y
+la de mañana se rechaza.
 
-**La ventana de 30 días** sigue siendo inclusiva: a 29 y 30 días `POR_VENCER`, a
-31 `VIGENTE`.
+**Las nueve situaciones de FEFO** se volvieron a correr. Ocho dan igual que antes;
+la novena es la que se quería cambiar, el lote que vence hoy ahora se usa primero.
+Y contra la base real se confirmó que Prisma devuelve las fechas como medianoche
+UTC exacta, que es el supuesto sobre el que se apoya todo el arreglo.
 
-**La fecha de ingreso**: hoy con hora completa se acepta, mañana se rechaza.
+## La 6.11 — el seed envejecía
 
-**Las nueve situaciones de FEFO** se volvieron a correr para descartar regresiones.
-Ocho dan igual que antes. La novena es la que cambió, y es la que se quería
-cambiar: el lote que vence hoy **ahora se usa primero** en vez de saltearse.
+Las fechas eran absolutas. El lote de Clonazepam vencía el 24/09/2026, así que
+**después de esa fecha la tarjeta de "lotes por vencer" se iba a cero** y se caía
+un momento de la demostración. Ahora se calculan como desplazamientos desde el
+día en que se siembra, con un helper apoyado en las primitivas de la 4.18, para
+que el seed no invente su propia idea de "el día".
 
-**Contra la base real**, para confirmar que Prisma devuelve las fechas como se
-suponía: los seis lotes vuelven como medianoche UTC exacta y se clasifican bien.
+**Y ahora se ven los tres estados de vencimiento, siempre.** Antes no había
+ningún lote vencido en el seed, así que el estado VENCIDO —el que justifica el
+indicador de la 4.17— no se podía mostrar. Se agregó **`HAL-VENCIDO`**, un lote
+de Haloperidol con 25 ampollas vencido hace 20 días.
 
-## Lo que queda anotado
+Está en Haloperidol a propósito: es el medicamento de la escena de FEFO, y vence
+antes que todos los demás. **Al dispensar 50, el sistema lo saltea** y reparte 40
+y 10 entre los dos lotes vigentes. Es la única forma de *mostrar* la exclusión de
+vencidos, que hasta ahora el guion afirmaba sin poder enseñar. De paso hace
+aparecer el renglón rojo de "N en lotes vencidos" de la pantalla de lotes, que
+estaba construido desde la 4.17 y nunca se había visto funcionando.
 
-**El arreglo de fondo es del esquema, no del código.** `Lote.fechaVencimiento` y
-`Lote.fechaIngreso` son fechas, no instantes, pero están declaradas `DateTime` y
-Postgres las guarda como `timestamp(3)`. Mientras sea así, todo el código que las
-compare tiene que saber en qué zona construir el corte, y cuando alguien se
-olvide, el error vuelve. **Con la columna en `date` no podría volver.**
+**Ningún número del guion cambió.** Verificado contra la base sembrada:
 
-No se hizo acá porque es una migración, y el esquema lo toca una sola persona por
-vez. Quedó escrito como **P.8.08** en `docs/ROADMAP_PRODUCTO.md`.
+```
+estados presentes:  VENCIDO, POR_VENCER, VIGENTE   -> los tres
+bajo minimo:        17
+lotes por vencer:   1  (Clonazepam en 15 dias)
+consultas del dia:  2
+Haloperidol disponible: 120   (las 25 vencidas no cuentan)
+plan FEFO de 50:    HAL-L1:40 + HAL-L2:10
+```
 
-## Qué sigue
+# Lo que falta de la 6.11: alinear el guion
 
-Las otras correcciones que salieron de la misma revisión, en este orden acordado:
+**Esto es lo único pendiente, y está analizado.** No hace falta volver a
+estudiarlo: son seis pasajes de `docs/GUION_DEMOSTRACION.md` y tres nombres de
+lote. Se retoma sobre la misma rama, `fix/6.11-fechas-del-seed-relativas`.
 
-1. **Las fechas del seed, que sean relativas a la fecha de ejecución.** Hoy son
-   absolutas: el lote de Clonazepam vence el 24/09/2026 y el guion afirma "en 15
-   días". Después de esa fecha la tarjeta de lotes por vencer se va a cero y se
-   cae un momento de la demostración.
-2. **Un paciente que muestre "sin interacciones" con cobertura real**, o sea dos
-   drogas que estén en ONCHigh y no interactúen entre sí. Es la más importante:
-   hoy la demostración muestra dos de los tres estados del módulo clínico, y el
-   que falta es justo el que prueba que el sistema distingue entre "se revisó y
-   está limpio" y "no se pudo revisar". `PAC-104` es Amoxicilina + Paracetamol y
-   las dos tienen cero cobertura, así que da "sin datos" igual que `PAC-103`.
-3. **El orden por severidad al releer una consulta guardada.**
+## Los tres nombres de lote que cambiaron
+
+El seed ya no pone el año en el número de lote, justamente porque envejecía.
+
+| Antes | Ahora |
+| --- | --- |
+| `CLO-2026-VENCE` | `CLO-POR-VENCER` |
+| `HAL-2026-L1` | `HAL-L1` |
+| `HAL-2027-L2` | `HAL-L2` |
+
+Y hay uno nuevo que el guion todavía no nombra: **`HAL-VENCIDO`**.
+
+## Los seis pasajes
+
+**Regla general: el guion tiene que nombrar plazos, no fechas.** "Vence en 15
+días" sigue siendo cierto siempre; "vence el 24/09/2026" deja de serlo.
+
+1. **Línea 79.** Dice que el lote `CLO-2026-VENCE` vence "el 24/09/2026, en 15
+   días". El plazo es correcto y ahora lo es siempre; sacar la fecha y corregir
+   el nombre del lote.
+2. **Líneas 105-106.** Da los vencimientos de los dos lotes de Haloperidol como
+   15/11/2026 y 15/09/2027. Van como plazos, y con los nombres nuevos.
+3. **Líneas 110-112.** Dice que los dos figuran "Vigente" y que el primero vence
+   "dentro de dos meses". **Sigue siendo cierto**: el desfase se eligió en 67
+   días justamente para que quede fuera de la ventana de 30. Solo revisar la
+   redacción si se cambian las líneas de arriba.
+4. **Líneas 126-127.** El plan de egreso repite las dos fechas. Mismo criterio.
+5. **Líneas 162-163.** La medicación de `PAC-101` figura "desde 15/08/2026" y
+   "desde 01/06/2026". Ahora son relativas: van como plazos o se sacan.
+6. **Líneas 8 y 260.** Son la fecha del ensayo de la 6.09. **No se tocan**: son
+   registro histórico de cuándo se ensayó, no una afirmación sobre la pantalla.
+
+## Lo que hay que agregar al guion, no solo corregir
+
+**La escena de FEFO ahora tiene tres lotes y eso es una mejora, no un estorbo.**
+La tabla de Haloperidol muestra primero `HAL-VENCIDO` con sus 25 ampollas y su
+indicador rojo, y recién después los dos vigentes.
+
+- **La narración dice "el primer lote solo tiene 40"** y hay que corregirla a
+  **"el primer lote vigente"**. Está acordado.
+- **Conviene detenerse ahí un segundo**: hay 145 ampollas en el depósito y solo
+  120 se pueden usar. Es el problema que el proyecto viene a resolver, visible en
+  pantalla, y es la respuesta al jurado que pregunte cómo se sabe que FEFO
+  descarta lo vencido.
+- El total sigue diciendo **120 disponibles**, con el renglón rojo aparte.
+
+# Qué sigue después
+
+Las correcciones que quedan de la misma revisión, en el orden acordado:
+
+1. **El orden por severidad al releer una consulta guardada.**
    `obtenerConsulta` ordena por `createdAt`, y todas las observaciones de una
    consulta se escriben en la misma transacción, así que comparten timestamp y el
-   orden lo decide Postgres. Hoy no se nota porque las 1150 filas de la fuente son
-   todas de severidad alta.
-4. **Dos menores:** la validación de lote escrita dos veces —`validarDatosDeLote`
-   dice existir para que la compartan `crearLote` y `crearLoteConIngreso`, pero
-   `crearLote` conserva su propia copia— y los mensajes de los servicios, que
-   llegan a la pantalla sin tildes.
+   orden lo termina decidiendo Postgres. La 5.18 pide orden por severidad. Hoy no
+   se nota porque las 1150 filas de la fuente son todas de severidad alta.
+2. **Dos menores.** La validación de lote escrita dos veces:
+   `validarDatosDeLote` dice existir para que la compartan `crearLote` y
+   `crearLoteConIngreso`, pero `crearLote` conserva su propia copia en línea. Y
+   los mensajes de error de los servicios, que llegan a la pantalla sin tildes.
 
-Después de eso, **ensayar el guion completo con la base sembrada** y cronometrar
-el recorrido.
-
-## Ojo con esto al retomar
-
-**La base de esta máquina no está en estado de demostración.** Tiene 10
-medicamentos, 1 paciente, 1 consulta y la tabla `Interaccion` **vacía**, restos de
-la verificación del aviso de cobertura. Antes de cualquier ensayo hay que correr
-`npx prisma db seed`, que limpia y vuelve a sembrar.
+Y después de todo eso, **ensayar el guion completo con la base sembrada y
+cronometrar el recorrido**. El ensayo de la 6.09 verificó que el sistema hace lo
+que el guion dice, no que entre en cinco minutos.
 
 ## Lo que sigue abierto de antes
 
@@ -169,38 +205,20 @@ bloqueo.
 **La D8 sigue abierta** desde el 2026-09-01: si se sostiene la regla de "código
 va en rama y otro le pasa el ojo" o se cambia el documento.
 
-## Cómo levantarlo
-
-```bash
-docker compose up -d
-npx prisma db seed
-npm run dev
-```
-
-`npm run check` da 0. Después de sembrar, la base queda con 25 medicamentos, 10
-lotes, 4 pacientes, 2 consultas y las 1150 interacciones.
-
-**Ojo con el selector de rol.** Se guarda en el `localStorage` del navegador y
-**no lo resetea ni el seed ni `npm run setup`**: si el ensayo anterior terminó
-como Dr. House, la próxima corrida arranca como Dr. House. Se corrige a mano
-desde la barra superior.
-
 ## Si alguien vuelve a tocar código
 
 - **Las fechas sin hora se comparan con las primitivas de `src/lib/fechas.ts`.**
   Nunca con `setHours` local. La excepción es `createdAt`, que es un instante.
-- **El aviso clínico va en toda pantalla clínica nueva**, con
-  `<AvisoClinico />`. No se copia el texto.
-- **Las pantallas consumen la API, no importan el servicio.**
-- **Las pantallas no revalidan reglas del dominio.** Mandan y pintan la
-  respuesta; lo único que decide el cliente es si el formulario está completo.
+- **Las fechas del seed son relativas al día en que se siembra.** No volver a
+  poner fechas fijas: es lo que arregló la 6.11.
+- **El aviso clínico va en toda pantalla clínica nueva**, con `<AvisoClinico />`.
+- **Las pantallas consumen la API, no importan el servicio**, y no revalidan
+  reglas del dominio.
 - **Las interacciones se evalúan sobre la medicación VIGENTE.**
-- **La `evaluabilidad` viene resuelta del servidor.**
 - **`ordenarParRxcui` es obligatorio** en cualquier lectura o escritura de
   `Interaccion`.
 - **`src/components/ui/` tiene siete componentes**: Boton, Campo, Tabla, Modal,
-  Chip, AvisoClinico y ErrorSeccion. Algo sube ahí cuando **dos o más rutas**
-  necesitan lo mismo.
+  Chip, AvisoClinico y ErrorSeccion.
 - **Ningún dato clínico se inventa.**
 - **El sistema asiste, no decide.**
 - **El paciente no tiene datos identificatorios.** Solo un seudónimo.
@@ -210,3 +228,7 @@ desde la barra superior.
 ## Bloqueos
 
 **Ninguno.** D8 sigue abierta y no bloquea ninguna tarea.
+
+**Ojo con el orden de merge.** La 6.11 se abrió sobre la rama de la 4.18, porque
+el seed usa las primitivas que esa tarea agregó. **La 4.18 se mergea primero**;
+si entra sola la 6.11, el seed no compila.

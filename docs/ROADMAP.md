@@ -31,7 +31,7 @@ commits lo llevan (`feat/3.04-...`, `feat(3.04): ...`).
 
 | Tarea | Integrante | Rama | Estado | Dónde quedó | Última actualización |
 |---|---|---|---|---|---|
-| 6.11 | Juan Pablo | `fix/6.11-fechas-del-seed-relativas` | activa | — | 2026-09-09 |
+| 6.11 | Juan Pablo | `fix/6.11-fechas-del-seed-relativas` | activa | Seed hecho. Alineando el guion | 2026-09-09 |
 
 
 ### Reserva de tareas
