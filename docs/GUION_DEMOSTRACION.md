@@ -55,7 +55,7 @@ Tener todo levantado y verificado en la notebook:
 |---|---|---|---|
 | **00:00 - 01:00** | **Acto 1: Apertura y Diagnóstico de Farmacia** | Contexto de la Colonia, rol simulado y 3 tarjetas clave | `/` (Inicio) |
 | **01:00 - 02:45** | **Acto 2: Trazabilidad y Dispensación FEFO** | Dos lotes con distinto vencimiento y reparto automático | `/stock` y `/stock/[id]` |
-| **02:45 - 04:15** | **Acto 3: Módulo Clínico y Soporte a la Decisión** | Paciente crónico, interacciones severas y cobertura | `/pacientes/[id]` y `/consultas/nueva` |
+| **02:45 - 04:15** | **Acto 3: Módulo Clínico y Soporte a la Decisión** | Paciente crónico, interacciones severas y las tres respuestas posibles | `/pacientes/[id]` y `/consultas/nueva` |
 | **04:15 - 05:00** | **Acto 4: Síntesis de Arquitectura y Cierre** | Principios técnicos, determinismo y conclusiones | Barra superior / Diapositiva final |
 
 ---
@@ -236,6 +236,27 @@ Tener todo levantado y verificado en la notebook:
 > *"Este es el punto que más nos importa del módulo. 'No se encontraron interacciones' y 'no hay datos para revisarlo' son dos cosas distintas, y confundirlas es el peor error que un sistema como este puede cometer: le daría al médico una tranquilidad que nadie verificó.*  
 > *Por eso la advertencia aparece antes de evaluar, y el resultado nunca dice 'sin interacciones' a secas cuando hay drogas que no se pudieron cruzar."*
 
+#### El tercer estado, que cierra el contraste (`PAC-105`):
+
+**Es el paso más corto del acto y el primero que se recorta si el reloj aprieta**,
+pero sin él el contraste queda a medias: se ven dos de las tres respuestas
+posibles y el jurado no tiene cómo distinguir un cruce vacío de un cruce que no
+se hizo.
+
+11. Entrar a **`PAC-105`** (Carbamazepina + Fluoxetina) y clic en **"Evaluar
+    interacciones"**.
+12. **Detenerse en la pantalla de selección un segundo, por lo que NO tiene.**
+    Ninguna de las dos drogas viene marcada y al pie no hay ningún aviso de
+    cobertura: solo *"Se cargaron los 2 medicamentos vigentes de PAC-105."* Es
+    la misma pantalla que en `PAC-103` estaba llena de advertencias.
+13. Evaluar. El resultado dice *"No se encontraron interacciones registradas
+    entre los medicamentos evaluados"* **y nada más**: no aparece el bloque
+    ámbar. Debajo, **"Medicamentos evaluados: Carbamazepina · Fluoxetina"**.
+
+#### Qué decir:
+> *"Y este es el tercer caso, el que completa el cuadro. Las dos drogas están en la fuente, el cruce se hizo de verdad, y no hay nada que informar.*  
+> *Fíjense que la pantalla es casi idéntica a la anterior y significa lo contrario. Ahí decía 'no pudimos revisar esto'; acá dice 'lo revisamos y está limpio'. La diferencia está en el bloque ámbar que en este caso no aparece, y en la lista de medicamentos evaluados, que es lo que nos permite afirmar qué se miró."*
+
 ---
 
 ### Acto 4: Síntesis de Arquitectura y Cierre (04:15 - 05:00)
@@ -326,6 +347,11 @@ que da "sin datos", igual que `PAC-103`. De los tres estados posibles, la demo
 muestra dos. Para el tercero hace falta un par cubierto que no interactúe: sirve
 **Carbamazepina + Fluoxetina**, verificado contra la base. Se arma a mano desde
 `/consultas/nueva` si el jurado lo pide.
+
+> **RESUELTO en la tarea 6.13.** El seed trae `PAC-105` con ese par y el acto 3
+> lo recorre: es el paso 11 en adelante. Ya no hace falta armarlo a mano. Se deja
+> escrito lo de arriba porque es lo que el ensayo encontró, y el registro no se
+> reescribe.
 
 **16 de los 25 medicamentos están en cero.** La pantalla de stock se lee como un
 sistema sin cargar. Hay una respuesta preparada arriba, pero se resuelve mejor

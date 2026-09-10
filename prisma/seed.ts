@@ -554,10 +554,28 @@ async function main() {
     { nombre: "Risperidona", fechaInicio: enDias(-117) },
   ]);
 
-  // Paciente 4: Sin interacciones entre sí (Paracetamol + Amoxicilina)
+  // Paciente 4: Sin cobertura en la fuente, igual que PAC-103 (Paracetamol +
+  // Amoxicilina). El nombre de esta variable decía "sin interacciones entre sí"
+  // y era engañoso: no interactúan porque no hay con qué cruzarlas.
   await crearPacienteConMedicacion("PAC-104", [
     { nombre: "Paracetamol", fechaInicio: enDias(-8) },
     { nombre: "Amoxicilina", fechaInicio: enDias(-8) },
+  ]);
+
+  // Paciente 5: Revisado y sin interacciones (Carbamazepina + Fluoxetina).
+  //
+  // Es el TERCER estado del módulo clínico, y el único que la demostración no
+  // podía mostrar. Las dos drogas figuran en ONCHigh —verificado contra la base,
+  // no supuesto—, así que el cruce se hace de verdad y devuelve vacío. Eso es
+  // "se revisó y no hay nada", que NO es lo mismo que el vacío de PAC-103 y
+  // PAC-104, donde no hubo con qué cruzar. Decisión 0012.
+  //
+  // No lleva consulta registrada a propósito: la demostración lo evalúa en vivo,
+  // igual que PAC-103, y una consulta más movería la tarjeta de "consultas del
+  // día" que el guion afirma en 2.
+  await crearPacienteConMedicacion("PAC-105", [
+    { nombre: "Carbamazepina", fechaInicio: enDias(-73) },
+    { nombre: "Fluoxetina", fechaInicio: enDias(-31) },
   ]);
 
   // 6. Consultas clínicas históricas registradas
